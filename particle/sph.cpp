@@ -1,7 +1,6 @@
 /*************************************************************************
-Name:	Casey Beach
-Date:	10/13/2010
-SPH: 	sph.cpp
+Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz	
+File name: 	sph.cpp
 
 sph is responsible for orginization of a group of smooth particles.
 *************************************************************************/

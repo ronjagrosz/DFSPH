@@ -1,3 +1,10 @@
+//
+// Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz
+// File name:  Shader.cpp
+//
+// Class that opens shader files
+//
+
 #version 400
 layout(location = 0) in vec3 VertexPosition;
 layout(location = 1) in vec3 VertexNormal;

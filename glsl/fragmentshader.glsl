@@ -1,3 +1,10 @@
+//
+// Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz
+// File name:  Shader.cpp
+//
+// Class that opens shader files
+//
+
 #version 400
 layout( location = 0 ) out vec4 FragColor;
 
