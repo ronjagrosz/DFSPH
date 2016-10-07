@@ -1,10 +1,18 @@
+/*************************************************************************
+Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz
+File name:  Shader.cpp
+ 
+Class that opens shader files
+*************************************************************************/
+          
+
 #include "Shader.h"
 
 Shader::Shader () {
 	this->programID = 0;
 }
 
-//! Loads the files, comiles the shaders and assembles the shader program.
+//! Loads the files, compiles the shaders and assembles the shader program.
 Shader::Shader (const char *vertexFilePath, const char *fragmentFilePath) {
 	this->createShader(vertexFilePath, fragmentFilePath);
 }

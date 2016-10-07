@@ -1,7 +1,6 @@
 /*************************************************************************
-Name:	Casey Beach
-Date:	6/27/2010
-Terminus: ogl.h
+Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
+File name:  ogl.cpp
 
 ogl is used as a OpenGL controller.  ogl is responsible for managing all openGL related activities.
 *************************************************************************/

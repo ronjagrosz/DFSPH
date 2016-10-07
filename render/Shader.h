@@ -1,3 +1,10 @@
+/*************************************************************************
+Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz
+File name:  Shader.h
+
+Class that opens shader files
+*************************************************************************/
+
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
