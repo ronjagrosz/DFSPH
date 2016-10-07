@@ -16,9 +16,8 @@ sph is responsible for orginization of a group of smooth particles.
 #include <algorithm>
 #include <ctime>
 
-#include "particle/sph.h"
-#include "util/uVect.h"
-#include "instrumentation.h"
+#include "../particle/sph.h"
+#include "../util/uVect.h"
 
 const int DIMENSION = 0.01;
 //#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.

@@ -13,7 +13,6 @@ ogl is used as a OpenGL controller.  ogl is responsible for managing all openGL 
 #include "../particle/sph.h"
 #include "../render/ogl.h"
 #include "../util/uVect.h"
-#include "../instrumentation.h"
 #include "Shader.h"
 
 #define GLUT_SCROLL_UP 		3	//Used in the mouseButtonEvent callback.  freeglut has functionality for mouse scolling, but aparently not the defines.

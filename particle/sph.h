@@ -16,7 +16,7 @@ sph is responsible for orginization of a group of smooth particles.
 
 #include <vector>
 
-#include "particle/sp.h"
+#include "../particle/sp.h"
 
 //class timer;
 

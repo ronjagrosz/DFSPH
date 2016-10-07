@@ -40,7 +40,7 @@ Makefile
 *.exe
 *.out
 *.app
-
+sph
 
 ### macOS ###
 *.DS_Store

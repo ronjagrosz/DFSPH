@@ -3,11 +3,12 @@
 
 //#include "stdafx.h"
 
-#include <util/uVect.h>
+
 #include <iostream>
 
-#include <render/ogl.h>
-#include <particle/sp.h>
+#include "util/uVect.h"
+#include "render/ogl.h"
+#include "particle/sp.h"
 
 using namespace std;
 

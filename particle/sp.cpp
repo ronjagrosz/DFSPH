@@ -16,8 +16,8 @@ particle at a certain point.
 #include <stack>
 #include <cmath>
 
-#include "particle/sp.h"
-#include "util/uVect.h"
+#include "../particle/sp.h"
+#include "../util/uVect.h"
 
 #define CONST_FORCE_CONST 1
 //#define WEIGHTLESS

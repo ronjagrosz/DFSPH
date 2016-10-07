@@ -19,7 +19,7 @@ particle at a certain point.
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "util/uVect.h"
+#include "../util/uVect.h"
 
 #define WATER 0
 
