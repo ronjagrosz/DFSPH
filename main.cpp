@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 {
 	ogl sph;
 
-	sph.Start(argc, argv);
+	sph.start(argc, argv);
 
 	return 0;
 }
