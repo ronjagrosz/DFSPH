@@ -9,7 +9,7 @@ ogl is used as a OpenGL controller.  ogl is responsible for managing all openGL 
 #include <iostream>
 #include <vector>
 
-#include "../particle/sph.h"
+#include "../particle/SPH.h"
 #include "../render/ogl.h"
 #include "../util/uVect.h"
 #include "Shader.h"
@@ -32,7 +32,7 @@ vector	<int> *ogl::mousePosition;
 
 rect	*ogl::viewPaneSize;
 
-sph 	*ogl::hydro;
+SPH 	*ogl::hydro;
 
 timer	*ogl::timeSinceStart;
 /************************************************************************/
@@ -117,7 +117,7 @@ void ogl::init(void)		//enable texture, lighting, shading.
 
 void ogl::initWorld()
 {
-	ogl::hydro = new sph(PARTICLE_COUNT);	//this is the object that will manage all of the particles
+	ogl::hydro = new SPH(PARTICLE_COUNT);	//this is the object that will manage all of the particles
 	ogl::hydro->setTimer(timeSinceStart);	//I'm setting a timer to bind the particles to real time regardless of the coputer that they are run on
 }
 
@@ -150,25 +150,21 @@ void ogl::controlView(GLFWwindow *window)
 	}
 	else {
 		if (glfwGetKey(window, GLFW_KEY_UP)) {
-			cout << "UP KEY \n";
 			theta += deltaTime*PI / 2.0; // Rotate 90 degrees per second
 			if (theta >= PI / 2.0) theta = PI / 2.0; // Clamp at 90
 		}
 		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-			cout << "DOWN KEY \n";
 			theta -= deltaTime*PI / 2.0; // Rotate 90 degrees per second
 			if (theta < 0.1f) theta = 0.1f;      // Clamp at -90
 		}
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
-		cout << "RIGHT KEY \n";
 		phi -= deltaTime*PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, PI*2.0); // Wrap around at 360 degrees (2*pi)
 		if (phi < 0.0) phi += PI*2.0; // If phi<0, then fmod(phi,2*pi)<0
 	}
 	else if (glfwGetKey(window, GLFW_KEY_LEFT)) {
-		cout << "LEFT KEY \n";
 		phi += deltaTime*PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, PI*2.0);
 	}
@@ -203,8 +199,7 @@ int ogl::start(int argc, char** argv)	//initialize glut and set all of the call 
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
-
-    
+  
     //create GLFW window and select context
     GLFWwindow* window = glfwCreateWindow(640, 480, "Fluid Simulation", NULL, NULL);
     if (!window) {
@@ -260,15 +255,6 @@ int ogl::start(int argc, char** argv)	//initialize glut and set all of the call 
         viewMatrix = viewMatrix * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f));
         // Rotate with phi around Y
         viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
-		
-		cout << "Matrix: " << endl;
-		for (int j = 0; j < 4; ++j) {
-			for (int i = 0; i < 4; ++i)
-				cout << viewMatrix[i][j] << " ";
-			cout << endl;
-		}
-		
-
 
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));

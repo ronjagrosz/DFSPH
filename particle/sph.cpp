@@ -1,6 +1,6 @@
 /*************************************************************************
 Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz	
-File name: 	sph.cpp
+File name: 	SPH.cpp
 
 sph is responsible for orginization of a group of smooth particles.
 *************************************************************************/
@@ -15,10 +15,10 @@ sph is responsible for orginization of a group of smooth particles.
 #include <algorithm>
 #include <ctime>
 
-#include "../particle/sph.h"
+#include "../particle/SPH.h"
 #include "../util/uVect.h"
 
-const int DIMENSION = 0.01;
+const int DIMENSION = 20;
 //#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.
 
 //The sort algorithm in the stl algorithms library needs a 
@@ -26,25 +26,11 @@ const int DIMENSION = 0.01;
 
 bool compareZ(SmoothedParticle* left, SmoothedParticle* right)
 {
-	vector <double> *leftPosition = left->getPosition(); 
-	vector <double> *rightPosition = right->getPosition(); 
-	
-	if( leftPosition->at(2) < rightPosition->at(2))
-	{
-		delete leftPosition;
-		delete rightPosition;
-		
-		return true;
-
-	}
-
-	delete leftPosition;
-	delete rightPosition;
-	return false;
+	return (left->getPosition()->at(2) < right->getPosition()->at(2));
 }
 
 //default constructor.
-sph::sph()
+SPH::SPH()
 {
 	dls = new vector <GLuint> (3);
 	createDL(1,10);	
@@ -55,8 +41,7 @@ sph::sph()
 //this constructor creates a vector the size of 
 //particles and initializes them with random positions
 //and velocities inside a bounding cube of size 4
-
-sph::sph(int particles)
+SPH::SPH(int particles)
 {
 	
 	dls = new vector <GLuint> (3);
@@ -66,21 +51,7 @@ sph::sph(int particles)
 	double randI, randJ, randK; //velocity vector values
 	
 	srand(time(0));
-	
-	#ifdef VISIBLE_TEST //only do 5 particles in a line
-	particleCount = 5;
-	material = new vector<SmoothedParticle*>(particleCount);
-	for(int i = 0; i < 5; i++)
-	{
-		material->at(i) = new SmoothedParticle();
-		material->at(i)->setDL(dls->at(0));
-		material->at(i)->setPosition(0, i/2.0, 0);
-		material->at(i)->setMass(1);
-	}
 
-	#endif
-
-	#ifndef VISIBLE_TEST
 	particleCount = particles;
 	material = new vector<SmoothedParticle*>(particles);
 
@@ -93,7 +64,6 @@ sph::sph(int particles)
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-
 		material->at(i) = new SmoothedParticle();
 		material->at(i)->setDL(dls->at(0));
 		material->at(i)->setPosition(randX, randY, randZ);
@@ -101,16 +71,13 @@ sph::sph(int particles)
 		material->at(i)->setMass(5);
 	}
 
-
-	#endif
 	timeLastFrame = frameTimer->elapsed();
 }
 
 //this constructor is the same as above, but instead
 //of random positions it places the particles in a 
 //nice grid pattern with random velocities
-
-sph::sph(int particles, int cube)
+SPH::SPH(int particles, int cube)
 {
 	particleCount = DIMENSION*DIMENSION*DIMENSION;
 	dls = new vector <GLuint> (3);
@@ -150,7 +117,7 @@ sph::sph(int particles, int cube)
 
 	timeLastFrame = frameTimer->elapsed();
 }
-sph::~sph()
+SPH::~SPH()
 {
 	for(int i = 0; i < particleCount; i++)
 	{
@@ -164,7 +131,7 @@ sph::~sph()
 
 //this is one of the most important functions in the 
 //program
-void sph::applyForces(double timeDiff)
+void SPH::applyForces(double timeDiff)
 {
 	double distance = 0;
 
@@ -242,7 +209,7 @@ void sph::applyForces(double timeDiff)
 //getting and applying force it just calls the particle's 
 //calculate density function.
 
-void sph::calculateDensity()
+void SPH::calculateDensity()
 {
 	double distance = 0;
 	
@@ -297,8 +264,7 @@ void sph::calculateDensity()
 }
 
 //this is sph's entrypoint each frame
-
-int sph::display()	
+int SPH::display()	
 {
 	int index = 0;
 	int success = 0;
@@ -327,34 +293,6 @@ int sph::display()
 				{
 					if(material->at(index))
 					{
-						#ifdef VISIBLE_TEST
-						//if visible test is defined I only have
-						//5 particles on the screen, I want them
-						//to be different collors so I can keep track 
-						//of them
-						switch(index)	
-						{
-							case 0:
-								glColor3f(1.0,0.0,0.0);
-								break;
-							case 1:
-								glColor3f(0.0,1.0,0.0);
-								break;
-							case 2:
-								glColor3f(0.0,0.0,1.0);
-								break;
-							case 3:
-								glColor3f(1.0,1.0,1.0);
-								break;
-							case 4:
-								glColor3f(1.0,1.0,0.0);
-								break;
-							default:	
-								break;
-
-
-						};
-						#endif
 						//display the particle
 						material->at(index)->display(timeLastFrame);
 					}
@@ -388,8 +326,8 @@ int sph::display()
 	return success;
 
 }
-
-void sph::createDL(int index, int space) //depricated
+						// 0, 10
+void SPH::createDL(int index, int space) //depricated
 {
 //	int VertexCount = (90/space)*(360/space)*4;
 	VERTICES *VERTEX = createSphere(2,0.0,0.0,0.0,10);
@@ -406,7 +344,7 @@ void sph::createDL(int index, int space) //depricated
 	delete[] VERTEX;
 }
 
-void sph::DisplaySphere (double R, int VertexCount, VERTICES *VERTEX)//depricated
+void SPH::displaySphere (double R, int VertexCount, VERTICES *VERTEX)//depricated
 {
 
 	int b;
@@ -443,7 +381,7 @@ due to floating point rounding errors which would cause the triangle
 strip's ends not to meet.  With the addition of the new if blocks this
 should be fixed.
 *************************************************************************/
-VERTICES* sph::createSphere (double radius, double H, double K, double Z, int space) //depricated
+VERTICES* SPH::createSphere (double radius, double H, double K, double Z, int space) //depricated
 {
 	using namespace std;
 	int n;
@@ -516,11 +454,9 @@ VERTICES* sph::createSphere (double radius, double H, double K, double Z, int sp
 	return VERTEX;
 }
 
-void sph::setTimer(timer *newTimer)
+void SPH::setTimer(timer *newTimer)
 {
-
 	frameTimer = newTimer;
-
 }
 
 

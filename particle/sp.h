@@ -1,6 +1,6 @@
 /*************************************************************************
 Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
-File name: 	sp.h
+File name: 	SP.h
 
 The class sp represents a single smooth particle.  It is responsible for
 all calculations regarding that particle (eg. getting the force from this 

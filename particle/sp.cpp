@@ -1,6 +1,6 @@
 /*************************************************************************
 Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
-File name:  sp.cpp
+File name:  SP.cpp
 
 The class sp represents a single smooth particle.  It is responsible for
 all calculations regarding that particle (eg. getting the force from this 
@@ -15,7 +15,7 @@ particle at a certain point.
 #include <stack>
 #include <cmath>
 
-#include "../particle/sp.h"
+#include "../particle/SP.h"
 #include "../util/uVect.h"
 
 #define CONST_FORCE_CONST 1

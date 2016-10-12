@@ -25,7 +25,7 @@ server.  The ogl will handle all user interaction and graphics.
 #include "glm/ext.hpp"
 
 class uVect;
-class sph;
+class SPH;
 
 using namespace std;
 using namespace boost;
@@ -44,7 +44,7 @@ class ogl
 
 	protected:
 
-		static sph 		*hydro;
+		static SPH 		*hydro;
 //		vector <mesh> 		objects;
 		static vector <double> 	*cameraPosition;
 		static uVect 		*cameraOrientation;
