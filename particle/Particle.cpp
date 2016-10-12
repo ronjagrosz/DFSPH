@@ -1,8 +1,8 @@
 /*************************************************************************
 Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
-File name:  sp.cpp
+File name:  Particle.cpp
 
-The class sp represents a single smooth particle.  It is responsible for
+The class Particle represents a single smooth particle.  It is responsible for
 all calculations regarding that particle (eg. getting the force from this 
 particle at a certain point.
 *************************************************************************/
@@ -15,7 +15,7 @@ particle at a certain point.
 #include <stack>
 #include <cmath>
 
-#include "../particle/sp.h"
+#include "../particle/Particle.h"
 
 #define CONST_FORCE_CONST 1
 //#define WEIGHTLESS
@@ -69,7 +69,6 @@ void SmoothedParticle::display(double oldFrameTime)
 		glCallList(DL);
 	}
 	glPopMatrix();
-
 }
 
 
@@ -201,7 +200,7 @@ glm::vec4* SmoothedParticle::getForceAtPoint(SmoothedParticle *neighbor)
 		//force due to pressure
 		forceX = -1.0 * nMass * ((nPressure + pressure)/(2*nDensity)) * densityKernel(nPosition);//pressureKernelValue->at(0);
 		forceY = -1.0 * nMass * ((nPressure + pressure)/(2*nDensity)) * densityKernel(nPosition);//pressureKernelValue->at(1);
-		forceZ = -1.0 * nMass * ((nPressure + pressure)/(2*nDensity)) * densityKernel(nPosition);//;pressureKernelValue->at(2);
+		forceZ = -1.0 * nMass * ((nPressure + pressure)/(2*nDensity)) * densityKernel(nPosition);//pressureKernelValue->at(2);
 
 		//force due to viscosity
 		forceX += viscosity * nMass * ((viscosity * nViscosity)/nDensity) * viscosityKernelValue->at(0);
@@ -285,20 +284,14 @@ vector <double>* SmoothedParticle::pressureKernel(vector <double> *r)
 			r->at(1)*r->at(1)+
 			r->at(2)*r->at(2));
 
-	tempVect->at(0) = (45.0/(M_PI*ER*
-		ER*ER*ER*
-		ER*ER)) * ((ER*mag)*
+	tempVect->at(0) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * ((ER*mag)*
 		(ER*mag)*(ER*mag)) * (r->at(0)/mag);
 				
-	tempVect->at(1) = (45.0/(M_PI*ER*ER*
-		ER*ER*ER*ER)) *
-	 	((ER*mag)*(ER*mag)*
-		(ER*mag)) * (r->at(1)/mag);
+	tempVect->at(1) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) *
+	 	((ER*mag)*(ER*mag)*(ER*mag)) * (r->at(1)/mag);
 
-	tempVect->at(2) = (45.0/(M_PI*ER*ER*
-		ER*ER*ER*ER)) * 
-		((ER*mag)*(ER*mag)*
-		(ER*mag)) * (r->at(2)/mag);
+	tempVect->at(2) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * 
+		((ER*mag)*(ER*mag)*(ER*mag)) * (r->at(2)/mag);
 
 
 	return tempVect;

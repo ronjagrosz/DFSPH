@@ -1,8 +1,8 @@
 /*************************************************************************
 Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
-File name: 	sp.h
+File name: 	Particle.h
 
-The class sp represents a single smooth particle.  It is responsible for
+The class Particle represents a single smooth particle.  It is responsible for
 all calculations regarding that particle (eg. getting the force from this 
 particle at a certain point.
 *************************************************************************/
@@ -72,7 +72,7 @@ class SmoothedParticle
 		double maxR;		//Maximum scalar value for the repulsive force (x^2)
 		double maxA;		//maximum scalar value for the attractive force (x^2)
 
-		GLuint	DL;		//this is the pointer to the SP's display list
+		GLuint	DL;		//this is the pointer to the Particle's display list
 
 		//The color and shape
 		vector <int>	*color;	//the color of the smooth particle
