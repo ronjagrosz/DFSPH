@@ -1,7 +1,13 @@
 #version 400
-layout( location = 0 ) out vec4 FragColor;
 
-in vec3 Position;
+precision highp float;
+
+out vec4 FragColor;
+
+in vec3 outColor;
+//out vec4 gl_FragColor;
+
+/*in vec3 Position;
 in vec3 Normal;
 in vec2 UV;
 
@@ -41,14 +47,17 @@ vec3 calculateLight(vec3 lightP, float lightIntensity) {
 	
 	return ambient + diffuse + specular;
 }
-
+*/
 
 void main () {
+	/*
 	float LightIntensity = 0.6f;
 	vec3 resultLight = calculateLight(lightPos[0], LightIntensity);
 	LightIntensity = 0.2f;
 	//for (int i = 1; i < nLightsources; i++)
 		//resultLight += calculateLight(lightPos[i], LightIntensity);
-	FragColor = vec4(resultLight, 1.0f);
+	FragColor = vec4(resultLight, 1.0f);*/
+
+	FragColor = vec4(outColor,1.0);
 	
 }

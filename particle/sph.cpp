@@ -47,8 +47,10 @@ bool compareZ(SmoothedParticle* left, SmoothedParticle* right)
 //default constructor.
 sph::sph()
 {
-	dls = new vector <GLuint> (3);
-	createDL(1,10);	
+	//dls = new vector <GLuint> (3);
+	
+
+	//createDL(1,10);	
 	frameTimer = new timer;
 	timeLastFrame = frameTimer->elapsed();
 }
@@ -60,15 +62,15 @@ sph::sph()
 sph::sph(int particles)
 {
 	
-	dls = new vector <GLuint> (3);
+	//dls = new vector <GLuint> (3);
 	frameTimer = new timer;
-	createDL(0,10);
+	//createDL(0,10);
 	double randX, randY, randZ;
 	double randI, randJ, randK; //velocity vector values
 	
 	srand(time(0));
 	
-	#ifdef VISIBLE_TEST //only do 5 particles in a line
+	/*#ifdef VISIBLE_TEST //only do 5 particles in a line
 	particleCount = 5;
 	material = new vector<SmoothedParticle*>(particleCount);
 	for(int i = 0; i < 5; i++)
@@ -79,17 +81,20 @@ sph::sph(int particles)
 		material->at(i)->setMass(1);
 	}
 
-	#endif
+	#endif*/
 
 	#ifndef VISIBLE_TEST
 	particleCount = particles;
-	material = new vector<SmoothedParticle*>(particles);
 
-	for(int i = 0; i < particles; i++)
+	createVAO(particleCount);
+
+	//material = new vector<SmoothedParticle*>(particles);
+
+	/*for(int i = 0; i < particles; i++)
 	{
-		randX = ((double)rand()/(double)RAND_MAX) * 4.0;
-		randY = ((double)rand()/(double)RAND_MAX) * 4.0;
-		randZ = ((double)rand()/(double)RAND_MAX) * 4.0;
+		randX = ((double)rand()/(double)RAND_MAX) * 1.0;
+		randY = ((double)rand()/(double)RAND_MAX) * 1.0;
+		randZ = ((double)rand()/(double)RAND_MAX) * 1.0;
 		
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
@@ -100,57 +105,13 @@ sph::sph(int particles)
 		material->at(i)->setPosition(randX, randY, randZ);
 		material->at(i)->setVelocity(randI, randJ, randK);
 		material->at(i)->setMass(5);
-	}
+	}*/
 
 
 	#endif
 	timeLastFrame = frameTimer->elapsed();
 }
 
-//this constructor is the same as above, but instead
-//of random positions it places the particles in a 
-//nice grid pattern with random velocities
-
-sph::sph(int particles, int cube)
-{
-	particleCount = DIMENSION*DIMENSION*DIMENSION;
-	dls = new vector <GLuint> (3);
-	frameTimer = new timer;
-	createDL(0,10);
-	srand(time(0));
-
-	double randI, randJ, randK; //velocity vector values
-
-	material = new vector<SmoothedParticle*>(DIMENSION*DIMENSION*DIMENSION);
-
-	for(int i = 0; i < DIMENSION; i++)
-	{
-		for(int j = 0; j < DIMENSION; j++)
-		{
-			for(int k = 0; k <  DIMENSION; k++)
-			{
-				randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-				randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-				randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k) = new SmoothedParticle();
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k)->setDL(dls->at(0));
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k)->setPosition(i/(DIMENSION/5.0), j/(DIMENSION/5.0), k/(DIMENSION/5.0));
-				material->at(i)->setVelocity(randI, randJ, randK);
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k)->setMass(5);
-			}
-		}
-	}
-	for(int i = 0; i < DIMENSION*DIMENSION*DIMENSION; i++)
-	{
-		if(material->at(i) == 0)
-			cout << i << endl;
-
-
-	}
-
-	timeLastFrame = frameTimer->elapsed();
-}
 sph::~sph()
 {
 	for(int i = 0; i < particleCount; i++)
@@ -299,7 +260,7 @@ void sph::calculateDensity()
 
 //this is sph's entrypoint each frame
 
-int sph::display()	
+int sph::display(int particles)	
 {
 	int index = 0;
 	int success = 0;
@@ -311,8 +272,21 @@ int sph::display()
 	
 	success = 0;
 	
+	for (int i = 0; i < 8; i++) {
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindVertexArray(vao);
+
+		//glEnable(GL_DEPTH_TEST);
+		//glEnable(GL_CULL_FACE);
+		//glCullFace(GL_BACK);
+		//glFrontFace(GL_CW);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		glDrawArrays(GL_LINE_LOOP, 0, i);
+	}
 	
-	if((currentTime - timeLastFrame) > 0)
+	/*if((currentTime - timeLastFrame) > 0)
 	{
 		//move the particles
 		applyForces(currentTime - timeLastFrame);
@@ -384,15 +358,15 @@ int sph::display()
 			timeLastFrame = frameTimer->elapsed();
 			success = 1;
 		}
-	}
+	}*/
 
 	return success;
 
 }
 
-void sph::createDL(int index, int space) //depricated
+/*void sph::createDL(int index, int space) //depricated
 {
-//	int VertexCount = (90/space)*(360/space)*4;
+	int VertexCount = (90/space)*(360/space)*4;
 	VERTICES *VERTEX = createSphere(2,0.0,0.0,0.0,10);
 	dls->at(index) = glGenLists(1);
 	glNewList(dls->at(index),GL_COMPILE);
@@ -401,120 +375,65 @@ void sph::createDL(int index, int space) //depricated
 		glEnd();
 
 
-//		DisplaySphere(10.0,VertexCount,VERTEX);	
+		//DisplaySphere(10.0,VertexCount,VERTEX);	
 	glEndList();
 
 	delete[] VERTEX;
-}
+}*/
 
-void sph::DisplaySphere (double R, int VertexCount, VERTICES *VERTEX)//depricated
-{
+void sph::createVAO ( int particles ) {
+	// A VAO (Vertex Array Object) stores information of a complete rendered object.
+	// It contains all VBOs (Vertex Buffer Objects)
+	// A VBO stores information about the vertices. 
+	// Now we're using two VBOs, one for coordinates and one for colors
+	vertices = new VERTICES[particles];
+	const GLfloat color[3] = {  1.0,  0.0,  0.0  };
 
-	int b;
-	glScalef (0.0125 * R, 0.0125 * R, 0.0125 * R);
-	glRotatef (90, 1, 0, 0);
-//	glBindTexture (GL_TEXTURE_2D, *planetTex );
-	glBegin (GL_TRIANGLE_STRIP);
+	// generate random positions for all vertices
+	/*for(int i = 0; i < particles; i++) {
+		vertices[i].X = (rand()/RAND_MAX) * 4.0;
+		vertices[i].Y = (rand()/RAND_MAX) * 4.0;
+		vertices[i].Z = (rand()/RAND_MAX) * 4.0;	
+	}*/
+	const GLfloat diamond[4][2] = {
+    {  0.0,  1.0  }, /* Top point */
+    {  1.0,  0.0  }, /* Right point */
+    {  0.0, -1.0  }, /* Bottom point */
+    { -1.0,  0.0  } }; /* Left point */
 
-		for(b=0;b<=VertexCount;b++)
-		{
-	//		glTexCoord2f (VERTEX[b].U, VERTEX[b].V);
-			glVertex3f (VERTEX[b].X, VERTEX[b].Y, -VERTEX[b].Z);
-		}
+	//GLuint vboId; // Id of VBO
 
+	// Allocate and bind Vertex Array Object to the handle vao
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
-		for(b = 0;b<=VertexCount;b++)
-		{
-	//		glTexCoord2f (VERTEX[b].U, -VERTEX[b].V);
-			glVertex3f (VERTEX[b].X, VERTEX[b].Y, VERTEX[b].Z);
-		}
-	    
-	glEnd();
-}
+	// Generate (one) new Vertex Buffer Object and get the associated id
+	glGenBuffers(2, vbo);
 
+	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
-/*************************************************************************
-The createSphere function was copied from 
-http://www.swiftless.com/tutorials/opengl/sphere.html
+	// Copy the vertex data from diamond to our buffer 
+    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
+    glBufferData(GL_ARRAY_BUFFER, /*particles * sizeof(VERTICES), vertices,*/ 8 * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
 
-Now new and Improved!
-There was an error in the original code which created a plane that 
-extended north and south from the sphere's meridian.  This was likely
-due to floating point rounding errors which would cause the triangle
-strip's ends not to meet.  With the addition of the new if blocks this
-should be fixed.
-*************************************************************************/
-VERTICES* sph::createSphere (double radius, double H, double K, double Z, int space) //depricated
-{
-	using namespace std;
-	int n;
-	double a;
-	double b;
-	
-	int VertexCount = (90/space)*(360/space)*4;
-	VERTICES *VERTEX = new VERTICES[VertexCount];
+    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-	n = 0;
-	for( b = 0; b <= 90 - space; b+=space)
-	{
+    // Enable attribute index 0 as being used 
+    glEnableVertexAttribArray(0);
 
-		for( a = 0; a <= 360 - space; a+=space)
-		{
+    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
+    glBufferData(GL_ARRAY_BUFFER, 3*sizeof(GLfloat), color, GL_STATIC_DRAW);
 
+    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
-			VERTEX[n].X = radius * sin((a) / 180 * PI) * sin((b) / 180 * PI) - H;
-			VERTEX[n].Y = radius * cos((a) / 180 * PI) * sin((b) / 180 * PI) + K;
-			VERTEX[n].Z = radius * cos((b) / 180 * PI) - Z;
-			VERTEX[n].V = (2 * b) / 360;
-			VERTEX[n].U = (a) / 360;
-			n++;
+    // Enable attribute index 1 as being used
+    glEnableVertexAttribArray(1);
 
-			VERTEX[n].X = radius * sin((a) / 180 * PI) * sin((b + space) / 180 * PI) - H;
-			VERTEX[n].Y = radius * cos((a) / 180 * PI) * sin((b + space) / 180 * PI) + K;
-			VERTEX[n].Z = radius * cos((b + space) / 180 * PI) - Z;
-			VERTEX[n].V = (2 * (b + space)) / 360;
-			VERTEX[n].U = (a) / 360;
-			n++;
-			
-			if (a < 360 -space)			//this is an added conditional
-			{					//if this is not the end of the strip, business as usual
-				VERTEX[n].X = radius * sin((a + space) / 180 * PI) * sin((b) / 180 * PI) - H;
-				VERTEX[n].Y = radius * cos((a + space) / 180 * PI) * sin((b) / 180 * PI) + K;
-				VERTEX[n].Z = radius * cos((b) / 180 * PI) - Z;
-				VERTEX[n].V = (2 * b) / 360;
-				VERTEX[n].U = (a + space) / 360;
-				n++;
-
-				VERTEX[n].X = radius * sin((a + space) / 180 * PI) * sin((b + space) /180 * PI) - H;
-				VERTEX[n].Y = radius * cos((a + space) / 180 * PI) * sin((b + space) /180 * PI) + K;
-				VERTEX[n].Z = radius * cos((b + space) / 180 * PI) - Z;
-				VERTEX[n].V = (2 * (b + space)) / 360;
-				VERTEX[n].U = (a + space) / 360;
-				n++;
-			}
-			else if (a >= 360 - space)		//however if the end of the strip has been reached, set the two end points 
-			{					//to be equal to the two begining points.
-				VERTEX[n].X = VERTEX[0].X;
-				VERTEX[n].Y = VERTEX[0].Y;
-				VERTEX[n].Z = VERTEX[0].Z;
-				VERTEX[n].V = VERTEX[0].U;
-				VERTEX[n].U = VERTEX[0].V;
-				n++;
-
-				VERTEX[n].X = VERTEX[1].X;
-				VERTEX[n].Y = VERTEX[1].Y;
-				VERTEX[n].Z = VERTEX[1].Z;
-				VERTEX[n].V = VERTEX[1].U;
-				VERTEX[n].U = VERTEX[1].V;
-				n++;
-
-
-			}
-
-		}
-	}
-	return VERTEX;
 }
 
 void sph::setTimer(timer *newTimer)

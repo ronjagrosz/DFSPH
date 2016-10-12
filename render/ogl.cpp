@@ -92,7 +92,7 @@ void ogl::displayFPS(GLFWwindow *window)
 void ogl::init(void)		//enable texture, lighting, shading.
 {
     //GL calls
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -124,7 +124,7 @@ void ogl::initWorld()
 void ogl::setupViewport(GLFWwindow *window, GLfloat *P)		//just in case some one wants to resize the window
 {
 	int width, height;
-	glfwGetWindowSize(window, &width, &height);
+	glfwGetFramebufferSize(window, &width, &height);
 
 	P[0] = P[5] * height / width;
 
@@ -139,26 +139,35 @@ int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call 
 					  0.0f, 1.0f, 0.0f, 0.0f,
 					  0.0f, 0.0f, 1.0f, 0.0f,
 					  0.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat P[16] = { 2.42f, 0.0f, 0.0f, 0.0f,
+	GLfloat P[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
+					  0.0f, 1.0f, 0.0f, 0.0f,
+					  0.0f, 0.0f, 1.0f, 0.0f,
+					  0.0f, 0.0f, 0.0f, 1.0f };
+					  /*{ 2.42f, 0.0f, 0.0f, 0.0f,
 					  0.0f, 2.42f, 0.0f, 0.0f,
 					  0.0f, 0.0f, -1.0f, -1.0f,
-					  0.0f, 0.0f, -0.2f, 0.0f };
+					  0.0f, 0.0f, -0.2f, 0.0f };*/
 	GLint locationP;
 	GLint locationMV;
 
+	//glm::mat4 viewMatrix;
+
     // start GLEW extension handler
+    // glfwInit sets glfwWindowHints to default
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: could not start GLFW3\n");
         return 1;
     }
+
+    glfwDefaultWindowHints();
     
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-    
+	#ifdef __APPLE__
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	#endif
+ 
     //create GLFW window and select context
     GLFWwindow* window = glfwCreateWindow(640, 480, "Fluid Simulation", NULL, NULL);
     if (!window) {
@@ -182,29 +191,36 @@ int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call 
 
     Shader phongShader;
 	phongShader.createShader("glsl/vertexshader.glsl", "glsl/fragmentshader.glsl");
+
     //link variables to shader
     locationMV = glGetUniformLocation(phongShader.programID, "MV");
 	locationP = glGetUniformLocation(phongShader.programID, "P");
+
 
 	int success = 0;
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
     	glfwPollEvents();
     	//GL calls
-        init();
+        //init();
+
         displayFPS(window);
         glUseProgram(phongShader.programID);
 
-		setupViewport(window, P);
+
+		
 		glUniformMatrix4fv(locationP, 1, GL_FALSE, P);
+		setupViewport(window, P);
+
+		glUniformMatrix4fv(locationMV, 1, GL_FALSE, I);
 		// Scenegraph
 
-        success = hydro->display();	//the success variable is used because the timer function in linux only has
+        success = hydro->display(PARTICLE_COUNT);	//the success variable is used because the timer function in linux only has
 					//a resolution of .001 sec.  For small numbers of particles I can get a LOT
 					//better performance then this, so the frame rate sky rockets and particles
 					//whiz around to fast to be seen.
 		//if(success)
-			glfwSwapBuffers(window);			//swap the buffer
+		glfwSwapBuffers(window);			//swap the buffer
     }
     glfwTerminate();
 
