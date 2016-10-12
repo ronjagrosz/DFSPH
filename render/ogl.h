@@ -18,6 +18,12 @@ server.  The ogl will handle all user interaction and graphics.
 #include <math.h>
 #include "boost/timer.hpp"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"	
+#include "glm/gtx/transform.hpp"
+#include "glm/ext.hpp"
+
 class uVect;
 class sph;
 
@@ -62,6 +68,7 @@ class ogl
 		static void setupViewport(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
 		static void initWorld();
 		static void displayFPS(GLFWwindow *window);
+		void controlView(GLFWwindow *window);
 
 
 /*Disabled until needed*/
@@ -79,8 +86,18 @@ class ogl
 	public:	
 		ogl();
 		~ogl();
-		virtual int Start(int argc, char** argv);			//This functions is called to start the program.  Mostly just a generic glut initialization function.
+		virtual int start(int argc, char** argv);			//This functions is called to start the program.  Mostly just a generic glut initialization function.
 
+	private:
+		float phi;
+		float theta;
+		float rad;
+
+		float zoomFactor;
+
+		double newTime;
+		double deltaTime;
+		double currTime;
 
 };
 

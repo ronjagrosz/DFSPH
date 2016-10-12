@@ -98,6 +98,7 @@ void ogl::init(void)		//enable texture, lighting, shading.
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // with?
+
 /*
 	glClearColor(0.0,0.0,0.0,1.0);
 	glEnable(GL_DEPTH_TEST);
@@ -131,7 +132,49 @@ void ogl::setupViewport(GLFWwindow *window, GLfloat *P)		//just in case some one
 
 }
 
-int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call backs
+// Control the camera with the arrow keys. Hold left control button and UP/DOWN for zoom
+void ogl::controlView(GLFWwindow *window)
+{
+	newTime = glfwGetTime();
+	deltaTime = newTime - currTime;
+	currTime = newTime;
+
+	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
+		if (glfwGetKey(window, GLFW_KEY_UP)) {
+			if (rad > 0.0f)
+				rad -= deltaTime*zoomFactor;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+			rad += deltaTime*zoomFactor;
+		}
+	}
+	else {
+		if (glfwGetKey(window, GLFW_KEY_UP)) {
+			cout << "UP KEY \n";
+			theta += deltaTime*PI / 2.0; // Rotate 90 degrees per second
+			if (theta >= PI / 2.0) theta = PI / 2.0; // Clamp at 90
+		}
+		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+			cout << "DOWN KEY \n";
+			theta -= deltaTime*PI / 2.0; // Rotate 90 degrees per second
+			if (theta < 0.1f) theta = 0.1f;      // Clamp at -90
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+		cout << "RIGHT KEY \n";
+		phi -= deltaTime*PI / 2.0; // Rotate 90 degrees per second (pi/2)
+		phi = fmod(phi, PI*2.0); // Wrap around at 360 degrees (2*pi)
+		if (phi < 0.0) phi += PI*2.0; // If phi<0, then fmod(phi,2*pi)<0
+	}
+	else if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+		cout << "LEFT KEY \n";
+		phi += deltaTime*PI / 2.0; // Rotate 90 degrees per second (pi/2)
+		phi = fmod(phi, PI*2.0);
+	}
+}
+
+int ogl::start(int argc, char** argv)	//initialize glut and set all of the call backs
 {   
 
     GLfloat I[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
@@ -145,18 +188,22 @@ int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call 
 	GLint locationP;
 	GLint locationMV;
 
+	glm::mat4 viewMatrix;
+
     // start GLEW extension handler
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: could not start GLFW3\n");
         return 1;
     }
     
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
+
     
     //create GLFW window and select context
     GLFWwindow* window = glfwCreateWindow(640, 480, "Fluid Simulation", NULL, NULL);
@@ -179,6 +226,7 @@ int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call 
 
     initWorld();
 
+    
     Shader phongShader;
 	phongShader.createShader("glsl/vertexshader.glsl", "glsl/fragmentshader.glsl");
     //link variables to shader
@@ -186,6 +234,12 @@ int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call 
 	locationP = glGetUniformLocation(phongShader.programID, "P");
 
 	int success = 0;
+	phi = 0.0f;
+	theta = PI / 4.0f;
+	rad = 15.0f;
+	zoomFactor = PI;
+	newTime = deltaTime = currTime = 0.0f;
+
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
     	glfwPollEvents();
@@ -193,12 +247,51 @@ int ogl::Start(int argc, char** argv)	//initialize glut and set all of the call 
         init();
         displayFPS(window);
         glUseProgram(phongShader.programID);
+		glUniformMatrix4fv(locationP, 1, GL_FALSE, P);
 
 		setupViewport(window, P);
-		glUniformMatrix4fv(locationP, 1, GL_FALSE, P);
-		// Scenegraph
+		controlView(window);
 
-        success = hydro->display();	//the success variable is used because the timer function in linux only has
+		// I is the normal Identity matrix
+		viewMatrix = glm::make_mat4(I);
+        // Translate a bit down and backwards
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(-3.0f, 3.0f, -rad));
+        // Rotate with theta around X
+        viewMatrix = viewMatrix * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f));
+        // Rotate with phi around Y
+        viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
+		
+		cout << "Matrix: " << endl;
+		for (int j = 0; j < 4; ++j) {
+			for (int i = 0; i < 4; ++i)
+				cout << viewMatrix[i][j] << " ";
+			cout << endl;
+		}
+		
+
+
+        //convert viewMatrix to float
+        glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+        // viewMatrix is the I matrix after all operations
+        /*
+        li = glm::vec4(0.0, 5.0, 0.0, 1.0);
+        cam = glm::vec4(0.0, 0.0, 0.0, 1.0);
+        li = glm::inverse(viewMatrix)*li;
+        cam = glm::inverse(viewMatrix)*cam;
+        
+        Ca[0] = cam.x;
+        Ca[1] = cam.y;
+        Ca[2] = cam.z;
+        L[0] = li.x;
+        L[1] = li.y;
+        L[2] = li.z;
+        // send in light and camera location to glsl (not done in shaders yet)
+        glUniform3fv(locationL, 1, L);
+        glUniform3fv(locationCa, 1, Ca);
+        */
+
+		success = hydro->display();	//the success variable is used because the timer function in linux only has
 					//a resolution of .001 sec.  For small numbers of particles I can get a LOT
 					//better performance then this, so the frame rate sky rockets and particles
 					//whiz around to fast to be seen.
