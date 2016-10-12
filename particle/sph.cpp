@@ -16,7 +16,6 @@ sph is responsible for orginization of a group of smooth particles.
 #include <ctime>
 
 #include "../particle/sph.h"
-#include "../util/uVect.h"
 
 const int DIMENSION = 0.01;
 //#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.
@@ -58,7 +57,6 @@ sph::sph()
 
 sph::sph(int particles)
 {
-	
 	dls = new vector <GLuint> (3);
 	frameTimer = new timer;
 	createDL(0,10);
@@ -168,8 +166,8 @@ void sph::applyForces(double timeDiff)
 {
 	double distance = 0;
 
-	uVect *primaryTempUVect;
-	uVect *secondaryTempUVect;
+	glm::vec4 *primaryTempUVect;
+	glm::vec4 *secondaryTempUVect;
 	vector <double> *primaryPositionVector;
 	vector <double> *secondaryPositionVector;
 	vector <double> vel;
@@ -246,8 +244,8 @@ void sph::calculateDensity()
 {
 	double distance = 0;
 	
-	uVect *primaryTempUVect;
-	uVect *secondaryTempUVect;
+	glm::vec4 *primaryTempUVect;
+	glm::vec4 *secondaryTempUVect;
 
 	vector <double> *primaryPositionVector;
 	vector <double> *secondaryPositionVector;
@@ -462,32 +460,36 @@ VERTICES* sph::createSphere (double radius, double H, double K, double Z, int sp
 
 
 
-			VERTEX[n].X = radius * sin((a) / 180 * PI) * sin((b) / 180 * PI) - H;
-			VERTEX[n].Y = radius * cos((a) / 180 * PI) * sin((b) / 180 * PI) + K;
-			VERTEX[n].Z = radius * cos((b) / 180 * PI) - Z;
+			VERTEX[n].X = radius * sin((a) / 180 * M_PI) * sin((b) / 180 * M_PI) - H;
+			VERTEX[n].Y = radius * cos((a) / 180 * M_PI) * sin((b) / 180 * M_PI) + K;
+			VERTEX[n].Z = radius * cos((b) / 180 * M_PI) - Z;
 			VERTEX[n].V = (2 * b) / 360;
 			VERTEX[n].U = (a) / 360;
 			n++;
 
-			VERTEX[n].X = radius * sin((a) / 180 * PI) * sin((b + space) / 180 * PI) - H;
-			VERTEX[n].Y = radius * cos((a) / 180 * PI) * sin((b + space) / 180 * PI) + K;
-			VERTEX[n].Z = radius * cos((b + space) / 180 * PI) - Z;
+			VERTEX[n].X = radius * sin((a) / 180 * M_PI) * sin((b + space) / 180 * M_PI) - H;
+			VERTEX[n].Y = radius * cos((a) / 180 * M_PI) * sin((b + space) / 180 * M_PI) + K;
+			VERTEX[n].Z = radius * cos((b + space) / 180 * M_PI) - Z;
 			VERTEX[n].V = (2 * (b + space)) / 360;
 			VERTEX[n].U = (a) / 360;
 			n++;
 			
 			if (a < 360 -space)			//this is an added conditional
 			{					//if this is not the end of the strip, business as usual
-				VERTEX[n].X = radius * sin((a + space) / 180 * PI) * sin((b) / 180 * PI) - H;
-				VERTEX[n].Y = radius * cos((a + space) / 180 * PI) * sin((b) / 180 * PI) + K;
-				VERTEX[n].Z = radius * cos((b) / 180 * PI) - Z;
+				VERTEX[n].X = radius * sin((a + space) / 180 * M_PI) * sin((b) / 180 *
+                M_PI) - H;
+				VERTEX[n].Y = radius * cos((a + space) / 180 * M_PI) * sin((b) / 180 *
+                M_PI) + K;
+				VERTEX[n].Z = radius * cos((b) / 180 * M_PI) - Z;
 				VERTEX[n].V = (2 * b) / 360;
 				VERTEX[n].U = (a + space) / 360;
 				n++;
 
-				VERTEX[n].X = radius * sin((a + space) / 180 * PI) * sin((b + space) /180 * PI) - H;
-				VERTEX[n].Y = radius * cos((a + space) / 180 * PI) * sin((b + space) /180 * PI) + K;
-				VERTEX[n].Z = radius * cos((b + space) / 180 * PI) - Z;
+				VERTEX[n].X = radius * sin((a + space) / 180 * M_PI) * sin((b + space) /180 *
+                M_PI) - H;
+				VERTEX[n].Y = radius * cos((a + space) / 180 * M_PI) * sin((b + space) /180 *
+                M_PI) + K;
+				VERTEX[n].Z = radius * cos((b + space) / 180 * M_PI) - Z;
 				VERTEX[n].V = (2 * (b + space)) / 360;
 				VERTEX[n].U = (a + space) / 360;
 				n++;
