@@ -18,11 +18,19 @@ server.  The ogl will handle all user interaction and graphics.
 #include <math.h>
 #include "boost/timer.hpp"
 
+#ifdef __linux__
+#include "../glm/glm/glm.hpp"
+#include "../glm/glm/gtc/matrix_transform.hpp"
+#include "../glm/glm/gtc/type_ptr.hpp"	
+#include "../glm/glm/gtx/transform.hpp"
+#include "../glm/glm/ext.hpp"
+#elif __APPLE__
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"	
 #include "glm/gtx/transform.hpp"
 #include "glm/ext.hpp"
+#endif
 
 class uVect;
 class SPH;
