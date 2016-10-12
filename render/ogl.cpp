@@ -95,10 +95,10 @@ void ogl::init(void)		//enable texture, lighting, shading.
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CW);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // with?
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	//glFrontFace(GL_CW);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINES); // with?
 /*
 	glClearColor(0.0,0.0,0.0,1.0);
 	glEnable(GL_DEPTH_TEST);

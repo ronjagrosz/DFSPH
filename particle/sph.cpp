@@ -283,7 +283,8 @@ int sph::display(int particles)
 		//glCullFace(GL_BACK);
 		//glFrontFace(GL_CW);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-		glDrawArrays(GL_LINE_LOOP, 0, i);
+		//glDrawArrays(GL_LINE_LOOP, 0, i);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 	
 	/*if((currentTime - timeLastFrame) > 0)
@@ -387,7 +388,10 @@ void sph::createVAO ( int particles ) {
 	// A VBO stores information about the vertices. 
 	// Now we're using two VBOs, one for coordinates and one for colors
 	vertices = new VERTICES[particles];
-	const GLfloat color[3] = {  1.0,  0.0,  0.0  };
+	const GLfloat colors[3][3] = {
+    {  1.0,  0.0,  0.0  }, /* Red */
+    {  0.0,  1.0,  0.0  }, /* Green */
+    {  0.0,  0.0,  1.0  }}; /* Blue */;
 
 	// generate random positions for all vertices
 	/*for(int i = 0; i < particles; i++) {
@@ -395,11 +399,11 @@ void sph::createVAO ( int particles ) {
 		vertices[i].Y = (rand()/RAND_MAX) * 4.0;
 		vertices[i].Z = (rand()/RAND_MAX) * 4.0;	
 	}*/
-	const GLfloat diamond[4][2] = {
-    {  0.0,  1.0  }, /* Top point */
-    {  1.0,  0.0  }, /* Right point */
-    {  0.0, -1.0  }, /* Bottom point */
-    { -1.0,  0.0  } }; /* Left point */
+	const GLfloat diamond[4][3] = {
+    {  0.0,  0.5, 0.0  }, /* Top point */
+    {  0.5,  -0.5, 0.0  }, /* Right point */
+    {  -0.5, -0.5, 0.0  }}; /* Bottom point */
+
 
 	//GLuint vboId; // Id of VBO
 
@@ -415,10 +419,10 @@ void sph::createVAO ( int particles ) {
 
 	// Copy the vertex data from diamond to our buffer 
     // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
-    glBufferData(GL_ARRAY_BUFFER, /*particles * sizeof(VERTICES), vertices,*/ 8 * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, /*particles * sizeof(VERTICES), vertices,*/ 9 * sizeof(GLfloat), diamond, GL_STATIC_DRAW);
 
     // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     // Enable attribute index 0 as being used 
     glEnableVertexAttribArray(0);
@@ -426,7 +430,7 @@ void sph::createVAO ( int particles ) {
     // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
-    glBufferData(GL_ARRAY_BUFFER, 3*sizeof(GLfloat), color, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 9*sizeof(GLfloat), colors, GL_STATIC_DRAW);
 
     // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
