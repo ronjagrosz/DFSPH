@@ -2,7 +2,7 @@
 Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz	
 File name: 	SPH.cpp
 
-sph is responsible for orginization of a group of smooth particles.
+SPH is responsible for orginization of a group of smooth particles.
 *************************************************************************/
 
 #include <string.h>
@@ -33,7 +33,7 @@ bool compareZ(SmoothedParticle* left, SmoothedParticle* right)
 SPH::SPH()
 {
 	dls = new vector <GLuint> (3);
-	createDL(1,10);	
+	//createVBO();	
 	frameTimer = new timer;
 	timeLastFrame = frameTimer->elapsed();
 }
@@ -46,7 +46,7 @@ SPH::SPH(int particles)
 	
 	dls = new vector <GLuint> (3);
 	frameTimer = new timer;
-	createDL(0,10);
+	//createVBO();
 	double randX, randY, randZ;
 	double randI, randJ, randK; //velocity vector values
 	
@@ -82,7 +82,7 @@ SPH::SPH(int particles, int cube)
 	particleCount = DIMENSION*DIMENSION*DIMENSION;
 	dls = new vector <GLuint> (3);
 	frameTimer = new timer;
-	createDL(0,10);
+	//createVBO();
 	srand(time(0));
 
 	double randI, randJ, randK; //velocity vector values
@@ -263,9 +263,15 @@ void SPH::calculateDensity()
 
 }
 
-//this is sph's entrypoint each frame
+//this is SPH's entrypoint each frame
 int SPH::display()	
 {
+	/*
+	glBindVertexArray(vao);
+	glDrawElements(GL_TRIANGLES, 3 * ntris, GL_UNSIGNED_INT, (void*)0);
+	// (mode, vertex count, type, element array buffer offset)
+	glBindVertexArray(0);
+	*/
 	int index = 0;
 	int success = 0;
 	bool cont = true;
@@ -278,36 +284,23 @@ int SPH::display()
 	
 	
 	if((currentTime - timeLastFrame) > 0)
-	{
-		//move the particles
-		applyForces(currentTime - timeLastFrame);
-	}
+		applyForces(currentTime - timeLastFrame); //move the particles
 
-	if ((currentTime - timeLastFrame) > 0)
-	{
-		while (cont == true)
-		{
-			try
-			{
-				if((unsigned int)index < material->capacity())
-				{
+	if ((currentTime - timeLastFrame) > 0) {
+		while (cont == true) {
+			try {
+				if((unsigned int)index < material->capacity()) {
 					if(material->at(index))
-					{
-						//display the particle
-						material->at(index)->display(timeLastFrame);
-					}
+						material->at(index)->display(timeLastFrame); // display particle
 					index++;
 				}
 			}
-			catch(char *str)
-			{
-				if(strcmp(str, "out_of_range"))
-				{
+			catch(char *str) {
+				if(strcmp(str, "out_of_range")) {
 					cont = false;
 					break;
 				}
-				else
-				{
+				else {
 					cout << "caught exception " << str << " ending program" << endl;
 					exit(1);
 				}
@@ -322,136 +315,7 @@ int SPH::display()
 			success = 1;
 		}
 	}
-
 	return success;
-
-}
-						// 0, 10
-void SPH::createDL(int index, int space) //depricated
-{
-//	int VertexCount = (90/space)*(360/space)*4;
-	VERTICES *VERTEX = createSphere(2,0.0,0.0,0.0,10);
-	dls->at(index) = glGenLists(1);
-	glNewList(dls->at(index),GL_COMPILE);
-		glBegin(GL_POINTS);
-			glVertex2i(0, 0);
-		glEnd();
-
-
-//		DisplaySphere(10.0,VertexCount,VERTEX);	
-	glEndList();
-
-	delete[] VERTEX;
-}
-
-void SPH::displaySphere (double R, int VertexCount, VERTICES *VERTEX)//depricated
-{
-
-	int b;
-	glScalef (0.0125 * R, 0.0125 * R, 0.0125 * R);
-	glRotatef (90, 1, 0, 0);
-//	glBindTexture (GL_TEXTURE_2D, *planetTex );
-	glBegin (GL_TRIANGLE_STRIP);
-
-		for(b=0;b<=VertexCount;b++)
-		{
-	//		glTexCoord2f (VERTEX[b].U, VERTEX[b].V);
-			glVertex3f (VERTEX[b].X, VERTEX[b].Y, -VERTEX[b].Z);
-		}
-
-
-		for(b = 0;b<=VertexCount;b++)
-		{
-	//		glTexCoord2f (VERTEX[b].U, -VERTEX[b].V);
-			glVertex3f (VERTEX[b].X, VERTEX[b].Y, VERTEX[b].Z);
-		}
-	    
-	glEnd();
-}
-
-
-/*************************************************************************
-The createSphere function was copied from 
-http://www.swiftless.com/tutorials/opengl/sphere.html
-
-Now new and Improved!
-There was an error in the original code which created a plane that 
-extended north and south from the sphere's meridian.  This was likely
-due to floating point rounding errors which would cause the triangle
-strip's ends not to meet.  With the addition of the new if blocks this
-should be fixed.
-*************************************************************************/
-VERTICES* SPH::createSphere (double radius, double H, double K, double Z, int space) //depricated
-{
-	using namespace std;
-	int n;
-	double a;
-	double b;
-	
-	int VertexCount = (90/space)*(360/space)*4;
-	VERTICES *VERTEX = new VERTICES[VertexCount];
-
-	n = 0;
-	for( b = 0; b <= 90 - space; b+=space)
-	{
-
-		for( a = 0; a <= 360 - space; a+=space)
-		{
-
-
-
-			VERTEX[n].X = radius * sin((a) / 180 * PI) * sin((b) / 180 * PI) - H;
-			VERTEX[n].Y = radius * cos((a) / 180 * PI) * sin((b) / 180 * PI) + K;
-			VERTEX[n].Z = radius * cos((b) / 180 * PI) - Z;
-			VERTEX[n].V = (2 * b) / 360;
-			VERTEX[n].U = (a) / 360;
-			n++;
-
-			VERTEX[n].X = radius * sin((a) / 180 * PI) * sin((b + space) / 180 * PI) - H;
-			VERTEX[n].Y = radius * cos((a) / 180 * PI) * sin((b + space) / 180 * PI) + K;
-			VERTEX[n].Z = radius * cos((b + space) / 180 * PI) - Z;
-			VERTEX[n].V = (2 * (b + space)) / 360;
-			VERTEX[n].U = (a) / 360;
-			n++;
-			
-			if (a < 360 -space)			//this is an added conditional
-			{					//if this is not the end of the strip, business as usual
-				VERTEX[n].X = radius * sin((a + space) / 180 * PI) * sin((b) / 180 * PI) - H;
-				VERTEX[n].Y = radius * cos((a + space) / 180 * PI) * sin((b) / 180 * PI) + K;
-				VERTEX[n].Z = radius * cos((b) / 180 * PI) - Z;
-				VERTEX[n].V = (2 * b) / 360;
-				VERTEX[n].U = (a + space) / 360;
-				n++;
-
-				VERTEX[n].X = radius * sin((a + space) / 180 * PI) * sin((b + space) /180 * PI) - H;
-				VERTEX[n].Y = radius * cos((a + space) / 180 * PI) * sin((b + space) /180 * PI) + K;
-				VERTEX[n].Z = radius * cos((b + space) / 180 * PI) - Z;
-				VERTEX[n].V = (2 * (b + space)) / 360;
-				VERTEX[n].U = (a + space) / 360;
-				n++;
-			}
-			else if (a >= 360 - space)		//however if the end of the strip has been reached, set the two end points 
-			{					//to be equal to the two begining points.
-				VERTEX[n].X = VERTEX[0].X;
-				VERTEX[n].Y = VERTEX[0].Y;
-				VERTEX[n].Z = VERTEX[0].Z;
-				VERTEX[n].V = VERTEX[0].U;
-				VERTEX[n].U = VERTEX[0].V;
-				n++;
-
-				VERTEX[n].X = VERTEX[1].X;
-				VERTEX[n].Y = VERTEX[1].Y;
-				VERTEX[n].Z = VERTEX[1].Z;
-				VERTEX[n].V = VERTEX[1].U;
-				VERTEX[n].U = VERTEX[1].V;
-				n++;
-
-
-			}
-
-		}
-	}
-	return VERTEX;
 }
 
 void SPH::setTimer(timer *newTimer)

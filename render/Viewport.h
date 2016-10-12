@@ -1,11 +1,8 @@
 /*************************************************************************
-Name:	Casey Beach
-Date:	6/27/2010
-Terminus: ogl.h
+Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
+File name:  Viewport.h
 
-Terminus is meant to be an MMOG (Massively Multiplayer Online Game), as
-such it will be, roughly speaking split into two parts, ogl and
-server.  The ogl will handle all user interaction and graphics.
+Viewport is used as a OpenGL controller.  Viewport is responsible for managing all OpenGL related activities.
 *************************************************************************/
 #ifndef CLIENT_H
 #define CLIENT_H
@@ -46,7 +43,7 @@ struct rect
 	float y;
 };
 
-class ogl
+class Viewport
 {
 
 
@@ -54,26 +51,26 @@ class ogl
 
 		static SPH 		*hydro;
 //		vector <mesh> 		objects;
-		static vector <double> 	*cameraPosition;
+		static glm::vec3 	*cameraPosition;
 		static uVect 		*cameraOrientation;
 		static rect 		*viewPaneSize;
-		static int 		mouseButtonState;
-		static vector <int> 	*mousePosition;
+		static int 			mouseButtonState;
+		static glm::vec3 	*mousePosition;
 		static timer		*timeSinceStart;	
 
 		
 
 		/***********************************************************************
-		Because of my decision to use C++ with openGL I had to make extensive
+		Because of my decision to use C++ with OpenGL I had to make extensive
 		use of static funtions, which are all protected.  The reason for all
-		of the static functions is that openGL is a C library and uses function*'s
-		for all of it's callbacks. Since function* != ogl::function* I had to 
-		use either use protected static functions or recompile openGL as a C++
+		of the static functions is that OpenGL is a C library and uses function*'s
+		for all of it's callbacks. Since function* != Viewport::function* I had to 
+		use either use protected static functions or recompile OpenGL as a C++
 		library.			
 		***********************************************************************/
 
 		static void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
-		static void setupViewport(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
+		static void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
 		static void initWorld();
 		static void displayFPS(GLFWwindow *window);
 		void controlView(GLFWwindow *window);
@@ -81,9 +78,6 @@ class ogl
 
 /*Disabled until needed*/
 
-//		static void keyboardDown(unsigned char key, int x, int y);	//The next six functions are OpenGl callbacks for keyboard and mouse inputs
-//		static void keyboardSpecialKey(int key, int x, int y);
-//		static void keyboardUp(unsigned char key, int x, int y);
 //		static void mouseButtonEvent(int button, int state, int x, int y);
 //		static void mouseActiveMove(int x,int y);
 //		static void mousePassiveMove(int x, int y);
@@ -92,9 +86,9 @@ class ogl
 		
 
 	public:	
-		ogl();
-		~ogl();
-		virtual int start(int argc, char** argv);			//This functions is called to start the program.  Mostly just a generic glut initialization function.
+		Viewport();
+		~Viewport();
+		virtual int start(int argc, char** argv);			//This functions is called to start the program.
 
 	private:
 		float phi;

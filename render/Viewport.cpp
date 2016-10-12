@@ -1,8 +1,8 @@
 /*************************************************************************
 Name:	    Isabell Jansson, Jonathan Bosson, Ronja Grosz
-File name:  ogl.cpp
+File name:  Viewport.cpp
 
-ogl is used as a OpenGL controller.  ogl is responsible for managing all openGL related activities.
+Viewport is used as a OpenGL controller.  Viewport is responsible for managing all openGL related activities.
 *************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
@@ -10,12 +10,9 @@ ogl is used as a OpenGL controller.  ogl is responsible for managing all openGL 
 #include <vector>
 
 #include "../particle/SPH.h"
-#include "../render/ogl.h"
+#include "../render/Viewport.h"
 #include "../util/uVect.h"
 #include "Shader.h"
-
-#define GLUT_SCROLL_UP 		3	//Used in the mouseButtonEvent callback.  freeglut has functionality for mouse scolling, but aparently not the defines.
-#define GLUT_SCROLL_DOWN	4	//so I added them to make my code more readable.
 
 const int PARTICLE_COUNT = 10000;	//This variable dictates how many particles will be in the simulation
 
@@ -24,44 +21,38 @@ using namespace std;
 
 //static functions need static variables, which are protected.
 
-vector 	<double> *ogl::cameraPosition;
-uVect	*ogl::cameraOrientation;
+vector 	<double> *Viewport::cameraPosition;
+uVect	*Viewport::cameraOrientation;
 
-int 	ogl::mouseButtonState;
-vector	<int> *ogl::mousePosition;
+int 	Viewport::mouseButtonState;
+vector	<int> *Viewport::mousePosition;
 
-rect	*ogl::viewPaneSize;
+rect	*Viewport::viewPaneSize;
 
-SPH 	*ogl::hydro;
+SPH 	*Viewport::hydro;
 
-timer	*ogl::timeSinceStart;
+timer	*Viewport::timeSinceStart;
 /************************************************************************/
 
-ogl::ogl()
+Viewport::Viewport()
 {
-	ogl::cameraPosition = new vector <double> (3);
-	ogl::mousePosition = new vector <int> (3);
+	Viewport::cameraPosition = new glm::vec3(0.0f, 0.0f, 0.0f);
+	Viewport::mousePosition = new glm::vec3(0.0f, 0.0f, 0.0f);
 
-	ogl::cameraOrientation = new uVect(0,0,1,0);
-	ogl::viewPaneSize = new rect;
+	Viewport::cameraOrientation = new uVect(0,0,1,0);
+	Viewport::viewPaneSize = new rect;
 	
-	ogl::timeSinceStart = new timer();
-
-	for(int i = 0;i<3;i++)
-	{
-		ogl::cameraPosition->at(i) = 0;
-		ogl::mousePosition->at(i) = 0;
-	}
+	Viewport::timeSinceStart = new timer();
 	
-	ogl::mouseButtonState = 0;
+	Viewport::mouseButtonState = 0;
 	
 }
 
-ogl::~ogl(){}
+Viewport::~Viewport(){}
 
 /* showFPS() - Calculate and report frames per second
 (updated once per second) in the window title bar */
-void ogl::displayFPS(GLFWwindow *window)
+void Viewport::displayFPS(GLFWwindow *window)
 {
 	static double t0 = 0.0;
 	static int frames = 0;
@@ -88,7 +79,7 @@ void ogl::displayFPS(GLFWwindow *window)
 	//return fps;
 }
 
-void ogl::init(void)		//enable texture, lighting, shading.
+void Viewport::init(void)		//enable texture, lighting, shading.
 {
     //GL calls
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -115,13 +106,13 @@ void ogl::init(void)		//enable texture, lighting, shading.
 */
 }
 
-void ogl::initWorld()
+void Viewport::initWorld()
 {
-	ogl::hydro = new SPH(PARTICLE_COUNT);	//this is the object that will manage all of the particles
-	ogl::hydro->setTimer(timeSinceStart);	//I'm setting a timer to bind the particles to real time regardless of the coputer that they are run on
+	Viewport::hydro = new SPH(PARTICLE_COUNT);	//this is the object that will manage all of the particles
+	Viewport::hydro->setTimer(timeSinceStart);	//I'm setting a timer to bind the particles to real time regardless of the coputer that they are run on
 }
 
-void ogl::setupViewport(GLFWwindow *window, GLfloat *P)		//just in case some one wants to resize the window
+void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)		//just in case some one wants to resize the window
 {
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
@@ -133,7 +124,7 @@ void ogl::setupViewport(GLFWwindow *window, GLfloat *P)		//just in case some one
 }
 
 // Control the camera with the arrow keys. Hold left control button and UP/DOWN for zoom
-void ogl::controlView(GLFWwindow *window)
+void Viewport::controlView(GLFWwindow *window)
 {
 	newTime = glfwGetTime();
 	deltaTime = newTime - currTime;
@@ -170,7 +161,7 @@ void ogl::controlView(GLFWwindow *window)
 	}
 }
 
-int ogl::start(int argc, char** argv)	//initialize glut and set all of the call backs
+int Viewport::start(int argc, char** argv)	//initialize glut and set all of the call backs
 {   
 
     GLfloat I[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
@@ -244,7 +235,7 @@ int ogl::start(int argc, char** argv)	//initialize glut and set all of the call 
         glUseProgram(phongShader.programID);
 		glUniformMatrix4fv(locationP, 1, GL_FALSE, P);
 
-		setupViewport(window, P);
+		setupPerspective(window, P);
 		controlView(window);
 
 		// I is the normal Identity matrix
@@ -259,7 +250,6 @@ int ogl::start(int argc, char** argv)	//initialize glut and set all of the call 
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        // viewMatrix is the I matrix after all operations
         /*
         li = glm::vec4(0.0, 5.0, 0.0, 1.0);
         cam = glm::vec4(0.0, 0.0, 0.0, 1.0);
@@ -277,10 +267,8 @@ int ogl::start(int argc, char** argv)	//initialize glut and set all of the call 
         glUniform3fv(locationCa, 1, Ca);
         */
 
-		success = hydro->display();	//the success variable is used because the timer function in linux only has
-					//a resolution of .001 sec.  For small numbers of particles I can get a LOT
-					//better performance then this, so the frame rate sky rockets and particles
-					//whiz around to fast to be seen.
+		success = hydro->display();
+		
 		//if(success)
 			glfwSwapBuffers(window);			//swap the buffer
     }
