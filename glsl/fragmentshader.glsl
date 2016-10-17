@@ -58,6 +58,7 @@ void main () {
 		//resultLight += calculateLight(lightPos[i], LightIntensity);
 	FragColor = vec4(resultLight, 1.0f);*/
 
+	//FragColor = vec4(outColor,1.0);
 	FragColor = vec4(outColor,1.0);
 	
 }

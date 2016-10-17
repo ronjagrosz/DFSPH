@@ -35,17 +35,18 @@ struct VERTICES	//I used this strct for creating sphears for my particles
 class sph
 {
 	protected:
+		int				particleCount;	
+		timer				*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
+		double				timeLastFrame;	//the time that the last frame was rendered at
 
 		vector <SmoothedParticle*> 	*material;	//this is my vector full of particles
 //		vector <double>			metaMesh;
 		vector <GLuint>		 	*dls;		//this is the display list i keep for fast rendering.
 								//each particle has a copy of this pointer
 		GLuint vao, vbo[2];		// handles to vao and abo
-		VERTICES *vertices;	// pointer to all vertices
+		//GLfloat *vertices[particleCount][3];	// pointer to all vertices
 
-		int				particleCount;	
-		timer				*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
-		double				timeLastFrame;	//the time that the last frame was rendered at
+		
 
 		//virtual void createDL(int, int VertexCount);
 		virtual void createVAO(int particles);
