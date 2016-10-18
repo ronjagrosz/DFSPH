@@ -44,17 +44,14 @@ struct rect
 };
 
 class Viewport
-{
-
-//		void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
-		
-
+{	
 	public:	
 		Viewport();
 		~Viewport();
 		virtual int start(int argc, char** argv);			//This functions is called to start the program.
 
 	private:
+		// void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
 
 		glm::vec3 cameraPosition;
 		float phi;

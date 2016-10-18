@@ -22,10 +22,9 @@ using namespace std;
 
 Viewport::Viewport()
 {
-	
 	phi = 0.0f;
 	theta = PI / 4.0f;
-	rad = 1.0f;
+	rad = 1.5f;
 	zoomFactor = PI;
 	newTime = deltaTime = currTime = 0.0f;	
 
