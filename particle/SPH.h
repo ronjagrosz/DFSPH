@@ -38,7 +38,7 @@ class SPH
 		timer				*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
 		double				timeLastFrame;	//the time that the last frame was rendered at
 
-		vector <SmoothedParticle*> 	*material;	//this is my vector full of particles
+		vector <Particle*> 	*material;	//this is my vector full of particles
 //		vector <double>			metaMesh;
 		vector <GLuint>		 	*dls;		//this is the display list i keep for fast rendering.
 								//each particle has a copy of this pointer

@@ -24,7 +24,7 @@ const int DIMENSION = 20;
 //The sort algorithm in the stl algorithms library needs a 
 //comparison function to be able to work. This is it.
 
-bool compareZ(SmoothedParticle* left, SmoothedParticle* right)
+bool compareZ(Particle* left, Particle* right)
 {
 	return (left->getPosition()->at(2) < right->getPosition()->at(2));
 }
@@ -56,10 +56,10 @@ SPH::SPH(int particles)
 	
 	/*#ifdef VISIBLE_TEST //only do 5 particles in a line
 	particleCount = 5;
-	material = new vector<SmoothedParticle*>(particleCount);
+	material = new vector<Particle*>(particleCount);
 	for(int i = 0; i < 5; i++)
 	{
-		material->at(i) = new SmoothedParticle();
+		material->at(i) = new Particle();
 		material->at(i)->setDL(dls->at(0));
 		material->at(i)->setPosition(0, i/2.0, 0);
 		material->at(i)->setMass(1);
@@ -73,7 +73,7 @@ SPH::SPH(int particles)
 
 	createVAO(particleCount);
 
-	//material = new vector<SmoothedParticle*>(particles);
+	//material = new vector<Particle*>(particles);
 
 	/*for(int i = 0; i < particles; i++)
 	{
@@ -84,7 +84,7 @@ SPH::SPH(int particles)
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-		material->at(i) = new SmoothedParticle();
+		material->at(i) = new Particle();
 		material->at(i)->setDL(dls->at(0));
 		material->at(i)->setPosition(randX, randY, randZ);
 		material->at(i)->setVelocity(randI, randJ, randK);
@@ -119,7 +119,7 @@ void SPH::applyForces(double timeDiff)
 	vector <double> *secondaryPositionVector;
 	vector <double> vel;
 
-	//the vector with the SmoothedParticles in it has to 
+	//the vector with the Particles in it has to 
 	//be sorted for the distance pruning to work
 	sort(material->begin(), material->end(), compareZ);
 	calculateDensity();
@@ -317,9 +317,9 @@ void SPH::createVAO ( int particles ) {
 		colors[i][1] = 1.0;
 		colors[i][2] = 1.0;
 		
-		cout << vertices[i][0] << " "
+		/*cout << vertices[i][0] << " "
 			 <<	vertices[i][1] << " "
-			 << vertices[i][2] << "\n";
+			 << vertices[i][2] << "\n";*/
 	}
 
 	// Allocate and bind Vertex Array Object to the handle vao

@@ -40,7 +40,7 @@ struct BindingPoint
 };
 
 
-class SmoothedParticle
+class Particle
 {
 	protected:
 		
@@ -88,9 +88,9 @@ class SmoothedParticle
 
 
 	public:
-		SmoothedParticle();
-		SmoothedParticle(const SmoothedParticle&);
-		~SmoothedParticle();
+		Particle();
+		Particle(const Particle&);
+		~Particle();
 		
 		//setters
 		virtual void setPosition(double,double,double);
@@ -114,7 +114,7 @@ class SmoothedParticle
 		virtual GLuint getDL();
 		
 		virtual void display(double);
-		virtual uVect* getForceAtPoint(SmoothedParticle*);	//this is the biggest deal in this program
+		virtual uVect* getForceAtPoint(Particle*);	//this is the biggest deal in this program
 		virtual void applyForce(uVect &, double);		//apply the forces to the velocity
 		virtual void updatePosition(double elapsedTime);	//apply the velocity to the position
 		
@@ -122,7 +122,7 @@ class SmoothedParticle
 		virtual vector <double>* viscosityKernel(vector <double>*);
 		virtual	double densityKernel(vector <double>*);
 		
-		virtual void calculateDensity(SmoothedParticle*);		//used to calculate the pressure force
+		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
 
 		virtual inline void zeroDensity(){density = mass/(radius*radius*PI);};	//this is used after the frame is over and the current density is no longer needed

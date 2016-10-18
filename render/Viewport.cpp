@@ -19,21 +19,6 @@ const int PARTICLE_COUNT = 10000;	//This variable dictates how many particles wi
 
 using namespace std;
 
-//static functions need static variables, which are protected.
-/*
-vector 	<double> *Viewport::cameraPosition;
-uVect	*Viewport::cameraOrientation;
-
-int 	Viewport::mouseButtonState;
-vector	<int> *Viewport::mousePosition;
-
-rect	*Viewport::viewPaneSize;
-
-SPH 	*Viewport::hydro;
-
-timer	*Viewport::timeSinceStart;*/
-/************************************************************************/
-
 Viewport::Viewport()
 {	
 	timeSinceStart = new timer();
@@ -81,21 +66,6 @@ void Viewport::init(void)		//enable texture, lighting, shading.
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // with?
-
-/*
-	glClearColor(0.0,0.0,0.0,1.0);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LEQUAL);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
-	GLfloat ambient[] = {1.0,1.0,1.0,1.0};
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT,ambient);
-	glEnable(GL_COLOR_MATERIAL);
-	glShadeModel(GL_SMOOTH);
-*/
 }
 
 void Viewport::initWorld()
