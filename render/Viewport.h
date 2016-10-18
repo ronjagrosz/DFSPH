@@ -44,53 +44,16 @@ struct rect
 };
 
 class Viewport
-{
-
-
-	protected:
-
-		static SPH 		*hydro;
-//		vector <mesh> 		objects;
-		static glm::vec3 	*cameraPosition;
-		static uVect 		*cameraOrientation;
-		static rect 		*viewPaneSize;
-		static int 			mouseButtonState;
-		static glm::vec3 	*mousePosition;
-		static timer		*timeSinceStart;	
-
-		
-
-		/***********************************************************************
-		Because of my decision to use C++ with OpenGL I had to make extensive
-		use of static funtions, which are all protected.  The reason for all
-		of the static functions is that OpenGL is a C library and uses function*'s
-		for all of it's callbacks. Since function* != Viewport::function* I had to 
-		use either use protected static functions or recompile OpenGL as a C++
-		library.			
-		***********************************************************************/
-
-		static void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
-		static void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
-		static void initWorld();
-		static void displayFPS(GLFWwindow *window);
-		void controlView(GLFWwindow *window);
-
-
-/*Disabled until needed*/
-
-//		static void mouseButtonEvent(int button, int state, int x, int y);
-//		static void mouseActiveMove(int x,int y);
-//		static void mousePassiveMove(int x, int y);
-		
-//		static void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
-		
-
+{	
 	public:	
 		Viewport();
 		~Viewport();
 		virtual int start(int argc, char** argv);			//This functions is called to start the program.
 
 	private:
+		// void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
+
+		glm::vec3 cameraPosition;
 		float phi;
 		float theta;
 		float rad;
@@ -101,6 +64,14 @@ class Viewport
 		double deltaTime;
 		double currTime;
 
+		SPH 		*hydro;
+		timer		*timeSinceStart;
+
+		void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
+		void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
+		void initWorld();
+		void displayFPS(GLFWwindow *window);
+		void controlView(GLFWwindow *window);
 };
 
 #endif

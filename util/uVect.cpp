@@ -357,7 +357,7 @@ uVect* uVect::cross(uVect *second)	//get the cross product (will later be implem
 }
 double uVect::dot(uVect *second)	//get the dot product
 {
-	return NULL;
+	return 0.0;
 }
 
 

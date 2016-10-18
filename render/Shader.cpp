@@ -84,6 +84,9 @@ void Shader::createShader(const char *vertexFilePath, const char *fragmentFilePa
 	glAttachShader(program, vertexShader);
 	glAttachShader(program, fragmentShader);
 
+	glBindAttribLocation(program, 0, "inPosition");
+	glBindAttribLocation(program, 1, "inColor");
+
 	glLinkProgram(program);
 	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
 
@@ -105,6 +108,7 @@ void Shader::createShader(const char *vertexFilePath, const char *fragmentFilePa
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
+	glUseProgram(program);
 	programID = program;
 }
 
