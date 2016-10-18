@@ -16,7 +16,6 @@ SPH is responsible for orginization of a group of smooth particles.
 #include <ctime>
 
 #include "../particle/SPH.h"
-#include "../util/uVect.h"
 
 const int DIMENSION = 20;
 //#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.
@@ -43,7 +42,6 @@ SPH::SPH()
 //and velocities inside a bounding cube of size 4
 SPH::SPH(int particles)
 {
-	
 	//dls = new vector <GLuint> (3);
 	frameTimer = new timer;
 
@@ -113,8 +111,8 @@ void SPH::applyForces(double timeDiff)
 {
 	double distance = 0;
 
-	uVect *primaryTempUVect;
-	uVect *secondaryTempUVect;
+	glm::vec4 *primaryTempUVect;
+	glm::vec4 *secondaryTempUVect;
 	vector <double> *primaryPositionVector;
 	vector <double> *secondaryPositionVector;
 	vector <double> vel;
@@ -191,8 +189,8 @@ void SPH::calculateDensity()
 {
 	double distance = 0;
 	
-	uVect *primaryTempUVect;
-	uVect *secondaryTempUVect;
+	glm::vec4 *primaryTempUVect;
+	glm::vec4 *secondaryTempUVect;
 
 	vector <double> *primaryPositionVector;
 	vector <double> *secondaryPositionVector;
@@ -358,22 +356,3 @@ void SPH::setTimer(timer *newTimer)
 {
 	frameTimer = newTimer;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

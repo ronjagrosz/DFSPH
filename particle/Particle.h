@@ -18,7 +18,11 @@ particle at a certain point.
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "../util/uVect.h"
+#ifdef __linux__
+#include "../glm/glm/glm.hpp"
+#elif __APPLE__
+#include "glm/glm.hpp"
+#endif
 
 #define WATER 0
 
@@ -50,7 +54,7 @@ class Particle
 		vector  <double> 	*position;
 		stack	 <int>		*neighbors;
 
-		uVect 	*velocity;
+		glm::vec4 	*velocity;
 		double 	radius;
 		double 	mass;
 		double 	viscosity;
@@ -83,7 +87,7 @@ class Particle
 		//Thes variables are used for Crystalization
 //		vector <BindingPoints> 	boundParticles;
 //		vector <double		angularVelocity;
-//		uVect	orientation;
+//		glm::vec4	orientation;
 //		bool	isBound;
 
 
@@ -105,7 +109,7 @@ class Particle
 
 		//getters
 		virtual vector<double>* getPosition();
-		virtual uVect* getVelocity();
+		virtual glm::vec4* getVelocity();
 		virtual double getRadius();
 		virtual double getMass();
 		virtual double getMaterialID();
@@ -114,8 +118,8 @@ class Particle
 		virtual GLuint getDL();
 		
 		virtual void display(double);
-		virtual uVect* getForceAtPoint(Particle*);	//this is the biggest deal in this program
-		virtual void applyForce(uVect &, double);		//apply the forces to the velocity
+		virtual glm::vec4* getForceAtPoint(Particle*);	//this is the biggest deal in this program
+		virtual void applyForce(glm::vec4 &, double);		//apply the forces to the velocity
 		virtual void updatePosition(double elapsedTime);	//apply the velocity to the position
 		
 		virtual vector <double>* pressureKernel(vector <double>*);	//smoothing kernel functions used in the getForceAtPoint function
@@ -125,7 +129,7 @@ class Particle
 		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
 
-		virtual inline void zeroDensity(){density = mass/(radius*radius*PI);};	//this is used after the frame is over and the current density is no longer needed
+		virtual inline void zeroDensity(){density = mass/(radius*radius*M_PI);};	//this is used after the frame is over and the current density is no longer needed
 		virtual inline void printDensity(){cout << "density = " << density << " " << isnan(density) << endl;};
 
 		virtual void clearNAN()	//a very kludgey solution to a nan problem I was having in the density calculation.

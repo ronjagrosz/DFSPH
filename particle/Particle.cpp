@@ -16,7 +16,6 @@ particle at a certain point.
 #include <cmath>
 
 #include "../particle/Particle.h"
-#include "../util/uVect.h"
 
 #define CONST_FORCE_CONST 1
 //#define WEIGHTLESS
@@ -29,7 +28,7 @@ offsetR(0),offsetA(0),maxR(100),maxA(-100)
 {
 	position = new vector <double> (3);
 	neighbors = new stack<int>;
-	velocity  = new uVect(0,0,0,1);
+	velocity  = new glm::vec4(0,0,0,1);
 	color = new vector<int> (3);
 }
 
@@ -40,7 +39,7 @@ stretchA(1),offsetR(0),offsetA(0),maxR(100),maxA(-100)
 {
 	position = new vector<double> (*clone.position);
 	neighbors = new stack<int> ;
-	velocity = new uVect(*clone.velocity);
+	velocity = new glm::vec4(*clone.velocity);
 	radius = clone.radius;
 	mass = clone.mass;
 	materialID = clone.materialID;
@@ -88,7 +87,7 @@ void Particle::setVelocity(double i, double j, double k)
 {
 	
 	delete velocity;
-	uVect *newVelocity = new uVect(i,j,k,uVect::cart);
+	glm::vec4 *newVelocity = new glm::vec4(i, j, k, 1.0);
 	velocity = newVelocity;
 
 
@@ -134,9 +133,9 @@ vector<int>* Particle::getColor()
 
 }
 
-uVect* Particle::getVelocity()
+glm::vec4* Particle::getVelocity()
 {
-	uVect *tempU = new uVect(*velocity);
+	glm::vec4 *tempU = new glm::vec4(*velocity);
 	return tempU;
 }
 double Particle::getRadius(){return radius;}
@@ -154,7 +153,7 @@ GLuint Particle::getDL(){return DL;}
 //		that this particle enacts on its neighbor.
 //
 /************************************************************************/
-uVect* Particle::getForceAtPoint(Particle *neighbor)
+glm::vec4* Particle::getForceAtPoint(Particle *neighbor)
 {
 
 	//all variables that are prefixed with the letter n are values that
@@ -229,11 +228,11 @@ uVect* Particle::getForceAtPoint(Particle *neighbor)
 		if(forceZ > 1)
 			forceZ = 1;
 
-		uVect *tempUVect = new uVect(forceX, forceY, forceZ, 1);
+		glm::vec4 *tempVec = new glm::vec4(forceX, forceY, forceZ, 1);
 
 		delete pressureKernelValue;
 		delete viscosityKernelValue;
-		return tempUVect;
+		return tempVec;
 	}
 
 	delete pressureKernelValue;
@@ -243,21 +242,11 @@ uVect* Particle::getForceAtPoint(Particle *neighbor)
 
 //this function takes a force, and applies it to the velocity of the particle
 
-void Particle::applyForce(uVect &actingForce, double elapsedTime)
+void Particle::applyForce(glm::vec4 &actingForce, double elapsedTime)
 {
-	vector <double> *force = actingForce.getCartesian();
-	vector <double> *vel = velocity->getCartesian();
-
-	vel->at(0) += (force->at(0) / mass) * elapsedTime;
-	vel->at(1) += (force->at(1) / mass) * elapsedTime;
-	vel->at(2) += (force->at(2) / mass) * elapsedTime;
-
-	if(velocity)
-		delete velocity;
-	
-	velocity = new uVect(vel->at(0), vel->at(1), vel->at(2), 1);
-	delete force;
-	delete vel;
+	velocity->x += (actingForce.x / mass) * elapsedTime;
+	velocity->y += (actingForce.y / mass) * elapsedTime;
+	velocity->z += (actingForce.z / mass) * elapsedTime;
 }
 
 //this is called after all of the paricles have interacted
@@ -266,30 +255,22 @@ void Particle::applyForce(uVect &actingForce, double elapsedTime)
 
 void Particle::updatePosition(double elapsedTime)
 {
-	vector <double> *vel = velocity->getCartesian();
-	
 	#ifndef WEIGHTLESS
-	vel->at(2) += -9.8 * elapsedTime;
+	velocity->z += -9.8 * elapsedTime;
 	#endif
 	
-	position->at(0) += vel->at(0) * elapsedTime;	
-	position->at(1) += vel->at(1) * elapsedTime;	
-	position->at(2) += vel->at(2) * elapsedTime;	
+	position->at(0) += velocity->x * elapsedTime;	
+	position->at(1) += velocity->y * elapsedTime;	
+	position->at(2) += velocity->z * elapsedTime;	
 	
 	//cout << position->at(0) << endl;
 
 	if(position->at(2) < 0)
 	{
-		position->at(2) -= vel->at(2) * elapsedTime * 2;
-		vel->at(2) *= -.2;
+		position->at(2) -= velocity->z * elapsedTime * 2;
+		velocity->z *= -.2;
 
 	}
-
-	if(velocity)
-		delete velocity;
-	velocity = new uVect(vel->at(0), vel->at(1), vel->at(2), uVect::cart);
-	
-	delete vel;
 }
 
 //The following three kernel functions are used in th egetForceatPoint
@@ -303,13 +284,13 @@ vector <double>* Particle::pressureKernel(vector <double> *r)
 			r->at(1)*r->at(1)+
 			r->at(2)*r->at(2));
 
-	tempVect->at(0) = (45.0/(PI*ER*ER*ER*ER*ER*ER)) * ((ER*mag)*
+	tempVect->at(0) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * ((ER*mag)*
 		(ER*mag)*(ER*mag)) * (r->at(0)/mag);
 				
-	tempVect->at(1) = (45.0/(PI*ER*ER*ER*ER*ER*ER)) *
+	tempVect->at(1) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) *
 	 	((ER*mag)*(ER*mag)*(ER*mag)) * (r->at(1)/mag);
 
-	tempVect->at(2) = (45.0/(PI*ER*ER*ER*ER*ER*ER)) * 
+	tempVect->at(2) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * 
 		((ER*mag)*(ER*mag)*(ER*mag)) * (r->at(2)/mag);
 
 
@@ -324,11 +305,11 @@ vector <double>* Particle::viscosityKernel(vector <double> *r)
 			r->at(1)*r->at(1)+
 			r->at(2)*r->at(2));
 
-	tempVect->at(0) = (45.0/(PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
+	tempVect->at(0) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
 				
-	tempVect->at(1) = (45.0/(PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
+	tempVect->at(1) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
 
-	tempVect->at(2) = (45.0/(PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
+	tempVect->at(2) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
 
 
 	return tempVect;
@@ -340,7 +321,7 @@ double Particle::densityKernel(vector <double> *r)
 			r->at(1)*r->at(1)+
 			r->at(2)*r->at(2)));
 	
-	return ((315.0)/(64 * PI * ER*ER*ER*ER*ER*ER*ER*ER*ER))*
+	return ((315.0)/(64 * M_PI * ER*ER*ER*ER*ER*ER*ER*ER*ER))*
 		(ER*ER - mag*mag)*(ER*ER - mag*mag)*(ER*ER - mag*mag); 
 
 }
@@ -367,23 +348,3 @@ void Particle::perterb()
 
 }
 */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
