@@ -49,14 +49,7 @@ class Viewport
 
 	protected:
 
-		static SPH 		*hydro;
-//		vector <mesh> 		objects;
-		static glm::vec3 	*cameraPosition;
-		static uVect 		*cameraOrientation;
-		static rect 		*viewPaneSize;
-		static int 			mouseButtonState;
-		static glm::vec3 	*mousePosition;
-		static timer		*timeSinceStart;	
+			
 
 		
 
@@ -69,11 +62,7 @@ class Viewport
 		library.			
 		***********************************************************************/
 
-		static void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
-		static void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
-		static void initWorld();
-		static void displayFPS(GLFWwindow *window);
-		void controlView(GLFWwindow *window);
+		
 
 
 /*Disabled until needed*/
@@ -101,6 +90,14 @@ class Viewport
 		double deltaTime;
 		double currTime;
 
+		SPH 		*hydro;
+		timer		*timeSinceStart;
+
+		void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
+		void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
+		void initWorld();
+		void displayFPS(GLFWwindow *window);
+		void controlView(GLFWwindow *window);
 };
 
 #endif

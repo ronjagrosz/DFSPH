@@ -20,7 +20,7 @@ const int PARTICLE_COUNT = 10000;	//This variable dictates how many particles wi
 using namespace std;
 
 //static functions need static variables, which are protected.
-
+/*
 vector 	<double> *Viewport::cameraPosition;
 uVect	*Viewport::cameraOrientation;
 
@@ -31,20 +31,12 @@ rect	*Viewport::viewPaneSize;
 
 SPH 	*Viewport::hydro;
 
-timer	*Viewport::timeSinceStart;
+timer	*Viewport::timeSinceStart;*/
 /************************************************************************/
 
 Viewport::Viewport()
-{
-	Viewport::cameraPosition = new glm::vec3(0.0f, 0.0f, 0.0f);
-	Viewport::mousePosition = new glm::vec3(0.0f, 0.0f, 0.0f);
-
-	Viewport::cameraOrientation = new uVect(0,0,1,0);
-	Viewport::viewPaneSize = new rect;
-	
-	Viewport::timeSinceStart = new timer();
-	
-	Viewport::mouseButtonState = 0;
+{	
+	timeSinceStart = new timer();
 	
 }
 
@@ -168,10 +160,14 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 					  0.0f, 1.0f, 0.0f, 0.0f,
 					  0.0f, 0.0f, 1.0f, 0.0f,
 					  0.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat P[16] = { 2.42f, 0.0f, 0.0f, 0.0f,
+	GLfloat P[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
+					  0.0f, 1.0f, 0.0f, 0.0f,
+					  0.0f, 0.0f, 1.0f, 0.0f,
+					  0.0f, 0.0f, 0.0f, 1.0f };
+					/*{ 2.42f, 0.0f, 0.0f, 0.0f,
 					  0.0f, 2.42f, 0.0f, 0.0f,
 					  0.0f, 0.0f, -1.0f, -1.0f,
-					  0.0f, 0.0f, -0.2f, 0.0f };
+					  0.0f, 0.0f, -0.2f, 0.0f };*/
 	GLint locationP;
 	GLint locationMV;
 
@@ -183,10 +179,11 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
         return 1;
     }
     
+    glfwDefaultWindowHints();
 
 #ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
@@ -241,11 +238,11 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 		// I is the normal Identity matrix
 		viewMatrix = glm::make_mat4(I);
         // Translate a bit down and backwards
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(-3.0f, 3.0f, -rad));
+		/*viewMatrix = glm::translate(viewMatrix, glm::vec3(-3.0f, 3.0f, -rad));
         // Rotate with theta around X
         viewMatrix = viewMatrix * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f));
         // Rotate with phi around Y
-        viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
+        viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));*/
 
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
@@ -267,10 +264,9 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
         glUniform3fv(locationCa, 1, Ca);
         */
 
-		success = hydro->display();
+		success = hydro->display(PARTICLE_COUNT);
 		
-		//if(success)
-			glfwSwapBuffers(window);			//swap the buffer
+		glfwSwapBuffers(window);			//swap the buffer
     }
     glfwTerminate();
 

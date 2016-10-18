@@ -32,8 +32,8 @@ bool compareZ(SmoothedParticle* left, SmoothedParticle* right)
 //default constructor.
 SPH::SPH()
 {
-	dls = new vector <GLuint> (3);
-	//createVBO();	
+	//dls = new vector <GLuint> (3);
+	//createDL(1,10);	
 	frameTimer = new timer;
 	timeLastFrame = frameTimer->elapsed();
 }
@@ -44,22 +44,42 @@ SPH::SPH()
 SPH::SPH(int particles)
 {
 	
-	dls = new vector <GLuint> (3);
+	//dls = new vector <GLuint> (3);
 	frameTimer = new timer;
-	//createVBO();
+
+
 	double randX, randY, randZ;
 	double randI, randJ, randK; //velocity vector values
 	
 	srand(time(0));
 
-	particleCount = particles;
-	material = new vector<SmoothedParticle*>(particles);
-
-	for(int i = 0; i < particles; i++)
+	
+	/*#ifdef VISIBLE_TEST //only do 5 particles in a line
+	particleCount = 5;
+	material = new vector<SmoothedParticle*>(particleCount);
+	for(int i = 0; i < 5; i++)
 	{
-		randX = ((double)rand()/(double)RAND_MAX) * 4.0;
-		randY = ((double)rand()/(double)RAND_MAX) * 4.0;
-		randZ = ((double)rand()/(double)RAND_MAX) * 4.0;
+		material->at(i) = new SmoothedParticle();
+		material->at(i)->setDL(dls->at(0));
+		material->at(i)->setPosition(0, i/2.0, 0);
+		material->at(i)->setMass(1);
+	}
+
+	#endif*/
+
+
+
+	particleCount = particles;
+
+	createVAO(particleCount);
+
+	//material = new vector<SmoothedParticle*>(particles);
+
+	/*for(int i = 0; i < particles; i++)
+	{
+		randX = ((double)rand()/(double)RAND_MAX) * 1.0;
+		randY = ((double)rand()/(double)RAND_MAX) * 1.0;
+		randZ = ((double)rand()/(double)RAND_MAX) * 1.0;
 		
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
@@ -69,54 +89,12 @@ SPH::SPH(int particles)
 		material->at(i)->setPosition(randX, randY, randZ);
 		material->at(i)->setVelocity(randI, randJ, randK);
 		material->at(i)->setMass(5);
-	}
+	}*/
 
 	timeLastFrame = frameTimer->elapsed();
 }
 
-//this constructor is the same as above, but instead
-//of random positions it places the particles in a 
-//nice grid pattern with random velocities
-SPH::SPH(int particles, int cube)
-{
-	particleCount = DIMENSION*DIMENSION*DIMENSION;
-	dls = new vector <GLuint> (3);
-	frameTimer = new timer;
-	//createVBO();
-	srand(time(0));
 
-	double randI, randJ, randK; //velocity vector values
-
-	material = new vector<SmoothedParticle*>(DIMENSION*DIMENSION*DIMENSION);
-
-	for(int i = 0; i < DIMENSION; i++)
-	{
-		for(int j = 0; j < DIMENSION; j++)
-		{
-			for(int k = 0; k <  DIMENSION; k++)
-			{
-				randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-				randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-				randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k) = new SmoothedParticle();
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k)->setDL(dls->at(0));
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k)->setPosition(i/(DIMENSION/5.0), j/(DIMENSION/5.0), k/(DIMENSION/5.0));
-				material->at(i)->setVelocity(randI, randJ, randK);
-				material->at(DIMENSION*DIMENSION*i + DIMENSION*j + k)->setMass(5);
-			}
-		}
-	}
-	for(int i = 0; i < DIMENSION*DIMENSION*DIMENSION; i++)
-	{
-		if(material->at(i) == 0)
-			cout << i << endl;
-
-
-	}
-
-	timeLastFrame = frameTimer->elapsed();
-}
 SPH::~SPH()
 {
 	for(int i = 0; i < particleCount; i++)
@@ -263,15 +241,9 @@ void SPH::calculateDensity()
 
 }
 
-//this is SPH's entrypoint each frame
-int SPH::display()	
+
+int SPH::display(int particles)	
 {
-	/*
-	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, 3 * ntris, GL_UNSIGNED_INT, (void*)0);
-	// (mode, vertex count, type, element array buffer offset)
-	glBindVertexArray(0);
-	*/
 	int index = 0;
 	int success = 0;
 	bool cont = true;
@@ -279,14 +251,22 @@ int SPH::display()
 	//this is used to log the elapsed time since 
 	//the last frame
 	double currentTime = frameTimer->elapsed();
-	
-	success = 0;
-	
-	
-	if((currentTime - timeLastFrame) > 0)
-		applyForces(currentTime - timeLastFrame); //move the particles
 
-	if ((currentTime - timeLastFrame) > 0) {
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glBindVertexArray(vao);
+
+	glEnable(GL_PROGRAM_POINT_SIZE); //enable gl_PointSize in vertex shader
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+
+	glDrawArrays(GL_POINTS, 0, particles);
+
+	/*if ((currentTime - timeLastFrame) > 0) {
 		while (cont == true) {
 			try {
 				if((unsigned int)index < material->capacity()) {
@@ -313,9 +293,66 @@ int SPH::display()
 			//update the time.
 			timeLastFrame = frameTimer->elapsed();
 			success = 1;
-		}
-	}
+		}*/
+
 	return success;
+
+}
+
+void SPH::createVAO ( int particles ) {
+	// A VAO (Vertex Array Object) stores information of a complete rendered object.
+	// It contains all VBOs (Vertex Buffer Objects)
+	// A VBO stores information about the vertices. 
+	// Now we're using two VBOs, one for coordinates and one for colors
+	GLfloat vertices[particles][3];
+	GLfloat colors[particles][3];
+
+	// generate random positions for all vertices and set the color
+	for(int i = 0; i < particles; i++) {
+		vertices[i][0] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
+		vertices[i][1] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
+		vertices[i][2] = 0.0;
+		
+		colors[i][0] = 1.0;
+		colors[i][1] = 1.0;
+		colors[i][2] = 1.0;
+		
+		cout << vertices[i][0] << " "
+			 <<	vertices[i][1] << " "
+			 << vertices[i][2] << "\n";
+	}
+
+	// Allocate and bind Vertex Array Object to the handle vao
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	// Generate (one) new Vertex Buffer Object and get the associated id
+	glGenBuffers(2, vbo);
+
+	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+	// Copy the vertex data from diamond to our buffer 
+    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
+    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
+
+    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // Enable attribute index 0 as being used 
+    glEnableVertexAttribArray(0);
+
+    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+
+    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // Enable attribute index 1 as being used
+    glEnableVertexAttribArray(1);
+
 }
 
 void SPH::setTimer(timer *newTimer)
