@@ -19,23 +19,16 @@ const int PARTICLE_COUNT = 10000;	//This variable dictates how many particles wi
 
 using namespace std;
 
-//static functions need static variables, which are protected.
-/*
-vector 	<double> *Viewport::cameraPosition;
-uVect	*Viewport::cameraOrientation;
-
-int 	Viewport::mouseButtonState;
-vector	<int> *Viewport::mousePosition;
-
-rect	*Viewport::viewPaneSize;
-
-SPH 	*Viewport::hydro;
-
-timer	*Viewport::timeSinceStart;*/
-/************************************************************************/
 
 Viewport::Viewport()
-{	
+{
+	
+	phi = 0.0f;
+	theta = PI / 4.0f;
+	rad = 1.0f;
+	zoomFactor = PI;
+	newTime = deltaTime = currTime = 0.0f;	
+
 	timeSinceStart = new timer();
 	
 }
@@ -124,7 +117,7 @@ void Viewport::controlView(GLFWwindow *window)
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
 		if (glfwGetKey(window, GLFW_KEY_UP)) {
-			if (rad > 0.0f)
+			if (rad > -2.0f)
 				rad -= deltaTime*zoomFactor;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
@@ -160,18 +153,18 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 					  0.0f, 1.0f, 0.0f, 0.0f,
 					  0.0f, 0.0f, 1.0f, 0.0f,
 					  0.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat P[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
-					  0.0f, 1.0f, 0.0f, 0.0f,
-					  0.0f, 0.0f, 1.0f, 0.0f,
-					  0.0f, 0.0f, 0.0f, 1.0f };
-					/*{ 2.42f, 0.0f, 0.0f, 0.0f,
+	GLfloat P[16] = { 2.42f, 0.0f, 0.0f, 0.0f,
 					  0.0f, 2.42f, 0.0f, 0.0f,
 					  0.0f, 0.0f, -1.0f, -1.0f,
-					  0.0f, 0.0f, -0.2f, 0.0f };*/
+					  0.0f, 0.0f, -0.2f, 0.0f };
 	GLint locationP;
 	GLint locationMV;
+	GLint locationLight;
+	GLint locationCamera;
 
 	glm::mat4 viewMatrix;
+	glm::vec4 light;
+	glm::vec4 cam;
 
     // start GLEW extension handler
     if (!glfwInit()) {
@@ -182,8 +175,8 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
     glfwDefaultWindowHints();
 
 #ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
@@ -215,13 +208,10 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
     //link variables to shader
     locationMV = glGetUniformLocation(phongShader.programID, "MV");
 	locationP = glGetUniformLocation(phongShader.programID, "P");
+	//locationLight = glGetUniformLocation(phongShader.programID, "lightPos");
+	//locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
 
 	int success = 0;
-	phi = 0.0f;
-	theta = PI / 4.0f;
-	rad = 15.0f;
-	zoomFactor = PI;
-	newTime = deltaTime = currTime = 0.0f;
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -234,34 +224,30 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 
 		setupPerspective(window, P);
 		controlView(window);
+		cameraPosition = glm::vec3(0.0f, 0.0f, rad);
+
 
 		// I is the normal Identity matrix
 		viewMatrix = glm::make_mat4(I);
         // Translate a bit down and backwards
-		/*viewMatrix = glm::translate(viewMatrix, glm::vec3(-3.0f, 3.0f, -rad));
+		viewMatrix = viewMatrix * glm::translate(-cameraPosition);
         // Rotate with theta around X
         viewMatrix = viewMatrix * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f));
         // Rotate with phi around Y
-        viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));*/
+        viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
 
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
         /*
-        li = glm::vec4(0.0, 5.0, 0.0, 1.0);
+        light = glm::vec4(0.0, 5.0, 0.0, 1.0);
         cam = glm::vec4(0.0, 0.0, 0.0, 1.0);
-        li = glm::inverse(viewMatrix)*li;
+        li = glm::inverse(viewMatrix)*light;
         cam = glm::inverse(viewMatrix)*cam;
         
-        Ca[0] = cam.x;
-        Ca[1] = cam.y;
-        Ca[2] = cam.z;
-        L[0] = li.x;
-        L[1] = li.y;
-        L[2] = li.z;
         // send in light and camera location to glsl (not done in shaders yet)
-        glUniform3fv(locationL, 1, L);
-        glUniform3fv(locationCa, 1, Ca);
+        glUniform3fv(locationL, 1, glm::value_ptr(light));
+        glUniform3fv(locationCa, 1, glm::value_ptr(cam));
         */
 
 		success = hydro->display(PARTICLE_COUNT);

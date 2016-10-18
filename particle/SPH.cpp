@@ -311,15 +311,11 @@ void SPH::createVAO ( int particles ) {
 	for(int i = 0; i < particles; i++) {
 		vertices[i][0] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		vertices[i][1] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		vertices[i][2] = 0.0;
+		vertices[i][2] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;;
 		
 		colors[i][0] = 1.0;
 		colors[i][1] = 1.0;
 		colors[i][2] = 1.0;
-		
-		cout << vertices[i][0] << " "
-			 <<	vertices[i][1] << " "
-			 << vertices[i][2] << "\n";
 	}
 
 	// Allocate and bind Vertex Array Object to the handle vao

@@ -46,32 +46,7 @@ struct rect
 class Viewport
 {
 
-
-	protected:
-
-			
-
-		
-
-		/***********************************************************************
-		Because of my decision to use C++ with OpenGL I had to make extensive
-		use of static funtions, which are all protected.  The reason for all
-		of the static functions is that OpenGL is a C library and uses function*'s
-		for all of it's callbacks. Since function* != Viewport::function* I had to 
-		use either use protected static functions or recompile OpenGL as a C++
-		library.			
-		***********************************************************************/
-
-		
-
-
-/*Disabled until needed*/
-
-//		static void mouseButtonEvent(int button, int state, int x, int y);
-//		static void mouseActiveMove(int x,int y);
-//		static void mousePassiveMove(int x, int y);
-		
-//		static void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
+//		void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
 		
 
 	public:	
@@ -80,6 +55,8 @@ class Viewport
 		virtual int start(int argc, char** argv);			//This functions is called to start the program.
 
 	private:
+
+		glm::vec3 cameraPosition;
 		float phi;
 		float theta;
 		float rad;
