@@ -23,7 +23,7 @@ particle at a certain point.
 
 using namespace std;
 
-SmoothedParticle::SmoothedParticle():radius(1),mass(1),viscosity(2.034),materialID(WATER),
+Particle::Particle():radius(1),mass(1),viscosity(2.034),materialID(WATER),
 forceConstant(CONST_FORCE_CONST),threshold(0.5),stretchR(1),stretchA(1),
 offsetR(0),offsetA(0),maxR(100),maxA(-100)
 {
@@ -34,7 +34,7 @@ offsetR(0),offsetA(0),maxR(100),maxA(-100)
 }
 
 
-SmoothedParticle::SmoothedParticle(const SmoothedParticle& clone):radius(1),mass(1),
+Particle::Particle(const Particle& clone):radius(1),mass(1),
 viscosity(2.034),materialID(WATER),forceConstant(CONST_FORCE_CONST),threshold(0.5),stretchR(1),
 stretchA(1),offsetR(0),offsetA(0),maxR(100),maxA(-100)
 {
@@ -49,7 +49,7 @@ stretchA(1),offsetR(0),offsetA(0),maxR(100),maxA(-100)
 	pressureScale = clone.pressureScale;
 }
 
-SmoothedParticle::~SmoothedParticle()
+Particle::~Particle()
 {
 	delete position;
 	delete neighbors;
@@ -57,7 +57,7 @@ SmoothedParticle::~SmoothedParticle()
 	delete color;
 }
 
-void SmoothedParticle::display(double oldFrameTime)
+void Particle::display(double oldFrameTime)
 {
 	timeLastFrame = oldFrameTime;
 
@@ -75,7 +75,7 @@ void SmoothedParticle::display(double oldFrameTime)
 
 
 //setters
-void SmoothedParticle::setPosition(double x, double y, double z)
+void Particle::setPosition(double x, double y, double z)
 {
 	position->at(0) = x;
 	position->at(1) = y;
@@ -84,7 +84,7 @@ void SmoothedParticle::setPosition(double x, double y, double z)
 
 }
 
-void SmoothedParticle::setVelocity(double i, double j, double k)
+void Particle::setVelocity(double i, double j, double k)
 {
 	
 	delete velocity;
@@ -93,57 +93,57 @@ void SmoothedParticle::setVelocity(double i, double j, double k)
 
 
 }
-void SmoothedParticle::setRadius(double newRadius)
+void Particle::setRadius(double newRadius)
 {
 	radius = newRadius;
 }
-void SmoothedParticle::setMass(double newMass)
+void Particle::setMass(double newMass)
 {
 	mass = newMass;
 }
-void SmoothedParticle::setMaterialID(double newID)
+void Particle::setMaterialID(double newID)
 {
 	materialID = newID;
 }
-void SmoothedParticle::setColor(vector<int>* newColor)
+void Particle::setColor(vector<int>* newColor)
 {
 	if(newColor != color)
 	{
 		color = newColor;
 	}
 }
-void SmoothedParticle::setPressureScale(float newScale)
+void Particle::setPressureScale(float newScale)
 {
 	pressureScale = newScale;
 }
 
-void SmoothedParticle::setDL(GLuint newDL){DL = newDL;}
-void SmoothedParticle::setTimer(timer *currentTime){frameTimer = currentTime;}
+void Particle::setDL(GLuint newDL){DL = newDL;}
+void Particle::setTimer(timer *currentTime){frameTimer = currentTime;}
 
 //getters  ***************************************************************
-vector<double>* SmoothedParticle::getPosition()
+vector<double>* Particle::getPosition()
 {
 	vector <double> *tempV = new vector <double> (*position);
 	return tempV;
 }
 
-vector<int>* SmoothedParticle::getColor()
+vector<int>* Particle::getColor()
 {
 	vector<int>* tempV = new vector<int> (*color);
 	return tempV;
 
 }
 
-uVect* SmoothedParticle::getVelocity()
+uVect* Particle::getVelocity()
 {
 	uVect *tempU = new uVect(*velocity);
 	return tempU;
 }
-double SmoothedParticle::getRadius(){return radius;}
-double SmoothedParticle::getMass(){return mass;}
-double SmoothedParticle::getMaterialID(){return materialID;}
-float SmoothedParticle::getPressurescale(){return pressureScale;}
-GLuint SmoothedParticle::getDL(){return DL;}
+double Particle::getRadius(){return radius;}
+double Particle::getMass(){return mass;}
+double Particle::getMaterialID(){return materialID;}
+float Particle::getPressurescale(){return pressureScale;}
+GLuint Particle::getDL(){return DL;}
 
 /************************************************************************/
 //getForceAtPoint is the heart of this program.  This function dictates the
@@ -154,7 +154,7 @@ GLuint SmoothedParticle::getDL(){return DL;}
 //		that this particle enacts on its neighbor.
 //
 /************************************************************************/
-uVect* SmoothedParticle::getForceAtPoint(SmoothedParticle *neighbor)
+uVect* Particle::getForceAtPoint(Particle *neighbor)
 {
 
 	//all variables that are prefixed with the letter n are values that
@@ -243,7 +243,7 @@ uVect* SmoothedParticle::getForceAtPoint(SmoothedParticle *neighbor)
 
 //this function takes a force, and applies it to the velocity of the particle
 
-void SmoothedParticle::applyForce(uVect &actingForce, double elapsedTime)
+void Particle::applyForce(uVect &actingForce, double elapsedTime)
 {
 	vector <double> *force = actingForce.getCartesian();
 	vector <double> *vel = velocity->getCartesian();
@@ -264,7 +264,7 @@ void SmoothedParticle::applyForce(uVect &actingForce, double elapsedTime)
 //in this time step.  This moves the particles according to
 //their velocity and how much time has elapsed.
 
-void SmoothedParticle::updatePosition(double elapsedTime)
+void Particle::updatePosition(double elapsedTime)
 {
 	vector <double> *vel = velocity->getCartesian();
 	
@@ -295,7 +295,7 @@ void SmoothedParticle::updatePosition(double elapsedTime)
 //The following three kernel functions are used in th egetForceatPoint
 //function
 
-vector <double>* SmoothedParticle::pressureKernel(vector <double> *r)
+vector <double>* Particle::pressureKernel(vector <double> *r)
 {
 	vector <double> *tempVect = new vector <double> (3);
 	
@@ -316,7 +316,7 @@ vector <double>* SmoothedParticle::pressureKernel(vector <double> *r)
 	return tempVect;
 }
 
-vector <double>* SmoothedParticle::viscosityKernel(vector <double> *r)
+vector <double>* Particle::viscosityKernel(vector <double> *r)
 {
 	vector <double> *tempVect = new vector <double> (3);
 
@@ -334,7 +334,7 @@ vector <double>* SmoothedParticle::viscosityKernel(vector <double> *r)
 	return tempVect;
 }
 
-double SmoothedParticle::densityKernel(vector <double> *r)
+double Particle::densityKernel(vector <double> *r)
 {
 	double mag = 	sqrt(abs(r->at(0)*r->at(0)+
 			r->at(1)*r->at(1)+
@@ -351,7 +351,7 @@ double SmoothedParticle::densityKernel(vector <double> *r)
 //the density that this particle represents should be
 //"smoothed" over the surrounding area by taking a 
 //weighted average of its neighbors.
-void SmoothedParticle::calculateDensity(SmoothedParticle *neighbor)
+void Particle::calculateDensity(Particle *neighbor)
 {
 	if(neighbor)
 	{
@@ -361,7 +361,7 @@ void SmoothedParticle::calculateDensity(SmoothedParticle *neighbor)
 
 //gives the particle's velocity a random kick
 /*
-void SmoothedParticle::perterb()
+void Particle::perterb()
 {
 	srand(timer(NULL));
 
