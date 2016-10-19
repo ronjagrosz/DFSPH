@@ -98,8 +98,7 @@ SPH::~SPH()
 
 }
 
-//this is one of the most important functions in the 
-//program
+//this is one of the most important functions in the program
 void SPH::applyForces(double timeDiff)
 {
 	double distance = 0;

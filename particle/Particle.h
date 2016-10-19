@@ -133,11 +133,11 @@ class Particle
 		
 
 		virtual inline void zeroDensity(){density = mass/(radius*radius*M_PI);};	//this is used after the frame is over and the current density is no longer needed
-		virtual inline void printDensity(){cout << "density = " << density << " " << isnan(density) << endl;};
+		virtual inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
 
 		virtual void clearNAN()	//a very kludgey solution to a nan problem I was having in the density calculation.
 		{			//finding the root cause of this is on my list of things to do.
-			if(isnan(density))
+			if(std::isnan(density))
 				density = 0;
 		};
 };

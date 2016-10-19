@@ -3,7 +3,7 @@
 // File name:  fragmentshader.glsl
 //
 
-#version 400
+#version 330
 //layout( location = 0 ) out vec4 FragColor;
 
 

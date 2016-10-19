@@ -18,7 +18,7 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 #include "../render/Viewport.h"
 #include "Shader.h"
 
-#define OUTPUT_FILE_PATH "frames/frame"
+#define OUTPUT_FILE_PATH "results/frames/frame"
 
 const int PARTICLE_COUNT = 100000;	//This variable dictates how many particles will be in the simulation
 
@@ -237,7 +237,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
             	std::cout << "Starting to record.." << std::endl;
             else
             	std::cout << "Recorded " << deltaTime << " seconds (" 
-            << frameCount/deltaTime << "fps) Approximately " << ((double)width*height/10000000)*frameCount << " MB\n";
+            << frameCount/deltaTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
             timeSinceAction = glfwGetTime();
         }
 

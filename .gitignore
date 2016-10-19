@@ -3,7 +3,8 @@
 
 ### Directories ###
 documents/
-frames/
+results/frames/
+results/out.avi
 glm/
 Screen_Grabs_and_Vid/
 Makefile
