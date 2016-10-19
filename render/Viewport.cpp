@@ -22,18 +22,17 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 const int PARTICLE_COUNT = 300000;	//This variable dictates how many particles will be in the simulation
 
+using namespace std;
 
 std::string ZeroPadNumber(int num) {
   std::ostringstream ss;
   ss << std::setw(6) << std::setfill('0') << num;
-  std::string result = ss.str();
+  string result = ss.str();
   if (result.length() > 4) {
     result.erase(0, result.length() - 4);
   }
   return result;
 }
-
-using namespace std;
 
 Viewport::Viewport()
 {
@@ -178,9 +177,6 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 	glm::vec4 cam;
 
 
-	double timeSinceAction = glfwGetTime();
-
-
     // start GLEW extension handler
     if (!glfwInit()) {
         fprintf(stderr, "ERROR: could not start GLFW3\n");
@@ -272,10 +268,8 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 		// Save the frame
 		if (record) {
 			frameCount++;
-			stringstream ss;
-	  		ss << OUTPUT_FILE_PATH << ZeroPadNumber(frameCount) << ".png";
-	  		string fileName = ss.str();
-
+			string fileName = OUTPUT_FILE_PATH + ZeroPadNumber(frameCount) + ".png";
+	  		
 			// Make the BYTE array, factor of 3 because it's RBG.
 			BYTE* pixels = new BYTE[ 3 * width * height];
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
