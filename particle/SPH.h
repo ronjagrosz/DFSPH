@@ -59,7 +59,7 @@ class SPH
 		//virtual VERTICES* createSphere(double radius, double x, double y, double z, int space);		//depricated
 
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
-		virtual void applyForces(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
+		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
 	public:
 		SPH();
@@ -68,7 +68,7 @@ class SPH
 		SPH(const SPH&);
 		~SPH();
 //		VERTECIES *VERTEX			
-		virtual int display(int particles);
+		virtual void display(int particles);
 		virtual void setTimer(timer*);
 
 };

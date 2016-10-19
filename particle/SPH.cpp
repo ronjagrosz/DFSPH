@@ -44,8 +44,6 @@ SPH::SPH()
 //and velocities inside a bounding cube of size 4
 SPH::SPH(int particles)
 {
-	//create particles, find initial neighborhoods, compute densities/ai factor
-	//dls = new vector <GLuint> (3);
 	frameTimer = new timer;
 
 	particleCount = particles;
@@ -56,9 +54,6 @@ SPH::SPH(int particles)
 	srand(time(0));
 
 	water = new vector<Particle*>(particleCount);
-
-	//GLfloat vertices[particleCount][3];
-	//GLfloat colors[particleCount][3];
 
 	for(int i = 0; i < particleCount; i++) {
 
@@ -78,6 +73,10 @@ SPH::SPH(int particles)
 		water->at(i)->setColor(newColor);
 		water->at(i)->setVelocity(randI, randJ, randK);
 		water->at(i)->setMass(5);
+
+		//find neighborhood
+		// compute densities
+		// compute ai
 
 	}
 
@@ -99,66 +98,70 @@ SPH::~SPH()
 }
 
 //this is one of the most important functions in the program
-void SPH::applyForces(double timeDiff)
+void SPH::simulate(double timeDiff)
 {
+
+	// compute non pressure forces
+
+	// adapt timestep according to CFL condition
+
+	// predict velocities
+
+	// correctDensityError
+
+	// update positions
+	for (int i = 0; i < particleCount; i++)
+	{
+		water->at(i)->updatePosition(timeDiff);
+		water->at(i)->zeroDensity();
+	}
+
+	// update neighborhoods
+
+	// compute densities and ai factors
+
+	// correctDivergenceError
+
+	// update velocities
+
+
 	double distance = 0;
 
-	vec4 *primaryTempUVect;
-	vec4 *secondaryTempUVect;
-	vec3 primaryPositionVector;
-	vec3 secondaryPositionVector;
-
-	vector <double> vel;
-
-	//the vector with the Particles in it has to 
-	//be sorted for the distance pruning to work
-	sort(water->begin(), water->end(), compareZ);
-	calculateDensity();
+	vec4 *particleVel;
+	vec4 *neighborVel;
+	vec3 particlePos;
+	vec3 neighborPos;
 
 	for(int i = 0; i < particleCount; i++)
 	{
 		//primary is the particle we will be comparing the rest to
-		primaryPositionVector = water->at(i)->getPosition(); 
+		particlePos = water->at(i)->getPosition(); 
 		for(int j = i + 1; j < particleCount; j++)
 		{
 			//secondary is a particle down the line	
-			secondaryPositionVector = water->at(j)->getPosition();
+			neighborPos = water->at(j)->getPosition();
 			
-			//get the distance between the primary and secondary particles
-			//if(primaryPositionVector && secondaryPositionVector)
-			//{
-				distance = ((primaryPositionVector.x - secondaryPositionVector.x)*
-					    (primaryPositionVector.x - secondaryPositionVector.x)+
-					    (primaryPositionVector.x - secondaryPositionVector.y)*
-					    (primaryPositionVector.y - secondaryPositionVector.y)+
-					    (primaryPositionVector.z - secondaryPositionVector.z)*
-					    (primaryPositionVector.z - secondaryPositionVector.z));
-			//}
+			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
 				
 			//if the distance is less then the effective radius
 			if(distance <= ER)
 			{
 				//get the forces that the two particles enact on each other
-				primaryTempUVect = water->at(i)->getForceAtPoint(water->at(j));
-				secondaryTempUVect = water->at(j)->getForceAtPoint(water->at(i));
+				particleVel = water->at(i)->calculateForces(water->at(j));
+				neighborVel = water->at(j)->calculateForces(water->at(i));
 			
 				//now apply those forces
-				if(primaryTempUVect && secondaryTempUVect)
+				if(particleVel && neighborVel)
 				{
-					water->at(i)->applyForce(*secondaryTempUVect, timeDiff);
-					water->at(j)->applyForce(*primaryTempUVect, timeDiff);
+					water->at(i)->predictVelocity(*neighborVel, timeDiff);
+					water->at(j)->predictVelocity(*particleVel, timeDiff);
 						
 				}
 	
-				//delete secondaryPositionVector;
-				delete primaryTempUVect;
-				delete secondaryTempUVect;
-			} else 
-			{
-				//delete secondaryPositionVector;
-					
-				break;
-			}
+				delete particleVel;
+				delete neighborVel;
+			} else
+				continue;
 		}
 		
 		//delete primaryPositionVector;
@@ -167,11 +170,7 @@ void SPH::applyForces(double timeDiff)
 	//all of the forces have been calculated.
 	//the velocities for this time step have
 	//been updated, now move the particles
-	for (int i = 0; i < particleCount; i++)
-	{
-		water->at(i)->updatePosition(timeDiff);
-		water->at(i)->zeroDensity();
-	}
+	
 }
 
 //this is effectively the same algorith as above, but instead of 
@@ -182,25 +181,20 @@ void SPH::calculateDensity()
 {
 	double distance = 0;
 	
-	glm::vec4 *primaryTempUVect;
-	glm::vec4 *secondaryTempUVect;
+	glm::vec4 *particleVel;
+	glm::vec4 *neighborVel;
 
 	
 
 	for(int i = 0; i < particleCount; i++)
 	{
-		vec3 primaryPositionVector = water->at(i)->getPosition();
+		vec3 particlePos = water->at(i)->getPosition();
 		for(int j = 0; j < particleCount; j++)
 		{
-			vec3 secondaryPositionVector = water->at(j)->getPosition();
+			vec3 neighborPos = water->at(j)->getPosition();
 			//if(primaryPositionVector && secondaryPositionVector)
 			//{
-				distance = ((primaryPositionVector.x - secondaryPositionVector.x)*
-					    (primaryPositionVector.x - secondaryPositionVector.x)+
-					    (primaryPositionVector.x - secondaryPositionVector.y)*
-					    (primaryPositionVector.y - secondaryPositionVector.y)+
-					    (primaryPositionVector.z - secondaryPositionVector.z)*
-					    (primaryPositionVector.z - secondaryPositionVector.z));
+				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
 			//}
 				
 			if(distance <= ER*ER)
@@ -211,8 +205,8 @@ void SPH::calculateDensity()
 				//}
 	
 				//delete secondaryPositionVector;
-				delete primaryTempUVect;
-				delete secondaryTempUVect;
+				delete particleVel;
+				delete neighborVel;
 			} else 
 			{
 				//delete secondaryPositionVector;
@@ -232,77 +226,61 @@ void SPH::calculateDensity()
 }
 
 
-int SPH::display(int particles)	
-{
-	int index = 0;
-	int success = 0;
-	bool cont = true;
+void SPH::display(int particles)	
+{	
 
 	GLfloat vertices[particles][3];
 	GLfloat colors[particles][3];
-	
-	//this is used to log the elapsed time since 
-	//the last frame
+
+	//this is used to log the elapsed time since the last frame
 	double currentTime = frameTimer->elapsed();
 
-	if ((currentTime - timeLastFrame) > 0) {		
-		if((unsigned int)index < water->capacity()) {
-			if(water->at(index)) {
-				// generate random positions for all vertices and set the color
-				for(int i = 0; i < particles; i++) {
-					
-					vertices[i][0] = water->at(i)->getPosition().x;
-					vertices[i][1] = water->at(i)->getPosition().y;
-					vertices[i][2] = water->at(i)->getPosition().z;
-					
-					//tmp = water->at(i)->getColor();
-					colors[i][0] = 0.7 - water->at(i)->getPosition().x;
-					colors[i][1] = 0.7 - water->at(i)->getPosition().y;
-					colors[i][2] = 0.7 - water->at(i)->getPosition().z;
-					
-					/*cout << vertices[i][0] << " "
-						 <<	vertices[i][1] << " "
-						 << vertices[i][2] << "\n";*/
-				}
+	if ((currentTime - timeLastFrame) > 0) {
+
+		// Call simulate
 
 
-				// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
-			    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-				// Copy the vertex data from diamond to our buffer 
-			    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
-			    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
-
-			    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
-			    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-			    // Enable attribute index 0 as being used 
-			    glEnableVertexAttribArray(0);
-
-			    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
-			    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-
-			    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-
-			    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
-			    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-			    // Enable attribute index 1 as being used
-			    glEnableVertexAttribArray(1);
-
-
-			}
-			index++;
+		// Render stuff
+		for(int i = 0; i < particles; i++) {
+			vertices[i][0] = water->at(i)->getPosition().x;
+			vertices[i][1] = water->at(i)->getPosition().y;
+			vertices[i][2] = water->at(i)->getPosition().z;
+			
+			//tmp = water->at(i)->getColor();
+			colors[i][0] = 0.7 - water->at(i)->getPosition().x;
+			colors[i][1] = 0.7 - water->at(i)->getPosition().y;
+			colors[i][2] = 0.7 - water->at(i)->getPosition().z;
+			
 		}
-		
-		if(index >= particleCount)
-			cont = false;
+
+
+		// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
+	    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+		// Copy the vertex data from diamond to our buffer 
+	    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
+	    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
+
+	    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
+	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	    // Enable attribute index 0 as being used 
+	    glEnableVertexAttribArray(0);
+
+	    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
+	    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+	    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+
+	    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
+	    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	    // Enable attribute index 1 as being used
+	    glEnableVertexAttribArray(1);
 
 
 		//update the time.
 		timeLastFrame = frameTimer->elapsed();
-		success = 1;
-		
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
@@ -318,9 +296,6 @@ int SPH::display(int particles)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
 	glDrawArrays(GL_POINTS, 0, particles);
-
-	return success;
-
 }
 
 void SPH::createVAO ( int particles ) {

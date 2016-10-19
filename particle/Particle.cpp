@@ -149,7 +149,7 @@ GLuint Particle::getDL(){return DL;}
 //		that this particle enacts on its neighbor.
 //
 /************************************************************************/
-vec4* Particle::getForceAtPoint(Particle *neighbor)
+vec4* Particle::calculateForces(Particle *neighbor)
 {
 
 	//all variables that are prefixed with the letter n are values that
@@ -238,7 +238,7 @@ vec4* Particle::getForceAtPoint(Particle *neighbor)
 
 //this function takes a force, and applies it to the velocity of the particle
 
-void Particle::applyForce(glm::vec4 &actingForce, double elapsedTime)
+void Particle::predictVelocity(glm::vec4 &actingForce, double elapsedTime)
 {
 	velocity->x += (actingForce.x / mass) * elapsedTime;
 	velocity->y += (actingForce.y / mass) * elapsedTime;

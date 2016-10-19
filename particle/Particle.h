@@ -27,9 +27,6 @@ particle at a certain point.
 
 #define WATER 0
 
-
-
-//class vector;
 using namespace std;
 using namespace boost;
 using namespace glm;
@@ -121,8 +118,8 @@ class Particle
 		virtual GLuint getDL();
 		
 		virtual void display(double);
-		virtual glm::vec4* getForceAtPoint(Particle*);	//this is the biggest deal in this program
-		virtual void applyForce(glm::vec4 &, double);		//apply the forces to the velocity
+		virtual vec4* calculateForces(Particle*);	//this is the biggest deal in this program
+		virtual void predictVelocity(glm::vec4 &, double);		//apply the forces to the velocity
 		virtual void updatePosition(double elapsedTime);	//apply the velocity to the position
 		
 		virtual vector <double>* pressureKernel(vector <double>*);	//smoothing kernel functions used in the getForceAtPoint function

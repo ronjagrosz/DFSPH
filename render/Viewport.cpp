@@ -167,6 +167,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 	double deltaTime;
 	double timeSinceAction = glfwGetTime();
 	bool record = false;
+	int frameCount = 0;
 
     // start GLEW extension handler
     if (!glfwInit()) {
@@ -212,9 +213,6 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 	locationP = glGetUniformLocation(phongShader.programID, "P");
 	//locationLight = glGetUniformLocation(phongShader.programID, "lightPos");
 	//locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
-
-	int success = 0;
-	int frameCount = 0;
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -268,7 +266,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
         glUniform3fv(locationCa, 1, glm::value_ptr(cam));
         */
 
-		success = hydro->display(PARTICLE_COUNT);
+		hydro->display(PARTICLE_COUNT);
 		
 
 		// Save the frame
