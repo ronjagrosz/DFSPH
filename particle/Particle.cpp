@@ -21,19 +21,21 @@ particle at a certain point.
 //#define WEIGHTLESS
 
 using namespace std;
+using namespace glm;
 
 Particle::Particle():radius(1),mass(1),viscosity(2.034),materialID(WATER),
 forceConstant(CONST_FORCE_CONST),threshold(0.5),stretchR(1),stretchA(1),
 offsetR(0),offsetA(0),maxR(100),maxA(-100)
 {
-	position = new vector <double> (3);
 	neighbors = new stack<int>;
-	velocity  = new glm::vec4(0,0,0,1);
-	color = new vector<int> (3);
+
+	velocity  = new vec4(0,0,0,1);
+//	color = new vector<int> (3);
+
 }
 
 
-Particle::Particle(const Particle& clone):radius(1),mass(1),
+/*Particle::Particle(const Particle& clone):radius(1),mass(1),
 viscosity(2.034),materialID(WATER),forceConstant(CONST_FORCE_CONST),threshold(0.5),stretchR(1),
 stretchA(1),offsetR(0),offsetA(0),maxR(100),maxA(-100)
 {
@@ -46,14 +48,12 @@ stretchA(1),offsetR(0),offsetA(0),maxR(100),maxA(-100)
 
 	color = new vector<int> (*clone.color);
 	pressureScale = clone.pressureScale;
-}
+}*/
 
 Particle::~Particle()
 {
-	delete position;
 	delete neighbors;
 	delete velocity;
-	delete color;
 }
 
 void Particle::display(double oldFrameTime)
@@ -62,7 +62,7 @@ void Particle::display(double oldFrameTime)
 
 	glPushMatrix();
 //	glColor4f(1.0,1.0,1.0,0.0);
-	glTranslated(position->at(0), position->at(1), position->at(2));
+//	glTranslated(position[0], position[1], position[2]);
 
 	if(DL != 0)
 	{
@@ -73,14 +73,10 @@ void Particle::display(double oldFrameTime)
 
 
 
-//setters
-void Particle::setPosition(double x, double y, double z)
+//setters  ***************************************************************
+void Particle::setPosition(float x, float y, float z)
 {
-	position->at(0) = x;
-	position->at(1) = y;
-	position->at(2) = z;
-
-
+	position = vec3(x, y, z);
 }
 
 void Particle::setVelocity(double i, double j, double k)
@@ -104,7 +100,7 @@ void Particle::setMaterialID(double newID)
 {
 	materialID = newID;
 }
-void Particle::setColor(vector<int>* newColor)
+void Particle::setColor(vec3 newColor)
 {
 	if(newColor != color)
 	{
@@ -120,20 +116,20 @@ void Particle::setDL(GLuint newDL){DL = newDL;}
 void Particle::setTimer(timer *currentTime){frameTimer = currentTime;}
 
 //getters  ***************************************************************
-vector<double>* Particle::getPosition()
+vec3 Particle::getPosition()
 {
-	vector <double> *tempV = new vector <double> (*position);
+	vec3 tempV = position;
 	return tempV;
 }
 
-vector<int>* Particle::getColor()
+vec3 Particle::getColor()
 {
-	vector<int>* tempV = new vector<int> (*color);
+	vec3 tempV = color;
 	return tempV;
 
 }
 
-glm::vec4* Particle::getVelocity()
+vec4* Particle::getVelocity()
 {
 	glm::vec4 *tempU = new glm::vec4(*velocity);
 	return tempU;
@@ -153,7 +149,7 @@ GLuint Particle::getDL(){return DL;}
 //		that this particle enacts on its neighbor.
 //
 /************************************************************************/
-glm::vec4* Particle::getForceAtPoint(Particle *neighbor)
+vec4* Particle::getForceAtPoint(Particle *neighbor)
 {
 
 	//all variables that are prefixed with the letter n are values that
@@ -161,7 +157,7 @@ glm::vec4* Particle::getForceAtPoint(Particle *neighbor)
 	//shorten expression length.
 	//eg. neighbor->position->at(0) = nPosition->at(0)
 	
-	vector <double> *nPosition = neighbor->position;	//do NOT delete this vector
+	vec3 nPosition = neighbor->position;	//do NOT delete this vector
 	
 	double k = .0000001;
 
@@ -182,9 +178,9 @@ glm::vec4* Particle::getForceAtPoint(Particle *neighbor)
 
 	//the vector representation of the distance between these
 	//two points
-	diffVector.at(0) = nPosition->at(0) - position->at(0);
-	diffVector.at(1) = nPosition->at(1) - position->at(1);
-	diffVector.at(2) = nPosition->at(2) - position->at(2);
+	diffVector.at(0) = nPosition.x - position.x;
+	diffVector.at(1) = nPosition.y - position.y;
+	diffVector.at(2) = nPosition.z - position.z;
 
 	vector <double> *pressureKernelValue = pressureKernel(&diffVector);
 	vector <double> *viscosityKernelValue = viscosityKernel(&diffVector);
@@ -259,17 +255,16 @@ void Particle::updatePosition(double elapsedTime)
 	velocity->z += -9.8 * elapsedTime;
 	#endif
 	
-	position->at(0) += velocity->x * elapsedTime;	
-	position->at(1) += velocity->y * elapsedTime;	
-	position->at(2) += velocity->z * elapsedTime;	
+	position.x += velocity->x * elapsedTime;
+	position.y += velocity->x * elapsedTime;
+	position.z += velocity->x * elapsedTime;
 	
 	//cout << position->at(0) << endl;
 
-	if(position->at(2) < 0)
+	if(position.z < 0)
 	{
-		position->at(2) -= velocity->z * elapsedTime * 2;
+		position.z -= velocity->z * elapsedTime * 2;
 		velocity->z *= -.2;
-
 	}
 }
 
@@ -315,11 +310,11 @@ vector <double>* Particle::viscosityKernel(vector <double> *r)
 	return tempVect;
 }
 
-double Particle::densityKernel(vector <double> *r)
+double Particle::densityKernel(vec3 r)
 {
-	double mag = 	sqrt(abs(r->at(0)*r->at(0)+
-			r->at(1)*r->at(1)+
-			r->at(2)*r->at(2)));
+	double mag = 	sqrt(abs(r.x*r.x+
+			r.y*r.y+
+			r.z*r.z));
 	
 	return ((315.0)/(64 * M_PI * ER*ER*ER*ER*ER*ER*ER*ER*ER))*
 		(ER*ER - mag*mag)*(ER*ER - mag*mag)*(ER*ER - mag*mag); 

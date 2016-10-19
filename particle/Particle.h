@@ -17,6 +17,7 @@ particle at a certain point.
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
@@ -31,6 +32,7 @@ particle at a certain point.
 //class vector;
 using namespace std;
 using namespace boost;
+using namespace glm;
 
 
 const double ER = .005; 
@@ -51,7 +53,7 @@ class Particle
 			
 		//variables that are needed for basic functioning
 		//physical properties
-		vector  <double> 	*position;
+		vec3 	position;
 		stack	 <int>		*neighbors;
 
 		glm::vec4 	*velocity;
@@ -72,10 +74,11 @@ class Particle
 		double maxR;		//Maximum scalar value for the repulsive force (x^2)
 		double maxA;		//maximum scalar value for the attractive force (x^2)
 
+
 		GLuint	DL;		//this is the pointer to the Particle's display list
 
 		//The color and shape
-		vector <int>	*color;	//the color of the smooth particle
+		vec3	color;	//the color of the smooth particle
 		float	pressureScale;	//the rate at which the particle turns color
 //		GLuint	sphereDL;
 
@@ -93,27 +96,27 @@ class Particle
 
 	public:
 		Particle();
-		Particle(const Particle&);
+		//Particle(const Particle&);
 		~Particle();
 		
 		//setters
-		virtual void setPosition(double,double,double);
+		virtual void setPosition(float,float,float);
 		virtual void setVelocity(double,double,double);
 		virtual void setRadius(double);
 		virtual void setMass(double);
 		virtual void setMaterialID(double);
-		virtual void setColor(vector<int>*);
+		virtual void setColor(vec3 newColor);
 		virtual void setPressureScale(float);
 		virtual void setDL(GLuint);
 		virtual void setTimer(timer *currentTime);
 
 		//getters
-		virtual vector<double>* getPosition();
-		virtual glm::vec4* getVelocity();
+		virtual vec3 getPosition();
+		virtual vec4* getVelocity();
 		virtual double getRadius();
 		virtual double getMass();
 		virtual double getMaterialID();
-		virtual vector<int>* getColor();
+		virtual vec3 getColor();
 		virtual float getPressurescale();
 		virtual GLuint getDL();
 		
@@ -124,7 +127,7 @@ class Particle
 		
 		virtual vector <double>* pressureKernel(vector <double>*);	//smoothing kernel functions used in the getForceAtPoint function
 		virtual vector <double>* viscosityKernel(vector <double>*);
-		virtual	double densityKernel(vector <double>*);
+		virtual	double densityKernel(vec3);
 		
 		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		

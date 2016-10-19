@@ -17,6 +17,8 @@ SPH is responsible for orginization of a group of smooth particles.
 
 #include "../particle/SPH.h"
 
+using namespace glm;
+
 const int DIMENSION = 20;
 //#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.
 
@@ -25,7 +27,7 @@ const int DIMENSION = 20;
 
 bool compareZ(Particle* left, Particle* right)
 {
-	return (left->getPosition()->at(2) < right->getPosition()->at(2));
+	return (left->getPosition().z < right->getPosition().z);
 }
 
 //default constructor.
@@ -46,50 +48,40 @@ SPH::SPH(int particles)
 	//dls = new vector <GLuint> (3);
 	frameTimer = new timer;
 
-
-	double randX, randY, randZ;
+	particleCount = particles;
+	GLfloat randX, randY, randZ;
+	vec3 newColor = vec3(1.0f,1.0f,1.0f);
 	double randI, randJ, randK; //velocity vector values
 	
 	srand(time(0));
 
-	
-	/*#ifdef VISIBLE_TEST //only do 5 particles in a line
-	particleCount = 5;
-	material = new vector<Particle*>(particleCount);
-	for(int i = 0; i < 5; i++)
-	{
-		material->at(i) = new Particle();
-		material->at(i)->setDL(dls->at(0));
-		material->at(i)->setPosition(0, i/2.0, 0);
-		material->at(i)->setMass(1);
-	}
+	water = new vector<Particle*>(particleCount);
 
-	#endif*/
+	//GLfloat vertices[particleCount][3];
+	//GLfloat colors[particleCount][3];
 
+	for(int i = 0; i < particleCount; i++) {
 
-
-	particleCount = particles;
-
-	createVAO(particleCount);
-
-	//material = new vector<Particle*>(particles);
-
-	/*for(int i = 0; i < particles; i++)
-	{
-		randX = ((double)rand()/(double)RAND_MAX) * 1.0;
-		randY = ((double)rand()/(double)RAND_MAX) * 1.0;
-		randZ = ((double)rand()/(double)RAND_MAX) * 1.0;
+		// random position
+		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
+		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		
+
+		// random velocity
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
-		material->at(i) = new Particle();
-		material->at(i)->setDL(dls->at(0));
-		material->at(i)->setPosition(randX, randY, randZ);
-		material->at(i)->setVelocity(randI, randJ, randK);
-		material->at(i)->setMass(5);
-	}*/
+		
+		water->at(i) = new Particle();
+		water->at(i)->setPosition(randX, randY, randZ);
+		water->at(i)->setColor(newColor);
+		water->at(i)->setVelocity(randI, randJ, randK);
+		water->at(i)->setMass(5);
 
+	}
+
+	createVAO(particleCount);
 	timeLastFrame = frameTimer->elapsed();
 }
 
@@ -98,9 +90,9 @@ SPH::~SPH()
 {
 	for(int i = 0; i < particleCount; i++)
 	{
-		delete material->at(i);
+		delete water->at(i);
 	}
-	delete material;
+	delete water;
 	delete dls;
 	delete frameTimer;
 
@@ -112,64 +104,65 @@ void SPH::applyForces(double timeDiff)
 {
 	double distance = 0;
 
-	glm::vec4 *primaryTempUVect;
-	glm::vec4 *secondaryTempUVect;
-	vector <double> *primaryPositionVector;
-	vector <double> *secondaryPositionVector;
+	vec4 *primaryTempUVect;
+	vec4 *secondaryTempUVect;
+	vec3 primaryPositionVector;
+	vec3 secondaryPositionVector;
+
 	vector <double> vel;
 
 	//the vector with the Particles in it has to 
 	//be sorted for the distance pruning to work
-	sort(material->begin(), material->end(), compareZ);
+	sort(water->begin(), water->end(), compareZ);
 	calculateDensity();
 
 	for(int i = 0; i < particleCount; i++)
 	{
 		//primary is the particle we will be comparing the rest to
-		primaryPositionVector = material->at(i)->getPosition(); 
+		primaryPositionVector = water->at(i)->getPosition(); 
 		for(int j = i + 1; j < particleCount; j++)
 		{
 			//secondary is a particle down the line	
-			secondaryPositionVector = material->at(j)->getPosition();
+			secondaryPositionVector = water->at(j)->getPosition();
 			
 			//get the distance between the primary and secondary particles
-			if(primaryPositionVector && secondaryPositionVector)
-			{
-				distance = ((primaryPositionVector->at(0) - secondaryPositionVector->at(0))*
-					    (primaryPositionVector->at(0) - secondaryPositionVector->at(0))+
-					    (primaryPositionVector->at(1) - secondaryPositionVector->at(1))*
-					    (primaryPositionVector->at(1) - secondaryPositionVector->at(1))+
-					    (primaryPositionVector->at(2) - secondaryPositionVector->at(2))*
-					    (primaryPositionVector->at(2) - secondaryPositionVector->at(2)));
-			}
+			//if(primaryPositionVector && secondaryPositionVector)
+			//{
+				distance = ((primaryPositionVector.x - secondaryPositionVector.x)*
+					    (primaryPositionVector.x - secondaryPositionVector.x)+
+					    (primaryPositionVector.x - secondaryPositionVector.y)*
+					    (primaryPositionVector.y - secondaryPositionVector.y)+
+					    (primaryPositionVector.z - secondaryPositionVector.z)*
+					    (primaryPositionVector.z - secondaryPositionVector.z));
+			//}
 				
 			//if the distance is less then the effective radius
 			if(distance <= ER)
 			{
 				//get the forces that the two particles enact on each other
-				primaryTempUVect = material->at(i)->getForceAtPoint(material->at(j));
-				secondaryTempUVect = material->at(j)->getForceAtPoint(material->at(i));
+				primaryTempUVect = water->at(i)->getForceAtPoint(water->at(j));
+				secondaryTempUVect = water->at(j)->getForceAtPoint(water->at(i));
 			
 				//now apply those forces
 				if(primaryTempUVect && secondaryTempUVect)
 				{
-					material->at(i)->applyForce(*secondaryTempUVect, timeDiff);
-					material->at(j)->applyForce(*primaryTempUVect, timeDiff);
+					water->at(i)->applyForce(*secondaryTempUVect, timeDiff);
+					water->at(j)->applyForce(*primaryTempUVect, timeDiff);
 						
 				}
 	
-				delete secondaryPositionVector;
+				//delete secondaryPositionVector;
 				delete primaryTempUVect;
 				delete secondaryTempUVect;
 			} else 
 			{
-				delete secondaryPositionVector;
+				//delete secondaryPositionVector;
 					
 				break;
 			}
 		}
 		
-		delete primaryPositionVector;
+		//delete primaryPositionVector;
 	}
 
 	//all of the forces have been calculated.
@@ -177,8 +170,8 @@ void SPH::applyForces(double timeDiff)
 	//been updated, now move the particles
 	for (int i = 0; i < particleCount; i++)
 	{
-		material->at(i)->updatePosition(timeDiff);
-		material->at(i)->zeroDensity();
+		water->at(i)->updatePosition(timeDiff);
+		water->at(i)->zeroDensity();
 	}
 }
 
@@ -193,49 +186,48 @@ void SPH::calculateDensity()
 	glm::vec4 *primaryTempUVect;
 	glm::vec4 *secondaryTempUVect;
 
-	vector <double> *primaryPositionVector;
-	vector <double> *secondaryPositionVector;
+	
 
 	for(int i = 0; i < particleCount; i++)
 	{
-		primaryPositionVector = material->at(i)->getPosition();
+		vec3 primaryPositionVector = water->at(i)->getPosition();
 		for(int j = 0; j < particleCount; j++)
 		{
-			secondaryPositionVector = material->at(j)->getPosition();
-			if(primaryPositionVector && secondaryPositionVector)
-			{
-				distance = ((primaryPositionVector->at(0) - secondaryPositionVector->at(0))*
-					    (primaryPositionVector->at(0) - secondaryPositionVector->at(0))+
-					    (primaryPositionVector->at(1) - secondaryPositionVector->at(1))*
-					    (primaryPositionVector->at(1) - secondaryPositionVector->at(1))+
-					    (primaryPositionVector->at(2) - secondaryPositionVector->at(2))*
-					    (primaryPositionVector->at(2) - secondaryPositionVector->at(2)));
-			}
+			vec3 secondaryPositionVector = water->at(j)->getPosition();
+			//if(primaryPositionVector && secondaryPositionVector)
+			//{
+				distance = ((primaryPositionVector.x - secondaryPositionVector.x)*
+					    (primaryPositionVector.x - secondaryPositionVector.x)+
+					    (primaryPositionVector.x - secondaryPositionVector.y)*
+					    (primaryPositionVector.y - secondaryPositionVector.y)+
+					    (primaryPositionVector.z - secondaryPositionVector.z)*
+					    (primaryPositionVector.z - secondaryPositionVector.z));
+			//}
 				
 			if(distance <= ER*ER)
 			{
-				if(primaryPositionVector && secondaryPositionVector)
-				{
-					material->at(i)->calculateDensity(material->at(j));			
-				}
+				//if(primaryPositionVector && secondaryPositionVector)
+				//{
+					water->at(i)->calculateDensity(water->at(j));			
+				//}
 	
-				delete secondaryPositionVector;
+				//delete secondaryPositionVector;
 				delete primaryTempUVect;
 				delete secondaryTempUVect;
 			} else 
 			{
-				delete secondaryPositionVector;
+				//delete secondaryPositionVector;
 	
 				break;
 			}
 				
 		}
-		delete primaryPositionVector;
+		//delete primaryPositionVector;
 	}
 	for(int i = 0; i<particleCount; i++)
 	{
-		material->at(i)->clearNAN();
-//		material->at(i)->printDensity();
+		water->at(i)->clearNAN();
+//		water->at(i)->printDensity();
 	}
 
 }
@@ -268,9 +260,9 @@ int SPH::display(int particles)
 	/*if ((currentTime - timeLastFrame) > 0) {
 		while (cont == true) {
 			try {
-				if((unsigned int)index < material->capacity()) {
-					if(material->at(index))
-						material->at(index)->display(timeLastFrame); // display particle
+				if((unsigned int)index < water->capacity()) {
+					if(water->at(index))
+						water->at(index)->display(timeLastFrame); // display particle
 					index++;
 				}
 			}
@@ -306,15 +298,20 @@ void SPH::createVAO ( int particles ) {
 	GLfloat vertices[particles][3];
 	GLfloat colors[particles][3];
 
+	GLfloat* tmp;
+
 	// generate random positions for all vertices and set the color
 	for(int i = 0; i < particles; i++) {
-		vertices[i][0] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		vertices[i][1] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		vertices[i][2] = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;;
 		
-		colors[i][0] = 1.0;
-		colors[i][1] = 1.0;
-		colors[i][2] = 1.0;
+		vertices[i][0] = water->at(i)->getPosition().x;
+		vertices[i][1] = water->at(i)->getPosition().y;
+		vertices[i][2] = water->at(i)->getPosition().z;
+		
+		//tmp = water->at(i)->getColor();
+		colors[i][0] = 0.7 - water->at(i)->getPosition().x;
+		colors[i][1] = 0.7 - water->at(i)->getPosition().y;
+		colors[i][2] = 0.7 - water->at(i)->getPosition().z;
+		
 		/*cout << vertices[i][0] << " "
 			 <<	vertices[i][1] << " "
 			 << vertices[i][2] << "\n";*/

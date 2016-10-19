@@ -10,6 +10,8 @@ SPH is responsible for orginization of a group of smooth particles.
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"	
 
 #include "boost/timer.hpp"
 
@@ -38,7 +40,7 @@ class SPH
 		timer				*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
 		double				timeLastFrame;	//the time that the last frame was rendered at
 
-		vector <Particle*> 	*material;	//this is my vector full of particles
+		vector <Particle*> 	*water;	//this is my vector full of particles
 //		vector <double>			metaMesh;
 		vector <GLuint>		 	*dls;		//this is the display list i keep for fast rendering.
 								//each particle has a copy of this pointer
