@@ -237,10 +237,73 @@ int SPH::display(int particles)
 	int index = 0;
 	int success = 0;
 	bool cont = true;
+
+	GLfloat vertices[particles][3];
+	GLfloat colors[particles][3];
 	
 	//this is used to log the elapsed time since 
 	//the last frame
 	double currentTime = frameTimer->elapsed();
+
+	if ((currentTime - timeLastFrame) > 0) {		
+		if((unsigned int)index < water->capacity()) {
+			if(water->at(index)) {
+				// generate random positions for all vertices and set the color
+				for(int i = 0; i < particles; i++) {
+					
+					vertices[i][0] = water->at(i)->getPosition().x;
+					vertices[i][1] = water->at(i)->getPosition().y;
+					vertices[i][2] = water->at(i)->getPosition().z;
+					
+					//tmp = water->at(i)->getColor();
+					colors[i][0] = 0.7 - water->at(i)->getPosition().x;
+					colors[i][1] = 0.7 - water->at(i)->getPosition().y;
+					colors[i][2] = 0.7 - water->at(i)->getPosition().z;
+					
+					/*cout << vertices[i][0] << " "
+						 <<	vertices[i][1] << " "
+						 << vertices[i][2] << "\n";*/
+				}
+
+
+				// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
+			    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+				// Copy the vertex data from diamond to our buffer 
+			    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
+			    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
+
+			    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
+			    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+			    // Enable attribute index 0 as being used 
+			    glEnableVertexAttribArray(0);
+
+			    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
+			    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+			    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+
+			    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
+			    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+			    // Enable attribute index 1 as being used
+			    glEnableVertexAttribArray(1);
+
+
+			}
+			index++;
+		}
+		
+		if(index >= particleCount)
+			cont = false;
+
+
+		//update the time.
+		timeLastFrame = frameTimer->elapsed();
+		success = 1;
+		
+	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -256,35 +319,6 @@ int SPH::display(int particles)
 
 	glDrawArrays(GL_POINTS, 0, particles);
 
-	/*if ((currentTime - timeLastFrame) > 0) {
-		while (cont == true) {
-			try {
-				if((unsigned int)index < water->capacity()) {
-					if(water->at(index))
-						water->at(index)->display(timeLastFrame); // display particle
-					index++;
-				}
-			}
-			catch(char *str) {
-				if(strcmp(str, "out_of_range")) {
-					cont = false;
-					break;
-				}
-				else {
-					cout << "caught exception " << str << " ending program" << endl;
-					exit(1);
-				}
-
-			}
-			if(index >= particleCount)
-				cont = false;
-
-
-			//update the time.
-			timeLastFrame = frameTimer->elapsed();
-			success = 1;
-		}*/
-
 	return success;
 
 }
@@ -294,27 +328,7 @@ void SPH::createVAO ( int particles ) {
 	// It contains all VBOs (Vertex Buffer Objects)
 	// A VBO stores information about the vertices. 
 	// Now we're using two VBOs, one for coordinates and one for colors
-	GLfloat vertices[particles][3];
-	GLfloat colors[particles][3];
-
-	GLfloat* tmp;
-
-	// generate random positions for all vertices and set the color
-	for(int i = 0; i < particles; i++) {
-		
-		vertices[i][0] = water->at(i)->getPosition().x;
-		vertices[i][1] = water->at(i)->getPosition().y;
-		vertices[i][2] = water->at(i)->getPosition().z;
-		
-		//tmp = water->at(i)->getColor();
-		colors[i][0] = 0.7 - water->at(i)->getPosition().x;
-		colors[i][1] = 0.7 - water->at(i)->getPosition().y;
-		colors[i][2] = 0.7 - water->at(i)->getPosition().z;
-		
-		/*cout << vertices[i][0] << " "
-			 <<	vertices[i][1] << " "
-			 << vertices[i][2] << "\n";*/
-	}
+	
 
 	// Allocate and bind Vertex Array Object to the handle vao
 	glGenVertexArrays(1, &vao);
@@ -322,31 +336,6 @@ void SPH::createVAO ( int particles ) {
 
 	// Generate (one) new Vertex Buffer Object and get the associated id
 	glGenBuffers(2, vbo);
-
-	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-	// Copy the vertex data from diamond to our buffer 
-    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
-    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
-
-    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // Enable attribute index 0 as being used 
-    glEnableVertexAttribArray(0);
-
-    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-
-    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-
-    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    // Enable attribute index 1 as being used
-    glEnableVertexAttribArray(1);
-
 }
 
 void SPH::setTimer(timer *newTimer)
