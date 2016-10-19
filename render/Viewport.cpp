@@ -218,8 +218,6 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 
 	int success = 0;
 	int frameCount = 0;
-	
-	unsigned char* imageData = (unsigned char *)malloc((int)(640 * 480 * (3) + 1));
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -242,7 +240,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
             	std::cout << "Starting to record.." << std::endl;
             else
             	std::cout << "Recorded " << deltaTime << " seconds (" 
-            << fps << "fps) Approximately " << 0.032*fps*deltaTime << " MB\n";
+            << frameCount/deltaTime << "fps) Approximately " << ((double)width*height/10000000)*frameCount << " MB\n";
             timeSinceAction = glfwGetTime();
         }
 
@@ -275,8 +273,9 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 
 		// Save the frame
 		if (record) {
+			frameCount++;
 			stringstream ss;
-	  		ss << OUTPUT_FILE_PATH << ZeroPadNumber(++frameCount) << ".png";
+	  		ss << OUTPUT_FILE_PATH << ZeroPadNumber(frameCount) << ".png";
 	  		string fileName = ss.str();
 
 			// Make the BYTE array, factor of 3 because it's RBG.
@@ -296,7 +295,6 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 		glfwSwapBuffers(window);			//swap the buffer
     }
     glfwTerminate();
-    free(imageData);
 
 	return 0;
 }
