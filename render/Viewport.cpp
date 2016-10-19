@@ -41,8 +41,11 @@ Viewport::Viewport()
 	theta = M_PI / 4.0f;
 	rad = 1.5f;
 	zoomFactor = M_PI;
-	newTime = deltaTime = currTime = 0.0f;	
+	recordTime = deltaTime = currTime = 0.0f;	
 	fps = 0.0;
+	record = false;
+	frameCount = 0;
+	timeSinceAction = glfwGetTime();
 
 	timeSinceStart = new timer();
 }
@@ -106,11 +109,11 @@ void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)		//just in case 
 }
 
 // Control the camera with the arrow keys. Hold left control button and UP/DOWN for zoom
-void Viewport::controlView(GLFWwindow *window)
+void Viewport::interaction(GLFWwindow *window)
 {
-	newTime = glfwGetTime();
-	deltaTime = newTime - currTime;
-	currTime = newTime;
+	recordTime = glfwGetTime() - timeSinceAction;
+	deltaTime = glfwGetTime() - currTime;
+	currTime = glfwGetTime();
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
 		if (glfwGetKey(window, GLFW_KEY_UP)) {
@@ -141,6 +144,17 @@ void Viewport::controlView(GLFWwindow *window)
 		phi += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, M_PI*2.0);
 	}
+	if (glfwGetKey(window, GLFW_KEY_R) && recordTime > 0.5) {
+            record = !record;
+            if (record)
+            	std::cout << "Starting to record.." << std::endl;
+            else
+            	std::cout << "Recorded " << recordTime << " seconds (" 
+            << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
+            timeSinceAction = glfwGetTime();
+
+
+        }
 }
 
 int Viewport::start(int argc, char** argv)	//initialize glut and set all of the call backs
@@ -164,10 +178,8 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 	glm::vec4 cam;
 
 
-	double deltaTime;
 	double timeSinceAction = glfwGetTime();
-	bool record = false;
-	int frameCount = 0;
+
 
     // start GLEW extension handler
     if (!glfwInit()) {
@@ -224,20 +236,8 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 		glUniformMatrix4fv(locationP, 1, GL_FALSE, P);
 
 		setupPerspective(window, P);
-		controlView(window);
+		interaction(window);
 		cameraPosition = glm::vec3(0.0f, 0.0f, rad);
-
-
-		deltaTime = glfwGetTime() - timeSinceAction;
-		if (glfwGetKey(window, GLFW_KEY_R) && deltaTime > 0.5) {
-            record = !record;
-            if (record)
-            	std::cout << "Starting to record.." << std::endl;
-            else
-            	std::cout << "Recorded " << deltaTime << " seconds (" 
-            << frameCount/deltaTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
-            timeSinceAction = glfwGetTime();
-        }
 
 
 		// I is the normal Identity matrix

@@ -63,9 +63,12 @@ class Viewport
 
 		float zoomFactor;
 
-		double newTime;
 		double deltaTime;
+		double timeSinceAction;
+		double recordTime;
 		double currTime;
+		bool record;
+		int frameCount;
 
 		SPH 		*hydro;
 		timer		*timeSinceStart;
@@ -76,7 +79,7 @@ class Viewport
 		void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
 		void initWorld();
 		void displayFPS(GLFWwindow *window);
-		void controlView(GLFWwindow *window);
+		void interaction(GLFWwindow *window);
 };
 
 #endif
