@@ -8,27 +8,43 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 #include <stdio.h>
 #include <iostream>
 #include <vector>
+#include <sstream>
+#include <iomanip>
+#include <string>
+#include <FreeImage.h>
+
 
 #include "../particle/SPH.h"
 #include "../render/Viewport.h"
-#include "../util/uVect.h"
 #include "Shader.h"
+
+#define OUTPUT_FILE_PATH "frames/frame"
 
 const int PARTICLE_COUNT = 10000;	//This variable dictates how many particles will be in the simulation
 
+
+std::string ZeroPadNumber(int num) {
+  std::ostringstream ss;
+  ss << std::setw(6) << std::setfill('0') << num;
+  std::string result = ss.str();
+  if (result.length() > 4) {
+    result.erase(0, result.length() - 4);
+  }
+  return result;
+}
 
 using namespace std;
 
 Viewport::Viewport()
 {
 	phi = 0.0f;
-	theta = PI / 4.0f;
+	theta = M_PI / 4.0f;
 	rad = 1.5f;
-	zoomFactor = PI;
+	zoomFactor = M_PI;
 	newTime = deltaTime = currTime = 0.0f;	
+	fps = 0.0;
 
 	timeSinceStart = new timer();
-	
 }
 
 Viewport::~Viewport(){}
@@ -39,7 +55,6 @@ void Viewport::displayFPS(GLFWwindow *window)
 {
 	static double t0 = 0.0;
 	static int frames = 0;
-	double fps = 0.0;
 	double frametime = 0.0;
 	static char titlestring[200];
 
@@ -82,7 +97,6 @@ void Viewport::initWorld()
 
 void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)		//just in case some one wants to resize the window
 {
-	int width, height;
 	glfwGetWindowSize(window, &width, &height);
 
 	P[0] = P[5] * height / width;
@@ -100,7 +114,7 @@ void Viewport::controlView(GLFWwindow *window)
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
 		if (glfwGetKey(window, GLFW_KEY_UP)) {
-			if (rad > -2.0f)
+			if (rad > 0.0f)
 				rad -= deltaTime*zoomFactor;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
@@ -109,23 +123,23 @@ void Viewport::controlView(GLFWwindow *window)
 	}
 	else {
 		if (glfwGetKey(window, GLFW_KEY_UP)) {
-			theta += deltaTime*PI / 2.0; // Rotate 90 degrees per second
-			if (theta >= PI / 2.0) theta = PI / 2.0; // Clamp at 90
+			theta += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
+			if (theta >= M_PI / 2.0) theta = M_PI / 2.0; // Clamp at 90
 		}
 		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
-			theta -= deltaTime*PI / 2.0; // Rotate 90 degrees per second
+			theta -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
 			if (theta < 0.1f) theta = 0.1f;      // Clamp at -90
 		}
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
-		phi -= deltaTime*PI / 2.0; // Rotate 90 degrees per second (pi/2)
-		phi = fmod(phi, PI*2.0); // Wrap around at 360 degrees (2*pi)
-		if (phi < 0.0) phi += PI*2.0; // If phi<0, then fmod(phi,2*pi)<0
+		phi -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
+		phi = fmod(phi, M_PI*2.0); // Wrap around at 360 degrees (2*pi)
+		if (phi < 0.0) phi += M_PI*2.0; // If phi<0, then fmod(phi,2*pi)<0
 	}
 	else if (glfwGetKey(window, GLFW_KEY_LEFT)) {
-		phi += deltaTime*PI / 2.0; // Rotate 90 degrees per second (pi/2)
-		phi = fmod(phi, PI*2.0);
+		phi += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
+		phi = fmod(phi, M_PI*2.0);
 	}
 }
 
@@ -148,6 +162,11 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 	glm::mat4 viewMatrix;
 	glm::vec4 light;
 	glm::vec4 cam;
+
+
+	double deltaTime;
+	double timeSinceAction = glfwGetTime();
+	bool record = false;
 
     // start GLEW extension handler
     if (!glfwInit()) {
@@ -195,6 +214,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 	//locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
 
 	int success = 0;
+	int frameCount = 0;
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -208,6 +228,18 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
 		setupPerspective(window, P);
 		controlView(window);
 		cameraPosition = glm::vec3(0.0f, 0.0f, rad);
+
+
+		deltaTime = glfwGetTime() - timeSinceAction;
+		if (glfwGetKey(window, GLFW_KEY_R) && deltaTime > 0.5) {
+            record = !record;
+            if (record)
+            	std::cout << "Starting to record.." << std::endl;
+            else
+            	std::cout << "Recorded " << deltaTime << " seconds (" 
+            << frameCount/deltaTime << "fps) Approximately " << ((double)width*height/10000000)*frameCount << " MB\n";
+            timeSinceAction = glfwGetTime();
+        }
 
 
 		// I is the normal Identity matrix
@@ -234,6 +266,28 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
         */
 
 		success = hydro->display(PARTICLE_COUNT);
+		
+
+		// Save the frame
+		if (record) {
+			frameCount++;
+			stringstream ss;
+	  		ss << OUTPUT_FILE_PATH << ZeroPadNumber(frameCount) << ".png";
+	  		string fileName = ss.str();
+
+			// Make the BYTE array, factor of 3 because it's RBG.
+			BYTE* pixels = new BYTE[ 3 * width * height];
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+			// Convert to FreeImage format & save to file
+			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0x0000FF, 0xFF0000, 0x00FF00, false);
+			FreeImage_Save(FIF_PNG, image, fileName.c_str(), 0);
+
+			// Free resources
+			FreeImage_Unload(image);
+			delete [] pixels;
+		}
+		
 		
 		glfwSwapBuffers(window);			//swap the buffer
     }

@@ -52,6 +52,9 @@ class Viewport
 
 	private:
 		// void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
+		int width;
+		int height;
+		double fps;
 
 		glm::vec3 cameraPosition;
 		float phi;
@@ -66,6 +69,8 @@ class Viewport
 
 		SPH 		*hydro;
 		timer		*timeSinceStart;
+		//CAVIGenerator mov;
+		//BYTE* bm
 
 		void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
 		void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
