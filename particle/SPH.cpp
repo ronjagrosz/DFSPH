@@ -42,6 +42,7 @@ SPH::SPH()
 //and velocities inside a bounding cube of size 4
 SPH::SPH(int particles)
 {
+	//create particles, find initial neighborhoods, compute densities/ai factor
 	//dls = new vector <GLuint> (3);
 	frameTimer = new timer;
 

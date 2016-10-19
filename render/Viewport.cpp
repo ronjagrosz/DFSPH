@@ -20,7 +20,7 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 #define OUTPUT_FILE_PATH "frames/frame"
 
-const int PARTICLE_COUNT = 10000;	//This variable dictates how many particles will be in the simulation
+const int PARTICLE_COUNT = 100000;	//This variable dictates how many particles will be in the simulation
 
 
 std::string ZeroPadNumber(int num) {
@@ -128,7 +128,7 @@ void Viewport::controlView(GLFWwindow *window)
 		}
 		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
 			theta -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
-			if (theta < 0.1f) theta = 0.1f;      // Clamp at -90
+			if (theta < -M_PI / 2.0) theta = -M_PI / 2.0f;      // Clamp at -90
 		}
 	}
 
@@ -255,6 +255,9 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of the 
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
         /*
+        // why do the following when viewMatrix is in shader?
+        // Might as well calculate camPos and lightPos in there
+
         light = glm::vec4(0.0, 5.0, 0.0, 1.0);
         cam = glm::vec4(0.0, 0.0, 0.0, 1.0);
         li = glm::inverse(viewMatrix)*light;

@@ -1,8 +1,6 @@
 //
 // Name:       Isabell Jansson, Jonathan Bosson, Ronja Grosz
-// File name:  Shader.cpp
-//
-// Class that opens shader files
+// File name:  fragmentshader.glsl
 //
 
 #version 330
