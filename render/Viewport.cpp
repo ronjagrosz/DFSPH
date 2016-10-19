@@ -20,7 +20,7 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 #define OUTPUT_FILE_PATH "results/frames/frame"
 
-const int PARTICLE_COUNT = 100000;	//This variable dictates how many particles will be in the simulation
+const int PARTICLE_COUNT = 300000;	//This variable dictates how many particles will be in the simulation
 
 
 std::string ZeroPadNumber(int num) {
