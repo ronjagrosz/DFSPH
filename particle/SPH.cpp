@@ -17,31 +17,24 @@ SPH is responsible for orginization of a group of smooth particles.
 
 #include "../particle/SPH.h"
 
+#define GRAVITY 9.81
+
 using namespace glm;
 
-const int DIMENSION = 20;
 //#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.
 
-//The sort algorithm in the stl algorithms library needs a 
-//comparison function to be able to work. This is it.
 
 bool compareZ(Particle* left, Particle* right)
 {
 	return (left->getPosition().z < right->getPosition().z);
 }
 
-//default constructor.
 SPH::SPH()
 {
-	//dls = new vector <GLuint> (3);
-	//createDL(1,10);	
 	frameTimer = new timer;
 	timeLastFrame = frameTimer->elapsed();
 }
 
-//this constructor creates a vector the size of 
-//particles and initializes them with random positions
-//and velocities inside a bounding cube of size 4
 SPH::SPH(int particles)
 {
 	frameTimer = new timer;
@@ -74,13 +67,14 @@ SPH::SPH(int particles)
 		water->at(i)->setVelocity(randI, randJ, randK);
 		water->at(i)->setMass(5);
 
-		//find neighborhood
+		// find neighborhood
 		// compute densities
 		// compute ai
 
 	}
 
 	createVAO(particleCount);
+	frameTimer = new timer;
 	timeLastFrame = frameTimer->elapsed();
 }
 
@@ -101,19 +95,48 @@ SPH::~SPH()
 void SPH::simulate(double timeDiff)
 {
 
-	// compute non pressure forces
+	// compute non pressure forces - advect, body forces (gravity), (and viscosity)
+	/*
+	dvec3 *particleVel;
+	dvec3 *neighborVel;
+	dvec3 particlePos;
+	dvec3 neighborPos;
+
+	for(int i = 0; i < particleCount; ++i)
+	{
+		//primary is the particle we will be comparing the rest to
+		particlePos = water->at(i)->getPosition();
+		for(iterator of neighbor)
+		{
+			//secondary is a particle down the line	
+			neighborPos = water->at(neighbors.at(j))->getPosition();
+			
+			//get the forces that the two particles enact on each other
+			particleVel = water->at(i)->calculateForces(water->at(neighbors.at(j)));
+			neighborVel = water->at(neighbors.at(j))->calculateForces(water->at(i));
+		
+			delete particleVel;
+			delete neighborVel;
+		}
+		
+		//delete primaryPositionVector;
+	}
+	*/
 
 	// adapt timestep according to CFL condition
+	// deltaT <= 0.4*2*radius/(Vmax)
 
 	// predict velocities
-
+	for (int i = 0; i < particleCount; ++i) 
+	{
+		water->at(i)->predictVelocity(timeDiff);
+	}
 	// correctDensityError
 
 	// update positions
-	for (int i = 0; i < particleCount; i++)
+	for (int i = 0; i < particleCount; ++i)
 	{
 		water->at(i)->updatePosition(timeDiff);
-		water->at(i)->zeroDensity();
 	}
 
 	// update neighborhoods
@@ -123,53 +146,6 @@ void SPH::simulate(double timeDiff)
 	// correctDivergenceError
 
 	// update velocities
-
-
-	double distance = 0;
-
-	vec4 *particleVel;
-	vec4 *neighborVel;
-	vec3 particlePos;
-	vec3 neighborPos;
-
-	for(int i = 0; i < particleCount; i++)
-	{
-		//primary is the particle we will be comparing the rest to
-		particlePos = water->at(i)->getPosition(); 
-		for(int j = i + 1; j < particleCount; j++)
-		{
-			//secondary is a particle down the line	
-			neighborPos = water->at(j)->getPosition();
-			
-			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
-				
-			//if the distance is less then the effective radius
-			if(distance <= ER)
-			{
-				//get the forces that the two particles enact on each other
-				particleVel = water->at(i)->calculateForces(water->at(j));
-				neighborVel = water->at(j)->calculateForces(water->at(i));
-			
-				//now apply those forces
-				if(particleVel && neighborVel)
-				{
-					water->at(i)->predictVelocity(*neighborVel, timeDiff);
-					water->at(j)->predictVelocity(*particleVel, timeDiff);
-						
-				}
-	
-				delete particleVel;
-				delete neighborVel;
-			} else
-				continue;
-		}
-		
-		//delete primaryPositionVector;
-	}
-
-	//all of the forces have been calculated.
-	//the velocities for this time step have
-	//been updated, now move the particles
 	
 }
 
@@ -188,10 +164,10 @@ void SPH::calculateDensity()
 
 	for(int i = 0; i < particleCount; i++)
 	{
-		vec3 particlePos = water->at(i)->getPosition();
+		dvec3 particlePos = water->at(i)->getPosition();
 		for(int j = 0; j < particleCount; j++)
 		{
-			vec3 neighborPos = water->at(j)->getPosition();
+			dvec3 neighborPos = water->at(j)->getPosition();
 			//if(primaryPositionVector && secondaryPositionVector)
 			//{
 				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
@@ -237,8 +213,8 @@ void SPH::display(int particles)
 
 	if ((currentTime - timeLastFrame) > 0) {
 
-		// Call simulate
-
+		// Call simulate - how many timesteps per frame?
+		
 
 		// Render stuff
 		for(int i = 0; i < particles; i++) {
