@@ -279,14 +279,14 @@ vector <double>* Particle::pressureKernel(vector <double> *r)
 			r->at(1)*r->at(1)+
 			r->at(2)*r->at(2));
 
-	tempVect->at(0) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * ((ER*mag)*
-		(ER*mag)*(ER*mag)) * (r->at(0)/mag);
+	tempVect->at(0) = (45.0/(M_PI*H*H*H*H*H*H)) * ((H*mag)*
+		(H*mag)*(H*mag)) * (r->at(0)/mag);
 				
-	tempVect->at(1) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) *
-	 	((ER*mag)*(ER*mag)*(ER*mag)) * (r->at(1)/mag);
+	tempVect->at(1) = (45.0/(M_PI*H*H*H*H*H*H)) *
+	 	((H*mag)*(H*mag)*(H*mag)) * (r->at(1)/mag);
 
-	tempVect->at(2) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * 
-		((ER*mag)*(ER*mag)*(ER*mag)) * (r->at(2)/mag);
+	tempVect->at(2) = (45.0/(M_PI*H*H*H*H*H*H)) * 
+		((H*mag)*(H*mag)*(H*mag)) * (r->at(2)/mag);
 
 
 	return tempVect;
@@ -300,11 +300,11 @@ vector <double>* Particle::viscosityKernel(vector <double> *r)
 			r->at(1)*r->at(1)+
 			r->at(2)*r->at(2));
 
-	tempVect->at(0) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
+	tempVect->at(0) = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
 				
-	tempVect->at(1) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
+	tempVect->at(1) = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
 
-	tempVect->at(2) = (45.0/(M_PI*ER*ER*ER*ER*ER*ER)) * (ER*mag);
+	tempVect->at(2) = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
 
 
 	return tempVect;
@@ -316,8 +316,8 @@ double Particle::densityKernel(vec3 r)
 			r.y*r.y+
 			r.z*r.z));
 	
-	return ((315.0)/(64 * M_PI * ER*ER*ER*ER*ER*ER*ER*ER*ER))*
-		(ER*ER - mag*mag)*(ER*ER - mag*mag)*(ER*ER - mag*mag); 
+	return ((315.0)/(64 * M_PI * H*H*H*H*H*H*H*H*H))*
+		(H*H - mag*mag)*(H*H - mag*mag)*(H*H - mag*mag); 
 
 }
 

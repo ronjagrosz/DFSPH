@@ -144,7 +144,7 @@ void SPH::simulate(double timeDiff)
 			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
 				
 			//if the distance is less then the effective radius
-			if(distance <= ER)
+			if(distance <= H)
 			{
 				//get the forces that the two particles enact on each other
 				particleVel = water->at(i)->calculateForces(water->at(j));
@@ -197,7 +197,7 @@ void SPH::calculateDensity()
 				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
 			//}
 				
-			if(distance <= ER*ER)
+			if(distance <= H*H)
 			{
 				//if(primaryPositionVector && secondaryPositionVector)
 				//{

@@ -31,7 +31,7 @@ using namespace boost;
 using namespace glm;
 
 
-const double ER = .005; 
+const double H = .005; // Cutoff radius
 
 
 struct BindingPoint
