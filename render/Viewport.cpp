@@ -115,31 +115,31 @@ void Viewport::interaction(GLFWwindow *window)
 	currTime = glfwGetTime();
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
-		if (glfwGetKey(window, GLFW_KEY_UP)) {
+		if (glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W)) {
 			if (rad > 0.0f)
 				rad -= deltaTime*zoomFactor;
 		}
-		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+		else if (glfwGetKey(window, GLFW_KEY_DOWN || glfwGetKey(window, GLFW_KEY_S))) {
 			rad += deltaTime*zoomFactor;
 		}
 	}
 	else {
-		if (glfwGetKey(window, GLFW_KEY_UP)) {
+		if (glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W)) {
 			theta += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
 			if (theta >= M_PI / 2.0) theta = M_PI / 2.0; // Clamp at 90
 		}
-		else if (glfwGetKey(window, GLFW_KEY_DOWN)) {
+		else if (glfwGetKey(window, GLFW_KEY_DOWN) || glfwGetKey(window, GLFW_KEY_S)) {
 			theta -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
 			if (theta < -M_PI / 2.0) theta = -M_PI / 2.0f;      // Clamp at -90
 		}
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) || glfwGetKey(window, GLFW_KEY_D)) {
 		phi -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, M_PI*2.0); // Wrap around at 360 degrees (2*pi)
 		if (phi < 0.0) phi += M_PI*2.0; // If phi<0, then fmod(phi,2*pi)<0
 	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT)) {
+	else if (glfwGetKey(window, GLFW_KEY_LEFT) || glfwGetKey(window, GLFW_KEY_A)) {
 		phi += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, M_PI*2.0);
 	}
@@ -156,7 +156,7 @@ void Viewport::interaction(GLFWwindow *window)
         }
 }
 
-int Viewport::start(int argc, char** argv)	//initialize glut and set all of the call backs
+int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe call backs
 {   
 
     GLfloat I[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
