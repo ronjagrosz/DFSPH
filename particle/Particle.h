@@ -17,7 +17,6 @@ particle at a certain point.
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"

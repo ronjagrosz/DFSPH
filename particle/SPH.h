@@ -10,8 +10,14 @@ SPH is responsible for orginization of a group of smooth particles.
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
+
+#ifdef __linux__
+#include "../glm/glm/glm.hpp"
+#include "../glm/glm/gtc/type_ptr.hpp"
+#elif __APPLE__
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"	
+#endif
 
 #include "boost/timer.hpp"
 
