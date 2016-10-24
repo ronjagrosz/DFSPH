@@ -23,7 +23,7 @@ particle at a certain point.
 using namespace std;
 using namespace glm;
 
-Particle::Particle():radius(1),mass(1),viscosity(2.034),force(1)
+Particle::Particle():radius(1),mass(1),viscosity(2.034),force(1), density(0)
 {
 	neighbors = new vector<int>;
 
@@ -195,12 +195,27 @@ dvec3* Particle::viscosityKernel(dvec3 r)
 	return tempVect;
 }
 
-double Particle::densityKernel(dvec3 r)
+double Particle::densityKernel(dvec3 nPosition)
 {
-	double mag = dot(r,r);
+	// poly6 kernel
+	// h = ER
+	// r = mag
+	/*double mag = dot(nPosition,nPosition);
 	
 	return ((315.0)/(64 * M_PI * ER*ER*ER*ER*ER*ER*ER*ER*ER))*
-		(ER*ER - mag*mag)*(ER*ER - mag*mag)*(ER*ER - mag*mag); 
+		(ER*ER - mag*mag)*(ER*ER - mag*mag)*(ER*ER - mag*mag); */
+
+	// Cubic spline kernel
+	// this is not correct yet
+	// how to calc q?
+	double q = dot(this->position, nPosition);
+
+	if ( q > 0 && q <= 0.5)
+		return (8 / M_PI) * (1 - 6*q*q + 6*q*q*q);
+	else if ( q > 0.5 && q <= 1.0 )
+		return (8 / M_PI) * (2*(1-q)*(1-q)*(1-q));
+	else 
+		return 0;
 
 }
 

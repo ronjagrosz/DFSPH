@@ -68,7 +68,10 @@ SPH::SPH(int particles)
 		water->at(i)->setMass(5);
 
 		// find neighborhood
+
 		// compute densities
+		calculateDensity();
+
 		// compute ai
 
 	}
@@ -141,8 +144,13 @@ void SPH::simulate(double timeDiff)
 
 	// update neighborhoods
 
-	// compute densities and ai factors
+	// compute densities (since positions have been changed)
+	calculateDensity();
 
+	// compute ai factors (need to be updated since densities have been changed)
+	// maybe change so it's not a function in SPH, just call calculateAlpha for a particle...
+	//calculateAlpha();
+	
 	// correctDivergenceError
 
 	// update velocities
@@ -154,52 +162,32 @@ void SPH::simulate(double timeDiff)
 //calculate density function.
 
 void SPH::calculateDensity()
-{
-	double distance = 0;
+{	
+	// for all particles
+	for(int i = 0; i < particleCount; i++) {
+		// set density for particle i to zero? reuse this function in simulate?
+		water->at(i)->setDensity(0.0);
+		/*
+		//calculate density in the area around particle i
+		for(all neightbours)
+			water->at(i)->calculateDensity(neightbour);				
 	
-	glm::vec4 *particleVel;
-	glm::vec4 *neighborVel;
-
-	
-
-	for(int i = 0; i < particleCount; i++)
-	{
-		dvec3 particlePos = water->at(i)->getPosition();
-		for(int j = 0; j < particleCount; j++)
-		{
-			dvec3 neighborPos = water->at(j)->getPosition();
-			//if(primaryPositionVector && secondaryPositionVector)
-			//{
-				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
-			//}
-				
-			if(distance <= ER*ER)
-			{
-				//if(primaryPositionVector && secondaryPositionVector)
-				//{
-					water->at(i)->calculateDensity(water->at(j));			
-				//}
-	
-				//delete secondaryPositionVector;
-				delete particleVel;
-				delete neighborVel;
-			} else 
-			{
-				//delete secondaryPositionVector;
-	
-				break;
-			}
-				
-		}
-		//delete primaryPositionVector;
+		*/
 	}
-	for(int i = 0; i<particleCount; i++)
+	/*for(int i = 0; i<particleCount; i++)
 	{
 		water->at(i)->clearNAN();
 //		water->at(i)->printDensity();
-	}
+	}*/
 
 }
+
+/*void SPH::calculateAlpha()
+{
+	for(int i = 0; i < particleCount; i++) {
+		//calc alpha
+	}	
+}*/
 
 
 void SPH::display(int particles)	

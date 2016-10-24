@@ -57,8 +57,8 @@ class Particle
 		double 	radius;
 		double 	mass;
 		double 	viscosity;
-		double 	density;
-		double  A; // for kernelfunction (ai)
+		double 	density; // density in the neighbourhood of this particle
+		double  A; // for kernel function (ai)
 		double  stiffness; // k variable in report
 
 	public:
