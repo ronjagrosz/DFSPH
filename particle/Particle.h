@@ -46,49 +46,20 @@ class Particle
 {
 	protected:
 		
-			
-		//variables that are needed for basic functioning
-		//physical properties
-		vec3 	position;
-		stack	 <int>		*neighbors;
+		vector<int>	*neighbors;	
 
-		glm::vec4 	*velocity;
+		dvec3 	position;
+		dvec3 	velocity;
+		dvec3   force;
+		vec3	color;	//the color of the smooth particle
+		
+		// properties
 		double 	radius;
 		double 	mass;
 		double 	viscosity;
-		int 	materialID;	//this will later be used to tell different fluids apart (eg. oil and water)
-		timer	*frameTimer;
-		double 	timeLastFrame;
-		double 	forceConstant;
-		double 	density;	
-
-		double threshold;	//thresHold distance between attractive and repulsive
-		double stretchR;	//stretctes the attractive force curve
-		double stretchA;	//stretches the repulsive force curve
-		double offsetR;		//the x-axis translation for the repulsive curve
-		double offsetA;		//the x-axis translation for the attractive curve
-		double maxR;		//Maximum scalar value for the repulsive force (x^2)
-		double maxA;		//maximum scalar value for the attractive force (x^2)
-
-
-		GLuint	DL;		//this is the pointer to the Particle's display list
-
-		//The color and shape
-		vec3	color;	//the color of the smooth particle
-		float	pressureScale;	//the rate at which the particle turns color
-//		GLuint	sphereDL;
-
-		//These variables are used for ray tracing
-//		double alpha;
-//		double indexOfRefraction;
-//		double reflectivity;
-
-		//Thes variables are used for Crystalization
-//		vector <BindingPoints> 	boundParticles;
-//		vector <double		angularVelocity;
-//		glm::vec4	orientation;
-//		bool	isBound;
-
+		double 	density;
+		double  A; // for kernelfunction (ai)
+		double  stiffness; // k variable in report
 
 	public:
 		Particle();
@@ -97,33 +68,42 @@ class Particle
 		
 		//setters
 		virtual void setPosition(float,float,float);
-		virtual void setVelocity(double,double,double);
+		virtual void setVelocity(dvec3);
+		virtual void setForce(double, double, double);
+		virtual void setColor(vec3 newColor);
 		virtual void setRadius(double);
 		virtual void setMass(double);
-		virtual void setMaterialID(double);
-		virtual void setColor(vec3 newColor);
-		virtual void setPressureScale(float);
-		virtual void setDL(GLuint);
-		virtual void setTimer(timer *currentTime);
+		virtual void setViscosity(double);
+		virtual void setDensity(double);
+		
 
 		//getters
-		virtual vec3 getPosition();
-		virtual vec4* getVelocity();
+		virtual dvec3 getPosition();
+		virtual dvec3 getVelocity();
+		virtual dvec3 getForce();
+		virtual vec3 getColor();
 		virtual double getRadius();
 		virtual double getMass();
-		virtual double getMaterialID();
-		virtual vec3 getColor();
-		virtual float getPressurescale();
-		virtual GLuint getDL();
+		virtual double getViscosity();
+		virtual double getDensity();
+		virtual double getStiffness();
 		
-		virtual void display(double);
-		virtual vec4* calculateForces(Particle*);	//this is the biggest deal in this program
-		virtual void predictVelocity(glm::vec4 &, double);		//apply the forces to the velocity
-		virtual void updatePosition(double elapsedTime);	//apply the velocity to the position
 		
-		virtual vector <double>* pressureKernel(vector <double>*);	//smoothing kernel functions used in the getForceAtPoint function
-		virtual vector <double>* viscosityKernel(vector <double>*);
-		virtual	double densityKernel(vec3);
+		virtual void calculateForces(Particle*);			// calculate non-pressure forces
+		virtual void predictVelocity(double elapsedTime);	// apply the forces to the velocity
+		//virtual void correctDensityError();
+		virtual void updatePosition(double elapsedTime);	// apply the velocity to the position
+		//virtual void updateNeighborhoods();
+		//virtual void calculateDensityA();
+		//virtual void correctDivergenceError();
+		//virtual void updateVelocity(); // is this one needed?
+
+
+
+		// Can be removed after clean up
+		virtual dvec3* pressureKernel(dvec3);	//smoothing kernel functions used in the getForceAtPoint function
+		virtual dvec3* viscosityKernel(dvec3);
+		virtual	double densityKernel(dvec3);
 		
 		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
