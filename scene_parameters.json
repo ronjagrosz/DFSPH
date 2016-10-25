@@ -11,5 +11,5 @@
     "A" : 0,
     "k" : 100,
     "stiffness" : 7.065,
-    "H" : 0.005 //Cutoff radius, length that a particle affects something else    
+    "H" : 0.005
 };
