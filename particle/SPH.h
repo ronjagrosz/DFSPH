@@ -43,14 +43,12 @@ class SPH
 {
 	protected:
 		int				particleCount;	
-		timer				*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
-		double				timeLastFrame;	//the time that the last frame was rendered at
+		timer			*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
+		double			timeLastFrame;	//the time that the last frame was rendered at
+		double			dT;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
-//		vector <double>			metaMesh;
-		vector <GLuint>		 	*dls;		//this is the display list i keep for fast rendering.
-								//each particle has a copy of this pointer
-		GLuint vao, vbo[2];		// handles to vao and abo
+GLuint vao, vbo[2];		// handles to vao and abo
 		//GLfloat *vertices[particleCount][3];	// pointer to all vertices
 
 		
@@ -63,7 +61,8 @@ class SPH
 		//http://www.swiftless.com/tutorials/opengl/sphere.html
 		//virtual void DisplaySphere(double R, int VertexCount, VERTICES*);		//depricated
 		//virtual VERTICES* createSphere(double radius, double x, double y, double z, int space);		//depricated
-
+		virtual void calculateNonPressureForces(double timeDiff);
+		virtual double adaptTimestep(double timeDiff);
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		

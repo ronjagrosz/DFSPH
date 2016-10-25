@@ -68,7 +68,7 @@ class Particle
 		
 		//setters
 		virtual void setPosition(float,float,float);
-		virtual void setVelocity(double,double,double);
+		virtual void setVelocity(dvec3);
 		virtual void setForce(double, double, double);
 		virtual void setColor(vec3 newColor);
 		virtual void setRadius(double);

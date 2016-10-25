@@ -38,7 +38,7 @@ Viewport::Viewport()
 {
 	phi = 0.0f;
 	theta = M_PI / 4.0f;
-	rad = 1.5f;
+	rad = 2.5f;
 	zoomFactor = M_PI;
 	recordTime = deltaTime = currTime = 0.0f;	
 	fps = 0.0;
@@ -111,7 +111,7 @@ void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)		//just in case 
 void Viewport::interaction(GLFWwindow *window)
 {
 	recordTime = glfwGetTime() - timeSinceAction;
-	deltaTime = glfwGetTime() - currTime;
+	deltaTime = (glfwGetTime() - currTime) / 10;
 	currTime = glfwGetTime();
 
 	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
@@ -119,7 +119,7 @@ void Viewport::interaction(GLFWwindow *window)
 			if (rad > 0.0f)
 				rad -= deltaTime*zoomFactor;
 		}
-		else if (glfwGetKey(window, GLFW_KEY_DOWN || glfwGetKey(window, GLFW_KEY_S))) {
+		else if (glfwGetKey(window, GLFW_KEY_DOWN) || glfwGetKey(window, GLFW_KEY_S)) {
 			rad += deltaTime*zoomFactor;
 		}
 	}

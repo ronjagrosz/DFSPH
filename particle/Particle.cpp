@@ -23,7 +23,7 @@ particle at a certain point.
 using namespace std;
 using namespace glm;
 
-Particle::Particle():radius(1),mass(1),viscosity(2.034),force(1)
+Particle::Particle():radius(1),mass(0.05),viscosity(2.034)
 {
 	neighbors = new vector<int>;
 
@@ -42,9 +42,9 @@ void Particle::setPosition(float x, float y, float z)
 	position = dvec3(x, y, z);
 }
 
-void Particle::setVelocity(double i, double j, double k)
+void Particle::setVelocity(dvec3 vel)
 {
-	velocity = dvec3(i, j, k);
+	velocity = vel;
 }
 void Particle::setForce(double i, double j, double k)
 {
@@ -83,7 +83,7 @@ double Particle::getViscosity(){return viscosity;};
 double Particle::getDensity(){return density;};
 double Particle::getStiffness(){return stiffness;};
 
-// Compute non-pressure forces like gravity, surface tension and viscosity
+// Compute surface tension and viscosity - NEED BETTER NAME
 void Particle::calculateForces(Particle *neighbor)
 {	
 	dvec3 nPosition = neighbor->position;	//do NOT delete this vector
@@ -126,7 +126,7 @@ void Particle::calculateForces(Particle *neighbor)
 	if(forceZ > 1)
 		forceZ = 1;
 
-	force += vec3(forceX, forceY, forceZ);
+	force = vec3(forceX, forceY, forceZ);
 	
 	delete pressureKernelValue;
 	delete viscosityKernelValue;
@@ -135,7 +135,7 @@ void Particle::calculateForces(Particle *neighbor)
 // Predicts the velocity of the particle with its non-pressure forces
 void Particle::predictVelocity(double elapsedTime)
 {
-	velocity += force / mass * elapsedTime;
+	velocity += force * elapsedTime;
 }
 
 //this is called after all of the paricles have interacted
@@ -144,17 +144,19 @@ void Particle::predictVelocity(double elapsedTime)
 
 void Particle::updatePosition(double elapsedTime)
 {
+	/*
 	#ifndef WEIGHTLESS
 	velocity.z += -9.8 * elapsedTime;
 	#endif
-	
+	*/
 	position += velocity * elapsedTime;
-
-	if(position.z < 0)
+	/*
+	if(position.y < 0)
 	{
-		position.z -= velocity.z * elapsedTime * 2;
-		velocity.z *= -.2;
+		position.y -= velocity.y * elapsedTime * 2;
+		velocity.y *= -.2;
 	}
+	*/
 }
 
 //The following three kernel functions are used in th egetForceatPoint
