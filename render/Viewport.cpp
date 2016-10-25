@@ -20,8 +20,6 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 #define OUTPUT_FILE_PATH "results/frames/frame"
 
-const int PARTICLE_COUNT = 300000;	//This variable dictates how many particles will be in the simulation
-
 using namespace std;
 
 std::string ZeroPadNumber(int num) {
@@ -93,7 +91,7 @@ void Viewport::init(void)		//enable texture, lighting, shading.
 
 void Viewport::initWorld()
 {
-	Viewport::hydro = new SPH(PARTICLE_COUNT);	//this is the object that will manage all of the particles
+	Viewport::hydro = new SPH();	//this is the object that will manage all of the particles
 	Viewport::hydro->setTimer(timeSinceStart);	//I'm setting a timer to bind the particles to real time regardless of the coputer that they are run on
 }
 
@@ -163,7 +161,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe 
 					  0.0f, 1.0f, 0.0f, 0.0f,
 					  0.0f, 0.0f, 1.0f, 0.0f,
 					  0.0f, 0.0f, 0.0f, 1.0f };
-	GLfloat P[16] = { 2.42f, 0.0f, 0.0f, 0.0f,
+	GLfloat P[16] = { 1.815f, 0.0f, 0.0f, 0.0f,
 					  0.0f, 2.42f, 0.0f, 0.0f,
 					  0.0f, 0.0f, -1.0f, -1.0f,
 					  0.0f, 0.0f, -0.2f, 0.0f };
@@ -262,7 +260,7 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe 
         glUniform3fv(locationCa, 1, glm::value_ptr(cam));
         */
 
-		hydro->display(PARTICLE_COUNT);
+		hydro->display();
 		
 
 		// Save the frame

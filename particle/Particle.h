@@ -54,9 +54,6 @@ class Particle
 		vec3	color;	//the color of the smooth particle
 		
 		// properties
-		double 	radius;
-		double 	mass;
-		double 	viscosity;
 		double 	density;
 		double  A; // for kernelfunction (ai)
 		double  stiffness; // k variable in report
@@ -71,9 +68,6 @@ class Particle
 		virtual void setVelocity(dvec3);
 		virtual void setForce(double, double, double);
 		virtual void setColor(vec3 newColor);
-		virtual void setRadius(double);
-		virtual void setMass(double);
-		virtual void setViscosity(double);
 		virtual void setDensity(double);
 		
 
@@ -82,14 +76,10 @@ class Particle
 		virtual dvec3 getVelocity();
 		virtual dvec3 getForce();
 		virtual vec3 getColor();
-		virtual double getRadius();
-		virtual double getMass();
-		virtual double getViscosity();
 		virtual double getDensity();
 		virtual double getStiffness();
 		
 		
-		virtual void calculateForces(Particle*);			// calculate non-pressure forces
 		virtual void predictVelocity(double elapsedTime);	// apply the forces to the velocity
 		//virtual void correctDensityError();
 		virtual void updatePosition(double elapsedTime);	// apply the velocity to the position
@@ -107,8 +97,6 @@ class Particle
 		
 		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
-
-		virtual inline void zeroDensity(){density = mass/(radius*radius*M_PI);};	//this is used after the frame is over and the current density is no longer needed
 		virtual inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
 
 		virtual void clearNAN()	//a very kludgey solution to a nan problem I was having in the density calculation.

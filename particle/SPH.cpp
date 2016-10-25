@@ -10,17 +10,16 @@ SPH is responsible for orginization of a group of smooth particles.
 #include <stdio.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <vector>
-#include <stack>
 #include <algorithm>
 #include <ctime>
 
+#include "../json/picojson.h"
 #include "../particle/SPH.h"
 
-#define GRAVITY -9.81
 #define EPSILON 0.0000000001f
-#define tMAX 	0.002
-#define ITERATIONS 15
 
 using namespace glm;
 
@@ -35,14 +34,20 @@ bool compareZ(Particle* left, Particle* right)
 SPH::SPH()
 {
 	frameTimer = new timer;
-	timeLastFrame = frameTimer->elapsed();
-}
 
-SPH::SPH(int particles)
-{
-	frameTimer = new timer;
+	// load json parameters
+	loadJson("json/scene_parameters.json");
+	/*
+	particleCount = 200000;
+	maxTimestep = 0.002;
+	iterations = 15;
+	constantAcceleration = -9.81;
 
-	particleCount = particles;
+	particleRadius = 1;
+	particleMass = 5;
+	particleViscosity = 2.034;
+	*/
+
 	GLfloat randX, randY, randZ;
 	vec3 newColor = vec3(1.0f,1.0f,1.0f);
 	double randI, randJ, randK; //velocity vector values
@@ -51,7 +56,7 @@ SPH::SPH(int particles)
 
 	water = new vector<Particle*>(particleCount);
 
-	for(int i = 0; i < particleCount; i++) {
+	for(int i = 0; i < particleCount; ++i) {
 
 		// random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
@@ -68,7 +73,6 @@ SPH::SPH(int particles)
 		water->at(i)->setPosition(randX, randY, randZ);
 		water->at(i)->setColor(newColor);
 		water->at(i)->setVelocity(dvec3(randI, randJ, randK));
-		water->at(i)->setMass(5);
 
 		// find neighborhood
 		// compute densities
@@ -92,7 +96,37 @@ SPH::~SPH()
 
 }
 
-//this is one of the most important functions in the program
+void SPH::setRadius(double rad) {
+	particleRadius = rad;
+}
+void SPH::setMass(double mass) {
+	particleMass = mass;
+}
+void SPH::setViscosity(double vis) {
+	particleViscosity = vis;
+}
+double SPH::getRadius(){return particleRadius;}
+double SPH::getMass(){return particleMass;}
+double SPH::getViscosity(){return particleViscosity;}
+
+
+void SPH::loadJson(string fileName)
+{
+	picojson::value params;
+    ifstream paramStream (fileName);
+    paramStream >> params;
+    particleCount = (int)(params.get<picojson::object>()["particlesCount"].get<double>());
+    maxTimestep = params.get<picojson::object>()["maxTimestep"].get<double>();
+    iterations = (int)(params.get<picojson::object>()["iterations"].get<double>());
+    constantAcceleration = params.get<picojson::object>()["constantAcceleration"].get<double>();
+
+    particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
+    particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
+}
+
+
+// Update positions with a small timestep
 void SPH::simulate(double timeDiff)
 {
 	calculateNonPressureForces(timeDiff); // if only gravity timeDiff is not needed
@@ -131,7 +165,6 @@ void SPH::calculateNonPressureForces(double timeDiff)
 	//dvec3 *neighborVel;
 	//dvec3 particlePos;
 	//dvec3 neighborPos;
-	double r = water->at(0)->getRadius();
 	double steps = 6;
 	
 	for(int i = 0; i < particleCount; ++i)
@@ -140,13 +173,13 @@ void SPH::calculateNonPressureForces(double timeDiff)
 		dvec3 currentVel = water->at(i)->getVelocity();
 
 		// Gravity
-		water->at(i)->setForce(0.0, water->at(i)->getMass() * GRAVITY, 0.0);
+		water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
 		// Self-Advection - Need velocity at other position
 		for(int step = 0; step < steps; ++step) {
 			// Get direction.
 			// we are tracing back in time, hence -=, scale dt to number of steps.
-			currentPos -= currentVel * timeDiff / steps / r;
+			currentPos -= currentVel * timeDiff / steps / particleRadius;
 
 			// get vel at other position
 			currentVel = water->at(i)->getVelocity();
@@ -170,13 +203,6 @@ void SPH::calculateNonPressureForces(double timeDiff)
 			if (density_j > 0.0001f) {
                 viscosity -= (currentVel - neighborVel) * (_kernel.viscosityLaplace(rn) / density_j);
             }
-			
-			//get the forces that the two particles enact on each other
-			particleVel = water->at(i)->calculateForces(water->at(neighbors.at(j)));
-			neighborVel = water->at(neighbors.at(j))->calculateForces(water->at(i));
-		
-			delete particleVel;
-			delete neighborVel;
 		}
 		*/
 	}
@@ -195,7 +221,7 @@ double SPH::adaptTimestep(double timeDiff)
 		if (vMax < mag)
 			vMax = mag;
 	}
-	dT = water->at(0)->getRadius() * 0.8 / vMax - EPSILON;
+	dT = particleRadius * 0.8 / vMax - EPSILON;
 
 	if (timeDiff < dT)
 		dT = timeDiff;
@@ -253,19 +279,19 @@ void SPH::calculateDensity()
 }
 
 
-void SPH::display(int particles)	
+void SPH::display()	
 {	
 
-	GLfloat vertices[particles][3];
-	GLfloat colors[particles][3];
+	GLfloat vertices[particleCount][3];
+	GLfloat colors[particleCount][3];
 
 	//this is used to log the elapsed time since the last frame
 	double timeDiff = frameTimer->elapsed() - timeLastFrame;
-	if (timeDiff > 0) {
+	if (timeDiff - EPSILON > 0.0) {
 		double t = 0.0;
 		int iter = 0;
 		// Call simulate - how many timesteps per frame?
-		while (t < tMAX && iter < ITERATIONS) {
+		while (t < maxTimestep && iter < iterations) {
 			simulate(timeDiff);
 			t += dT;
 			iter++;
@@ -273,7 +299,7 @@ void SPH::display(int particles)
 
 		cout << "Iterations: " << iter << "\n";
 		// Render stuff
-		for(int i = 0; i < particles; i++) {
+		for(int i = 0; i < particleCount; ++i) {
 			vertices[i][0] = water->at(i)->getPosition().x;
 			vertices[i][1] = water->at(i)->getPosition().y;
 			vertices[i][2] = water->at(i)->getPosition().z;
@@ -291,7 +317,7 @@ void SPH::display(int particles)
 
 		// Copy the vertex data from diamond to our buffer 
 	    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
-	    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
+	    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
 
 	    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
 	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -302,7 +328,7 @@ void SPH::display(int particles)
 	    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
 	    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
-	    glBufferData(GL_ARRAY_BUFFER, 3 * particles * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+	    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), colors, GL_STATIC_DRAW);
 
 	    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
 	    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -323,7 +349,7 @@ void SPH::display(int particles)
 	glFrontFace(GL_CW);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
-	glDrawArrays(GL_POINTS, 0, particles);
+	glDrawArrays(GL_POINTS, 0, particleCount);
 	timeLastFrame = frameTimer->elapsed();
 }
 

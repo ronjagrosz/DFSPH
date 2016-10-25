@@ -23,7 +23,7 @@ particle at a certain point.
 using namespace std;
 using namespace glm;
 
-Particle::Particle():radius(1),mass(0.05),viscosity(2.034)
+Particle::Particle()
 {
 	neighbors = new vector<int>;
 
@@ -55,18 +55,6 @@ void Particle::setColor(vec3 newColor)
 	if(newColor != color)
 		color = newColor;
 }
-void Particle::setRadius(double newRadius)
-{
-	radius = newRadius;
-}
-void Particle::setMass(double newMass)
-{
-	mass = newMass;
-}
-void Particle::setViscosity(double newViscosity)
-{
-	viscosity = newViscosity;
-}
 void Particle::setDensity(double newDensity)
 {
 	density = newDensity;
@@ -75,62 +63,10 @@ void Particle::setDensity(double newDensity)
 // Getters  ***************************************************************
 dvec3 Particle::getPosition(){return position;}
 dvec3 Particle::getVelocity(){return velocity;}
-dvec3 Particle::getForce(){return force;};
+dvec3 Particle::getForce(){return force;}
 vec3 Particle::getColor(){return color;}
-double Particle::getRadius(){return radius;}
-double Particle::getMass(){return mass;}
-double Particle::getViscosity(){return viscosity;};
-double Particle::getDensity(){return density;};
-double Particle::getStiffness(){return stiffness;};
-
-// Compute surface tension and viscosity - NEED BETTER NAME
-void Particle::calculateForces(Particle *neighbor)
-{	
-	dvec3 nPosition = neighbor->position;	//do NOT delete this vector
-	
-	double distance = 0.0;
-
-	double nMass = neighbor->mass;
-	double nDensity = neighbor->density;
-	double nViscosity = neighbor->viscosity;
-	
-	// needed?
-	dvec3 diffVector = nPosition - position;
-	distance = dot(diffVector, diffVector);
-
-	dvec3 *pressureKernelValue = pressureKernel(diffVector);
-	dvec3 *viscosityKernelValue = viscosityKernel(diffVector);
-
-	double forceX = 0.0;
-	double forceY = 0.0;
-	double forceZ = 0.0;
-
-//	force = -(((distance-2)*(distance - 2)*(distance - 2)) - (distance - 2)*4);
-	if(nDensity != 0)
-	{
-		// Force due to viscosity
-		// f = viscosity * laplaceOperator(velocity);
-		forceX += viscosity * nMass * ((viscosity * nViscosity)/nDensity) * viscosityKernelValue->x;
-		forceY += viscosity * nMass * ((viscosity * nViscosity)/nDensity) * viscosityKernelValue->y;
-		forceZ += viscosity * nMass * ((viscosity * nViscosity)/nDensity) * viscosityKernelValue->z;
-	}
-
-	// Force due to surface tension
-	// f = surfaceTensionC * surfaceCurvature * surfaceNormal
-
-	//sanity check
-	if(forceX > 1)
-		forceX = 1;
-	if(forceY > 1)
-		forceY = 1;
-	if(forceZ > 1)
-		forceZ = 1;
-
-	force = vec3(forceX, forceY, forceZ);
-	
-	delete pressureKernelValue;
-	delete viscosityKernelValue;
-}
+double Particle::getDensity(){return density;}
+double Particle::getStiffness(){return stiffness;}
 
 // Predicts the velocity of the particle with its non-pressure forces
 void Particle::predictVelocity(double elapsedTime)
@@ -138,25 +74,17 @@ void Particle::predictVelocity(double elapsedTime)
 	velocity += force * elapsedTime;
 }
 
-//this is called after all of the paricles have interacted
-//in this time step.  This moves the particles according to
-//their velocity and how much time has elapsed.
-
+// Update position with current velocity
 void Particle::updatePosition(double elapsedTime)
 {
-	/*
-	#ifndef WEIGHTLESS
-	velocity.z += -9.8 * elapsedTime;
-	#endif
-	*/
 	position += velocity * elapsedTime;
-	/*
+	
 	if(position.y < 0)
 	{
 		position.y -= velocity.y * elapsedTime * 2;
 		velocity.y *= -.2;
 	}
-	*/
+	
 }
 
 //The following three kernel functions are used in th egetForceatPoint
@@ -209,10 +137,10 @@ double Particle::densityKernel(dvec3 r)
 // The density is used in several force calculations.
 void Particle::calculateDensity(Particle *neighbor)
 {
-	if(neighbor)
+	/*if(neighbor)
 	{
 		density += neighbor->mass * densityKernel(neighbor->position);
-	}
+	}*/
 }
 
 //gives the particle's velocity a random kick
