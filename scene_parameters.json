@@ -1,0 +1,15 @@
+{
+    "particlesCount" : 200000,
+    "maxTimestep" : 0.002,
+    "iterations" : 15,
+    "constantAcceleration" : -9.81,
+
+    "particleRadius" : 1,
+    "particleMass" : 5,
+    "particleViscosity" : 2.034,
+    "density" : 998.29,
+    "A" : 0,
+    "k" : 100,
+    "stiffness" : 7.065,
+    "H" : 0.005 //Cutoff radius, length that a particle affects something else    
+};

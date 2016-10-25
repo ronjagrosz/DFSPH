@@ -23,9 +23,6 @@ SPH is responsible for orginization of a group of smooth particles.
 
 using namespace glm;
 
-//#define VISIBLE_TEST  //this tells the program to only make 5 particles in a horizontal line.
-
-
 bool compareZ(Particle* left, Particle* right)
 {
 	return (left->getPosition().z < right->getPosition().z);
@@ -250,7 +247,7 @@ void SPH::calculateDensity()
 				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
 			//}
 				
-			if(distance <= ER*ER)
+			if(distance <= H*H)
 			{
 				//if(primaryPositionVector && secondaryPositionVector)
 				//{
