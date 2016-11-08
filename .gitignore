@@ -5,6 +5,7 @@
 documents/
 results/frames/
 results/out*.mp4
+scene/
 glm/
 Screen_Grabs_and_Vid/
 Makefile
