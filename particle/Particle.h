@@ -64,42 +64,42 @@ class Particle
 		~Particle();
 		
 		//setters
-		virtual void setPosition(float,float,float);
-		virtual void setVelocity(dvec3);
-		virtual void setForce(double, double, double);
-		virtual void setColor(vec3 newColor);
-		virtual void setDensity(double);
+		void setPosition(float,float,float);
+		void setVelocity(dvec3);
+		void setForce(double, double, double);
+		void setColor(vec3 newColor);
+		void setDensity(double);
 		
 
 		//getters
-		virtual dvec3 getPosition();
-		virtual dvec3 getVelocity();
-		virtual dvec3 getForce();
-		virtual vec3 getColor();
-		virtual double getDensity();
-		virtual double getStiffness();
+		dvec3 getPosition();
+		dvec3 getVelocity();
+		dvec3 getForce();
+		vec3 getColor();
+		double getDensity();
+		double getStiffness();
 		
 		
-		virtual void predictVelocity(double elapsedTime);	// apply the forces to the velocity
-		//virtual void correctDensityError();
-		virtual void updatePosition(double elapsedTime);	// apply the velocity to the position
-		//virtual void updateNeighborhoods();
-		//virtual void calculateDensityA();
-		//virtual void correctDivergenceError();
-		//virtual void updateVelocity(); // is this one needed?
+		void predictVelocity(double elapsedTime);	// apply the forces to the velocity
+		//void correctDensityError();
+		void updatePosition(double elapsedTime);	// apply the velocity to the position
+		//void updateNeighborhoods();
+		//void calculateDensityA();
+		//void correctDivergenceError();
+		//void updateVelocity(); // is this one needed?
 
 
 
 		// Can be removed after clean up
-		virtual dvec3* pressureKernel(dvec3);	//smoothing kernel functions used in the getForceAtPoint function
-		virtual dvec3* viscosityKernel(dvec3);
-		virtual	double densityKernel(dvec3);
+		dvec3* pressureKernel(dvec3);	//smoothing kernel functions used in the getForceAtPoint function
+		dvec3* viscosityKernel(dvec3);
+		double densityKernel(dvec3);
 		
-		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
+		void calculateDensity(Particle*);		//used to calculate the pressure force
 		
-		virtual inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
+		inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
 
-		virtual void clearNAN()	//a very kludgey solution to a nan problem I was having in the density calculation.
+		void clearNAN()	//a very kludgey solution to a nan problem I was having in the density calculation.
 		{			//finding the root cause of this is on my list of things to do.
 			if(std::isnan(density))
 				density = 0;

@@ -22,6 +22,7 @@ SPH is responsible for orginization of a group of smooth particles.
 #include "boost/timer.hpp"
 #include <vector>
 #include "../particle/Particle.h"
+#include "CellList.h"
 
 using namespace boost;
 

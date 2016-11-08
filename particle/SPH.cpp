@@ -77,6 +77,7 @@ SPH::SPH()
 
 	}
 
+    CellList* cellList = new CellList(glm::dvec3(-0.5, 1.1, -0.5), glm::dvec3(0.5, 2.1, 0.5), H, water);
 	createVAO(particleCount);
 	timeLastFrame = frameTimer->elapsed();
 }
