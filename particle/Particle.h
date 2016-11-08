@@ -80,14 +80,12 @@ class Particle
 		virtual double getStiffness();
 		
 		
-		virtual void predictVelocity(double elapsedTime);	// apply the forces to the velocity
 		//virtual void correctDensityError();
 		virtual void updatePosition(double elapsedTime);	// apply the velocity to the position
 		//virtual void updateNeighborhoods();
 		//virtual void calculateDensityA();
 		//virtual void correctDivergenceError();
 		//virtual void updateVelocity(); // is this one needed?
-
 
 
 		// Can be removed after clean up

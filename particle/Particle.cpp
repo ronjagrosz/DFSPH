@@ -27,8 +27,8 @@ Particle::Particle()
 {
 	neighbors = new vector<int>;
 
-	velocity  = dvec3(0,0,0);
-	force = dvec3(0,0,0);
+	velocity  = dvec3(0.0, 0.0, 0.0);
+	force = dvec3(0.0, 0.0, 0.0);
 }
 
 Particle::~Particle()
@@ -68,23 +68,10 @@ vec3 Particle::getColor(){return color;}
 double Particle::getDensity(){return density;}
 double Particle::getStiffness(){return stiffness;}
 
-// Predicts the velocity of the particle with its non-pressure forces
-void Particle::predictVelocity(double elapsedTime)
-{
-	velocity += force * elapsedTime;
-}
-
 // Update position with current velocity
 void Particle::updatePosition(double elapsedTime)
 {
-	position += velocity * elapsedTime;
-	
-	if(position.y < 0)
-	{
-		position.y -= velocity.y * elapsedTime * 2;
-		velocity.y *= -.2;
-	}
-	
+	position += velocity * elapsedTime;	
 }
 
 //The following three kernel functions are used in th egetForceatPoint

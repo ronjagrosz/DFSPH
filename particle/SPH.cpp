@@ -16,10 +16,10 @@ SPH is responsible for orginization of a group of smooth particles.
 #include <algorithm>
 #include <ctime>
 
-#include "../json/picojson.h"
+#include "../util/picojson.h"
 #include "../particle/SPH.h"
 
-#define EPSILON 0.0000000001f
+#define EPSILON 0.000000000000001f
 
 using namespace glm;
 
@@ -33,17 +33,10 @@ SPH::SPH()
 	frameTimer = new timer;
 
 	// load json parameters
-	loadJson("json/scene_parameters.json");
-	/*
-	particleCount = 200000;
-	maxTimestep = 0.002;
-	iterations = 15;
-	constantAcceleration = -9.81;
+	loadJson("scene/scene_parameters.json");
 
-	particleRadius = 1;
-	particleMass = 5;
-	particleViscosity = 2.034;
-	*/
+	//scene.readOBJ(sceneName.c_str());
+	//scene.printInfo();
 
 	GLfloat randX, randY, randZ;
 	vec3 newColor = vec3(1.0f,1.0f,1.0f);
@@ -113,34 +106,35 @@ void SPH::loadJson(string fileName)
     ifstream paramStream (fileName);
     paramStream >> params;
     particleCount = (int)(params.get<picojson::object>()["particlesCount"].get<double>());
-    maxTimestep = params.get<picojson::object>()["maxTimestep"].get<double>();
+    maxTimestep = 1/params.get<picojson::object>()["fps"].get<double>();
     iterations = (int)(params.get<picojson::object>()["iterations"].get<double>());
     constantAcceleration = params.get<picojson::object>()["constantAcceleration"].get<double>();
+    sceneName = params.get<picojson::object>()["sceneName"].get<std::string>();
+
 
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     particleMass = params.get<picojson::object>()["particleMass"].get<double>();
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
 }
 
-
 // Update positions with a small timestep
-void SPH::simulate(double timeDiff)
+void SPH::simulate(double timeStep)
 {
-	calculateNonPressureForces(timeDiff); // if only gravity timeDiff is not needed
+	// Self-advection - Skipped for SPH
+
+	// Calculate gravity, surface tension and viscosity
+	calculateNonPressureForces();
 
 	// adapt timestep according to CFL condition
-	dT = adaptTimestep(timeDiff);
+	dT = adaptTimestep(timeStep);
 
 	// predict velocities
-	for (int i = 0; i < particleCount; ++i) 
-	{
-		water->at(i)->predictVelocity(dT);
-	}
+	predictVelocities(dT);
+
 	// correctDensityError
 
 	// update positions
-	for (int i = 0; i < particleCount; ++i)
-	{
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
 	}
 
@@ -155,43 +149,30 @@ void SPH::simulate(double timeDiff)
 }
 
 // Compute non-pressure forces - advect, body forces (gravity) and viscosity
-void SPH::calculateNonPressureForces(double timeDiff)
+void SPH::calculateNonPressureForces()
 {
 	
 	//dvec3 *particleVel;
 	//dvec3 *neighborVel;
 	//dvec3 particlePos;
 	//dvec3 neighborPos;
-	double steps = 6;
+	//double steps = 6;
 	
 	for(int i = 0; i < particleCount; ++i)
 	{
-		dvec3 currentPos = water->at(i)->getPosition();
-		dvec3 currentVel = water->at(i)->getVelocity();
-
 		// Gravity
 		water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
-		// Self-Advection - Need velocity at other position
-		for(int step = 0; step < steps; ++step) {
-			// Get direction.
-			// we are tracing back in time, hence -=, scale dt to number of steps.
-			currentPos -= currentVel * timeDiff / steps / particleRadius;
-
-			// get vel at other position
-			currentVel = water->at(i)->getVelocity();
-		}
-		water->at(i)->setVelocity(currentVel);
-
 		/*
-		// Surface tension (according to [3])
+		// Surface tension - skipped
+		dvec3 currentPos = water->at(i)->getPosition();
+		dvec3 currentVel = water->at(i)->getVelocity();
         float correctionFactor = 2.f * _restDensity / (density_i + density_j);
         forceCohesion += correctionFactor * (r / rn) * _kernel.surfaceTension(rn);
         forceCurvature += correctionFactor * (n_i - n_j);
-		*/
+		
 
-		// Viscosity (later)
-		/*
+		// Viscosity - skipped
 		for(iterator of neighbor)
 		{
 			neighborPos = water->at(neighbors.at(j))->getPosition();
@@ -205,25 +186,116 @@ void SPH::calculateNonPressureForces(double timeDiff)
 	}
 }
 
-double SPH::adaptTimestep(double timeDiff)
+double SPH::adaptTimestep(double timeStep)
 {
 	dvec3 val;
 	double mag, dT, vMax = 0.0;
 
 	for (int i = 0; i < particleCount; ++i)
 	{
-		val = water->at(i)->getForce();
+		val = water->at(i)->getVelocity();
 		mag = dot(val, val);
 
 		if (vMax < mag)
 			vMax = mag;
 	}
-	dT = particleRadius * 0.8 / vMax - EPSILON;
+	dT = (particleRadius * 0.8 / vMax) - EPSILON;
 
-	if (timeDiff < dT)
-		dT = timeDiff;
-
+	if (timeStep < dT)
+		dT = timeStep;
+	
 	return dT;
+}
+
+// Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
+void SPH::predictVelocities(double dT)
+{
+	dvec3 vel, pos, dPos;
+	double x,y,z;
+	for (int i = 0; i < particleCount; ++i) {
+		vel = water->at(i)->getVelocity() + water->at(i)->getForce() * particleMass * dT;
+		pos = water->at(i)->getPosition();
+		
+		// Dirichlet Boundary Condition
+		x = pos.x;
+		y = pos.y;
+		z = pos.z;
+		dPos = vel * dT;
+		// is there solid in X?
+		if(isSolid(x-dPos.x,y,z, 0) && vel.x < 0.0)
+			vel.x = 0.0;
+		else if(isSolid(x+dPos.x,y,z, 0) && vel.x > 0.0)
+			vel.x = 0.0;
+		// Y
+		if(isSolid(x,y-dPos.y,z, 1) && vel.y < 0.0)
+			vel.y = 0.0;
+		else if(isSolid(x,y+dPos.y,z, 1) && vel.y > 0.0)
+			vel.y = 0.0;
+		// Z
+		if(isSolid(x,y,z-dPos.z, 2) && vel.z < 0.0)
+			vel.z = 0.0;
+		else if(isSolid(x,y,z+dPos.z, 2) && vel.z > 0.0)
+			vel.z = 0.0;
+
+		water->at(i)->setVelocity(vel);
+	}
+	
+}
+
+// Check if (x,y,z) is inside the obj object
+bool SPH::isSolid(double x, double y, double z, int c)
+{
+
+	// Cube
+	if (sceneName == "cube") {
+		switch (c) {
+			case 0:
+				if (x > 1.5 || x < -1.5)
+					return true;
+				break;
+			case 1:
+				if (y < 0.0)
+					return true;
+				break;
+			case 2:
+				if (z > 1.5 || z < -1.5)
+					return true;
+				break;
+			default:
+				return false;
+		}
+		return false;
+	}
+
+	// Two levels
+
+	// Sphere
+	else if (sceneName == "sphere") {
+		sqR = 4.0;
+		switch (c) {
+			case 0:
+				if (x*x+y*y+z*z-sqR = 0.0)
+					return true;
+				break;
+			case 1:
+				if (x*x+y*y+z*z-sqR = 0.0)
+					return true;
+				break;
+			case 2:
+				if (x*x+y*y+z*z-sqR = 0.0)
+					return true;
+				break;
+			default:
+				return false;
+		}
+		return false;
+	}
+
+	// Default case, if our sceneName is something odd
+	else
+		return false;
+
+			
 }
 
 //calculate density function
@@ -287,14 +359,16 @@ void SPH::display()
 	if (timeDiff - EPSILON > 0.0) {
 		double t = 0.0;
 		int iter = 0;
-		// Call simulate - how many timesteps per frame?
+		// Propagate the solution until requested time is reached
 		while (t < maxTimestep && iter < iterations) {
-			simulate(timeDiff);
+			simulate(maxTimestep);
 			t += dT;
 			iter++;
 		}
 
-		cout << "Iterations: " << iter << "\n";
+		// "   " used as padding as sometimes we get 10 iterations, sometimes 9
+		cout << "Iterations: " << iter << ", Timestep: " << t << "        " << '\r' << flush;
+
 		// Render stuff
 		for(int i = 0; i < particleCount; ++i) {
 			vertices[i][0] = water->at(i)->getPosition().x;
@@ -340,13 +414,14 @@ void SPH::display()
 	glBindVertexArray(vao);
 
 	glEnable(GL_PROGRAM_POINT_SIZE); //enable gl_PointSize in vertex shader
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CW);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
 	glDrawArrays(GL_POINTS, 0, particleCount);
+
+	glDisable(GL_PROGRAM_POINT_SIZE);
+
+
 	timeLastFrame = frameTimer->elapsed();
 }
 

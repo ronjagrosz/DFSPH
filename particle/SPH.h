@@ -22,6 +22,7 @@ SPH is responsible for orginization of a group of smooth particles.
 #include "boost/timer.hpp"
 #include <vector>
 #include "../particle/Particle.h"
+#include "../render/TriangleSoup.h"
 
 using namespace boost;
 
@@ -45,6 +46,11 @@ class SPH
 		double  maxTimestep;
 		double  iterations;
 		double  constantAcceleration;
+		std::string sceneName;
+
+		//TriangleSoup* scene;
+
+		
 
 
 		virtual double getRadius();
@@ -57,7 +63,9 @@ class SPH
 
 		virtual void loadJson(std::string);
 		virtual void createVAO(int particles);
-		virtual void calculateNonPressureForces(double timeDiff);
+		virtual void calculateNonPressureForces();
+		virtual void predictVelocities(double);
+		virtual bool isSolid(double,double,double,int);
 		virtual double adaptTimestep(double timeDiff);
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
@@ -66,7 +74,7 @@ class SPH
 		SPH();
 		SPH(const SPH&);
 		~SPH();
-//		VERTECIES *VERTEX			
+
 		virtual void display();
 		virtual void setTimer(timer*);
 
