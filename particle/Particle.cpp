@@ -79,42 +79,8 @@ void Particle::updatePosition(double elapsedTime)
 //The following three kernel functions are used in th egetForceatPoint
 //function
 
-dvec3* Particle::pressureKernel(dvec3 r)
-{
-	dvec3 *tempVect = new dvec3;
-	
-	double mag = dot(r,r);
 
-	tempVect->x = (45.0/(M_PI*H*H*H*H*H*H)) * ((H*mag)*
-		(H*mag)*(H*mag)) * (r.x/mag);
-				
-	tempVect->y = (45.0/(M_PI*H*H*H*H*H*H)) *
-	 	((H*mag)*(H*mag)*(H*mag)) * (r.y/mag);
-
-	tempVect->z = (45.0/(M_PI*H*H*H*H*H*H)) * 
-		((H*mag)*(H*mag)*(H*mag)) * (r.z/mag);
-
-
-	return tempVect;
-}
-
-dvec3* Particle::viscosityKernel(dvec3 r)
-{
-	dvec3 *tempVect = new dvec3;
-
-	double mag = dot(r,r);
-
-	tempVect->x = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
-				
-	tempVect->y = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
-
-	tempVect->z = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
-
-
-	return tempVect;
-}
-
-double Particle::densityKernel(dvec3 nPosition)
+double Particle::kernel(dvec3 nPosition)
 {
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
@@ -129,7 +95,7 @@ double Particle::densityKernel(dvec3 nPosition)
 		return 0;
 }
 
-dvec3 Particle::gradientDensityKernel(dvec3 nPosition)
+dvec3 Particle::gradientKernel(dvec3 nPosition)
 {
 	// Cubic spline kernel
 	
@@ -152,7 +118,7 @@ void Particle::calculateDensity(Particle *neighbor)
 	//cout << "Par: " << position.x << " " << neighbor->position.x << "\n";
 	if(neighbor)
 	{
-		density += particleMass * densityKernel(neighbor->position);
+		density += particleMass * kernel(neighbor->position);
 	}
 }
 

@@ -90,10 +90,8 @@ class Particle
 
 
 		// Can be removed after clean up
-		virtual dvec3* pressureKernel(dvec3);	//smoothing kernel functions used in the getForceAtPoint function
-		virtual dvec3* viscosityKernel(dvec3);
-		virtual	double densityKernel(dvec3);
-		virtual	dvec3 gradientDensityKernel(dvec3);
+		virtual	double kernel(dvec3);
+		virtual	dvec3 gradientKernel(dvec3);
 		
 		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		

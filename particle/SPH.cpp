@@ -343,6 +343,14 @@ void SPH::calculateDensity()
 
 }
 
+void SPH::calculateAlpha()
+{
+	/*for(int i = 0; i < particleCount; i++) {
+		//calc alpha
+		water->at(i)->A = water->at(i)->getDensity()/();
+	}*/	
+}
+
 
 void SPH::display()	
 {	
