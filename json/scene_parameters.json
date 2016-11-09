@@ -1,0 +1,16 @@
+{
+    "particlesCount" : 200000,
+    "fps" : 30,
+    "iterations" : 100,
+    "constantAcceleration" : -9.81,
+    "sceneName" : "sphere",
+
+    "particleRadius" : 0.001,
+    "particleMass" : 0.1,
+    "particleViscosity" : 2.034,
+    "density" : 998.29,
+    "A" : 0,
+    "k" : 100,
+    "stiffness" : 7.065,
+    "H" : 0.005
+};
