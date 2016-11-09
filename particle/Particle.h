@@ -31,7 +31,8 @@ using namespace boost;
 using namespace glm;
 
 
-const double H = .005; // Cutoff radius
+const double H = 0.5; // Cutoff radius
+const double particleMass = .01; // particle mass, all particles have equal mass
 
 
 struct BindingPoint
@@ -92,6 +93,7 @@ class Particle
 		virtual dvec3* pressureKernel(dvec3);	//smoothing kernel functions used in the getForceAtPoint function
 		virtual dvec3* viscosityKernel(dvec3);
 		virtual	double densityKernel(dvec3);
+		virtual	dvec3 gradientDensityKernel(dvec3);
 		
 		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		

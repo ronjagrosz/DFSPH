@@ -1,5 +1,5 @@
 {
-    "particlesCount" : 200000,
+    "particlesCount" : 10,
     "fps" : 30,
     "iterations" : 100,
     "constantAcceleration" : -9.81,
@@ -12,5 +12,5 @@
     "A" : 0,
     "k" : 100,
     "stiffness" : 7.065,
-    "H" : 0.005
+    "H" : 0.5
 };

@@ -64,10 +64,17 @@ SPH::SPH()
 		water->at(i)->setColor(newColor);
 		water->at(i)->setVelocity(dvec3(randI, randJ, randK));
 
+
+	}
+
+	for(int i = 0; i < particleCount; ++i) {
 		// find neighborhood
 		// compute densities
-		// compute ai
+		calculateDensity();	
 
+		cout << "density: " << water->at(i)->getDensity()<< "\n";	
+
+		// compute ai
 	}
 
 	createVAO(particleCount);
@@ -140,7 +147,10 @@ void SPH::simulate(double timeStep)
 
 	// update neighborhoods
 
-	// compute densities and ai factors
+	// compute densities
+	calculateDensity();
+
+	// compute ai factors
 
 	// correctDivergenceError
 
@@ -310,39 +320,25 @@ void SPH::calculateDensity()
 
 	for(int i = 0; i < particleCount; i++)
 	{
+		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		dvec3 particlePos = water->at(i)->getPosition();
 		for(int j = 0; j < particleCount; j++)
 		{
+			 
 			dvec3 neighborPos = water->at(j)->getPosition();
-			//if(primaryPositionVector && secondaryPositionVector)
-			//{
-				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
-			//}
+
+			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
+
 				
 			if(distance <= H*H)
-			{
-				//if(primaryPositionVector && secondaryPositionVector)
-				//{
-					water->at(i)->calculateDensity(water->at(j));			
-				//}
-	
-				//delete secondaryPositionVector;
-				delete particleVel;
-				delete neighborVel;
-			} else 
-			{
-				//delete secondaryPositionVector;
-	
-				break;
-			}
-				
+				water->at(i)->calculateDensity(water->at(j));		
+			else 
+				continue;	
 		}
-		//delete primaryPositionVector;
 	}
 	for(int i = 0; i<particleCount; i++)
 	{
 		water->at(i)->clearNAN();
-//		water->at(i)->printDensity();
 	}
 
 }
