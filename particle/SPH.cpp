@@ -121,6 +121,7 @@ void SPH::loadJson(string fileName)
 
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    H = params.get<picojson::object>()["H"].get<double>();
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
 }
 
@@ -330,8 +331,8 @@ void SPH::calculateDensity()
 			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
 
 				
-			if(distance <= H*H)
-				water->at(i)->calculateDensity(water->at(j));		
+			if(distance <= H*H) 
+				water->at(i)->setDensity( water->at(i)->getDensity() +  particleMass * water->at(i)->kernel(neighborPos, H));
 			else 
 				continue;	
 		}

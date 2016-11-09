@@ -42,6 +42,7 @@ class SPH
 		// particle properties
 		double 	particleRadius;
 		double 	particleMass;
+		double 	H;
 		double 	particleViscosity;
 		double  maxTimestep;
 		double  iterations;
@@ -49,9 +50,6 @@ class SPH
 		std::string sceneName;
 
 		//TriangleSoup* scene;
-
-		
-
 
 		virtual double getRadius();
 		virtual double getMass();

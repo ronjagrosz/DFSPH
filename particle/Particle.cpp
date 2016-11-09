@@ -80,7 +80,7 @@ void Particle::updatePosition(double elapsedTime)
 //function
 
 
-double Particle::kernel(dvec3 nPosition)
+double Particle::kernel(dvec3 nPosition, double H)
 {
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
@@ -95,7 +95,7 @@ double Particle::kernel(dvec3 nPosition)
 		return 0;
 }
 
-dvec3 Particle::gradientKernel(dvec3 nPosition)
+dvec3 Particle::gradientKernel(dvec3 nPosition, double H)
 {
 	// Cubic spline kernel
 	
@@ -110,16 +110,6 @@ dvec3 Particle::gradientKernel(dvec3 nPosition)
 	else 
 		return dvec3(0.0, 0.0, 0.0);
 
-}
-
-// The density is used in several force calculations.
-void Particle::calculateDensity(Particle *neighbor)
-{
-	//cout << "Par: " << position.x << " " << neighbor->position.x << "\n";
-	if(neighbor)
-	{
-		density += particleMass * kernel(neighbor->position);
-	}
 }
 
 //gives the particle's velocity a random kick

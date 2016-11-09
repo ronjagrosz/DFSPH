@@ -30,11 +30,6 @@ using namespace std;
 using namespace boost;
 using namespace glm;
 
-
-const double H = 0.5; // Cutoff radius
-const double particleMass = .01; // particle mass, all particles have equal mass
-
-
 struct BindingPoint
 {
 	vector <double> points;
@@ -90,10 +85,10 @@ class Particle
 
 
 		// Can be removed after clean up
-		virtual	double kernel(dvec3);
-		virtual	dvec3 gradientKernel(dvec3);
+		virtual	double kernel(dvec3, double);
+		virtual	dvec3 gradientKernel(dvec3, double);
 		
-		virtual void calculateDensity(Particle*);		//used to calculate the pressure force
+		//virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
 		virtual inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
 
