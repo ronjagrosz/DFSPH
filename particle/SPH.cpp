@@ -78,6 +78,7 @@ SPH::SPH()
 	}
 
     CellList* cellList = new CellList(glm::dvec3(-0.5, 1.1, -0.5), glm::dvec3(0.5, 2.1, 0.5), H, water);
+    vector<int>* neig = cellList->findNeighbours(0, water);
 	createVAO(particleCount);
 	timeLastFrame = frameTimer->elapsed();
 }
@@ -295,7 +296,7 @@ void SPH::display()
 			iter++;
 		}
 
-		cout << "Iterations: " << iter << "\n";
+		//cout << "Iterations: " << iter << "\n";
 		// Render stuff
 		for(int i = 0; i < particleCount; ++i) {
 			vertices[i][0] = water->at(i)->getPosition().x;
