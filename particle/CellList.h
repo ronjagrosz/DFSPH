@@ -11,8 +11,10 @@ neighbouring particles faster.
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
+#include "../glm/glm/gtc/type_ptr.hpp"
 #elif __APPLE__
 #include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
 #endif
 
 #include "Particle.h"
@@ -42,7 +44,7 @@ class CellList
         CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, const double H, vector<Particle*> *water);
         ~CellList();
 
-        void moveParticle(Particle particle);
+        void moveParticle(Particle* particle);
         vector<int>* findNeighbours(int pInd, vector<Particle*> *water);
 
     protected:

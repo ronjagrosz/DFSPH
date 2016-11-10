@@ -55,6 +55,10 @@ void Particle::setColor(vec3 newColor)
 	if(newColor != color)
 		color = newColor;
 }
+void Particle::setCellIndex(glm::ivec4 cell)
+{
+    cellIndex = cell;
+}
 void Particle::setDensity(double newDensity)
 {
 	density = newDensity;
@@ -65,6 +69,7 @@ dvec3 Particle::getPosition(){return position;}
 dvec3 Particle::getVelocity(){return velocity;}
 dvec3 Particle::getForce(){return force;}
 vec3 Particle::getColor(){return color;}
+glm::ivec4 Particle::getCellIndex(){return cellIndex;}
 double Particle::getDensity(){return density;}
 double Particle::getStiffness(){return stiffness;}
 
