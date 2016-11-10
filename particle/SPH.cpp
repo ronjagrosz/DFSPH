@@ -50,7 +50,7 @@ SPH::SPH()
 
 		// random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.6;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.0;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		
 
@@ -106,7 +106,7 @@ void SPH::loadJson(string fileName)
     ifstream paramStream (fileName);
     paramStream >> params;
     particleCount = (int)(params.get<picojson::object>()["particlesCount"].get<double>());
-    maxTimestep = 1/params.get<picojson::object>()["fps"].get<double>();
+    maxTimestep = 1.0/params.get<picojson::object>()["fps"].get<double>();
     iterations = (int)(params.get<picojson::object>()["iterations"].get<double>());
     constantAcceleration = params.get<picojson::object>()["constantAcceleration"].get<double>();
     sceneName = params.get<picojson::object>()["sceneName"].get<std::string>();
@@ -126,10 +126,10 @@ void SPH::simulate(double timeStep)
 	calculateNonPressureForces();
 
 	// adapt timestep according to CFL condition
-	dT = adaptTimestep(timeStep);
+	adaptTimestep(timeStep);
 
 	// predict velocities
-	predictVelocities(dT);
+	predictVelocities();
 
 	// correctDensityError
 
@@ -186,10 +186,10 @@ void SPH::calculateNonPressureForces()
 	}
 }
 
-double SPH::adaptTimestep(double timeStep)
+void SPH::adaptTimestep(double timeStep)
 {
 	dvec3 val;
-	double mag, dT, vMax = 0.0;
+	double mag, vMax = 0.0;
 
 	for (int i = 0; i < particleCount; ++i)
 	{
@@ -203,12 +203,10 @@ double SPH::adaptTimestep(double timeStep)
 
 	if (timeStep < dT)
 		dT = timeStep;
-	
-	return dT;
 }
 
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
-void SPH::predictVelocities(double dT)
+void SPH::predictVelocities()
 {
 	dvec3 vel, pos, dPos;
 	double x,y,z;
@@ -221,81 +219,123 @@ void SPH::predictVelocities(double dT)
 		y = pos.y;
 		z = pos.z;
 		dPos = vel * dT;
+		
+		cout << "Pos: " << to_string(pos+dPos) << ", ";
+		cout << "Vel: " << to_string(vel) << "\n";
+
 		// is there solid in X?
-		if(isSolid(x-dPos.x,y,z, 0) && vel.x < 0.0)
+		if(isSolid(x-dPos.x,y,z, 0) && vel.x < 0.0) {
 			vel.x = 0.0;
-		else if(isSolid(x+dPos.x,y,z, 0) && vel.x > 0.0)
+			cout << "X-: " << x-dPos.x << ", " << y << ", " << z << "\n";
+		}
+		else if(isSolid(x+dPos.x,y,z, 0) && vel.x > 0.0) {
 			vel.x = 0.0;
+			cout << "X+: " << x-dPos.x << ", " << y << ", " << z << "\n";
+		}
 		// Y
 		if(isSolid(x,y-dPos.y,z, 1) && vel.y < 0.0)
 			vel.y = 0.0;
 		else if(isSolid(x,y+dPos.y,z, 1) && vel.y > 0.0)
 			vel.y = 0.0;
 		// Z
-		if(isSolid(x,y,z-dPos.z, 2) && vel.z < 0.0)
+		if(isSolid(x,y,z-dPos.z, 2) && vel.z < 0.0) {
 			vel.z = 0.0;
-		else if(isSolid(x,y,z+dPos.z, 2) && vel.z > 0.0)
+			cout << "Z-: " << x << ", " << y << ", " << z-dPos.z << "\n";
+		}
+		else if(isSolid(x,y,z+dPos.z, 2) && vel.z > 0.0) {
 			vel.z = 0.0;
+			cout << "Z+: " << x << ", " << y << ", " << z+dPos.z << "\n";
+		}
 
+		
 		water->at(i)->setVelocity(vel);
 	}
 	
 }
 
 // Check if (x,y,z) is inside the obj object
-bool SPH::isSolid(double x, double y, double z, int c)
+bool SPH::isSolid(double x, double y, double z, int axis)
 {
+	dvec4 p = vec4(x,y,z,1);
+	dmat4 Q = dmat4(0.0);
+	dmat3x4 Qsub = dmat3x4(0.0);
+
+	// Geometry variables
+	double a = 1.0, b = 1.0, c = 1.0, r = 2.0;
+
+	/*
+	f(x,y,z) = 	Ax2 + 2Bxy + 2Cxz
+				+ 2Dx + Ey2 + 2Fyz
+				+ 2Gy + Hz2 + 2Iz
+				+ J
+	A B C D
+	B E F G
+	C F H I
+	D G I J
+	*/
+
+
+	// f(x,y,z) = p * Q * p = 0.0
+	// dF = 2 * make_mat3x4(Q) * p
+
+	// Cylinder
+	if (sceneName == "cylinder") {
+		Q[0][0] = 1.0;
+		Q[1][1] = 1.0;
+		Q[3][3] = -r;
+	}
+
+	// Ellipsoid
+	else if (sceneName == "ellipsoid") {
+		a = 0.5, c = 0.5;
+		Q[0][0] = 1.0/pow(a,2);
+		Q[1][1] = 1.0/pow(b,2);
+		Q[2][2] = 1.0/pow(c,2);
+		Q[3][3] = -r;
+	}
+
+	// Plane
+	else if (sceneName == "plane") {
+		Q[0][3] = a/2.0;
+		Q[2][3] = b/2.0;
+		Q[1][3] = c/2.0;
+		Q[3] = {a/2.0, b/2.0, c/2.0, 0};
+	}
+
+	// Paraboloid
+	else if (sceneName == "paraboloid") {
+		Q[0][0] = 0.8;
+		Q[1][1] = -0.8; // + or -
+		Q[2][3] = -0.4;
+		Q[3][2] = -0.4;
+	}
+
+
+	// Hyperboloid
+	else if (sceneName == "hyperboloid") {
+		Q[0][0] = 0.5;
+		Q[1][1] = 0.5;
+		Q[2][2] = -0.5;
+		Q[3][3] = -0.5; // + or -
+	}
 
 	// Cube
-	if (sceneName == "cube") {
-		switch (c) {
-			case 0:
-				if (x > 1.5 || x < -1.5)
-					return true;
-				break;
-			case 1:
-				if (y < 0.0)
-					return true;
-				break;
-			case 2:
-				if (z > 1.5 || z < -1.5)
-					return true;
-				break;
-			default:
-				return false;
-		}
-		return false;
+	else if (sceneName == "cube") {
+		return (max(abs(x),abs(y+1.5),abs(z)) < 1.25);
 	}
 
-	// Two levels
+	//cout << "dF: " << to_string(2.0 * Qsub * p) << "\n";
+	//if (dot(p,(Q * p)) < 0.0) {
+		cout << "isSolid? " << dot(p,(Q * p)) << "\n";
+	//}
 
-	// Sphere
-	else if (sceneName == "sphere") {
-		double sqR = 4.0;
-		switch (c) {
-			case 0:
-				if (x*x+y*y+z*z-sqR == 0.0)
-					return true;
-				break;
-			case 1:
-				if (x*x+y*y+z*z-sqR == 0.0)
-					return true;
-				break;
-			case 2:
-				if (x*x+y*y+z*z-sqR == 0.0)
-					return true;
-				break;
-			default:
-				return false;
-		}
-		return false;
-	}
+	//if (y > 1.0)
+	//	return false;
+	/*else*/ if (y < -2.0)
+		return true;
 
-	// Default case, if our sceneName is something odd
-	else
-		return false;
-
-			
+	
+	return (dot(p,(Q * p)) < 0.0); //&& dot(p,(Q * p)) > -0.01);
 }
 
 //calculate density function

@@ -14,9 +14,11 @@ SPH is responsible for orginization of a group of smooth particles.
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
+#include "../glm/glm/ext.hpp"
 #elif __APPLE__
 #include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"	
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/ext.hpp"	
 #endif
 
 #include "boost/timer.hpp"
@@ -64,9 +66,9 @@ class SPH
 		virtual void loadJson(std::string);
 		virtual void createVAO(int particles);
 		virtual void calculateNonPressureForces();
-		virtual void predictVelocities(double);
+		virtual void predictVelocities();
 		virtual bool isSolid(double,double,double,int);
-		virtual double adaptTimestep(double timeDiff);
+		virtual void adaptTimestep(double timeDiff);
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
