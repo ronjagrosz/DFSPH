@@ -46,7 +46,7 @@ class SPH
 		double  maxTimestep;
 		double  iterations;
 		double  constantAcceleration;
-
+		std::string sceneName;
 
 		virtual double getRadius();
 		virtual double getMass();
@@ -58,8 +58,10 @@ class SPH
 
 		virtual void loadJson(std::string);
 		virtual void createVAO(int particles);
-		virtual void calculateNonPressureForces(double timeDiff);
-		virtual double adaptTimestep(double timeDiff);
+		virtual void calculateNonPressureForces();
+		virtual void predictVelocities();
+		virtual bool isSolid(double,double,double,int);
+		virtual void adaptTimestep(double timeDiff);
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
@@ -67,7 +69,7 @@ class SPH
 		SPH();
 		SPH(const SPH&);
 		~SPH();
-//		VERTECIES *VERTEX			
+
 		virtual void display();
 		virtual void setTimer(timer*);
 

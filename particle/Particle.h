@@ -83,6 +83,7 @@ class Particle
 		double getStiffness();
 		
 		
+<<<<<<< HEAD
 		void predictVelocity(double elapsedTime);	// apply the forces to the velocity
 		//void correctDensityError();
 		void updatePosition(double elapsedTime);	// apply the velocity to the position
@@ -90,7 +91,14 @@ class Particle
 		//void calculateDensityA();
 		//void correctDivergenceError();
 		//void updateVelocity(); // is this one needed?
-
+=======
+		//virtual void correctDensityError();
+		virtual void updatePosition(double elapsedTime);	// apply the velocity to the position
+		//virtual void updateNeighborhoods();
+		//virtual void calculateDensityA();
+		//virtual void correctDivergenceError();
+		//virtual void updateVelocity(); // is this one needed?
+>>>>>>> f82d0fafdce9e517eac0120c68b973e27f98bf8b
 
 
 		// Can be removed after clean up
