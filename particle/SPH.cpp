@@ -119,7 +119,7 @@ void SPH::loadJson(string fileName)
 }
 
 // Update positions with a small timestep
-void SPH::simulate(double timeStep)
+void SPH::simulate(double maxTimestep)
 {
 	// Self-advection - Skipped for SPH
 
@@ -127,7 +127,7 @@ void SPH::simulate(double timeStep)
 	calculateNonPressureForces();
 
 	// adapt timestep according to CFL condition
-	adaptTimestep(timeStep);
+	adaptTimestep(maxTimestep);
 
 	// predict velocities
 	predictVelocities();
@@ -187,23 +187,26 @@ void SPH::calculateNonPressureForces()
 	}
 }
 // Adapts the timestep according to the CFL condition
-void SPH::adaptTimestep(double timeStep)
+void SPH::adaptTimestep(double maxTimestep)
 {
-	dvec3 val;
+	dvec3 vel;
 	double mag, vMax = 0.0;
 
+	// Find max velocity
 	for (int i = 0; i < particleCount; ++i)
 	{
-		val = water->at(i)->getVelocity();
-		mag = dot(val, val);
+		vel = water->at(i)->getVelocity();
+		mag = dot(vel, vel);
 
 		if (vMax < mag)
 			vMax = mag;
 	}
+	
 	dT = (particleRadius * 0.8 / vMax) - EPSILON;
 
-	if (timeStep < dT)
-		dT = timeStep;
+	// make sure dT is less than the maximum timestep
+	if (maxTimestep < dT)
+		dT = maxTimestep;
 }
 
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
