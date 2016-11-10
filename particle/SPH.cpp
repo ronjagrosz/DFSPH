@@ -123,8 +123,9 @@ void SPH::simulate(double maxTimestep)
 {
 	// Self-advection - Skipped for SPH
 
-	// Calculate gravity, surface tension and viscosity
-	calculateNonPressureForces();
+	// Calculate non-pressure forces (gravity)
+	for(int i = 0; i < particleCount; ++i)
+		water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
 	// adapt timestep according to CFL condition
 	adaptTimestep(maxTimestep);
@@ -149,43 +150,6 @@ void SPH::simulate(double maxTimestep)
 	
 }
 
-// Compute non-pressure forces - advect, body forces (gravity) and viscosity
-void SPH::calculateNonPressureForces()
-{
-	
-	//dvec3 *particleVel;
-	//dvec3 *neighborVel;
-	//dvec3 particlePos;
-	//dvec3 neighborPos;
-	//double steps = 6;
-	
-	for(int i = 0; i < particleCount; ++i)
-	{
-		// Gravity
-		water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
-
-		/*
-		// Surface tension - skipped
-		dvec3 currentPos = water->at(i)->getPosition();
-		dvec3 currentVel = water->at(i)->getVelocity();
-        float correctionFactor = 2.f * _restDensity / (density_i + density_j);
-        forceCohesion += correctionFactor * (r / rn) * _kernel.surfaceTension(rn);
-        forceCurvature += correctionFactor * (n_i - n_j);
-		
-
-		// Viscosity - skipped
-		for(iterator of neighbor)
-		{
-			neighborPos = water->at(neighbors.at(j))->getPosition();
-			neighborVel = water->at(neighbors.at(j))->getVelocity();
-
-			if (density_j > 0.0001f) {
-                viscosity -= (currentVel - neighborVel) * (_kernel.viscosityLaplace(rn) / density_j);
-            }
-		}
-		*/
-	}
-}
 // Adapts the timestep according to the CFL condition
 void SPH::adaptTimestep(double maxTimestep)
 {
@@ -201,7 +165,7 @@ void SPH::adaptTimestep(double maxTimestep)
 		if (vMax < mag)
 			vMax = mag;
 	}
-	
+
 	dT = (particleRadius * 0.8 / vMax) - EPSILON;
 
 	// make sure dT is less than the maximum timestep

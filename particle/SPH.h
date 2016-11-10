@@ -63,7 +63,6 @@ class SPH
 
 		virtual void loadJson(std::string);
 		virtual void createVAO(int particles);
-		virtual void calculateNonPressureForces();
 		virtual void predictVelocities();
 		virtual bool isSolid(double,double,double,int);
 		virtual void adaptTimestep(double timeDiff);
