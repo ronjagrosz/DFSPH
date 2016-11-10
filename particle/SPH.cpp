@@ -64,10 +64,18 @@ SPH::SPH()
 		water->at(i)->setColor(newColor);
 		water->at(i)->setVelocity(dvec3(randI, randJ, randK));
 
+
+	}
+
+	for(int i = 0; i < particleCount; ++i) {
 		// find neighborhood
 		// compute densities
-		// compute ai
+		calculateDensity();	
 
+		//cout << "density: " << water->at(i)->getDensity()<< "\n";	
+
+		// compute ai
+		calculateAlpha();
 	}
 
 	createVAO(particleCount);
@@ -115,6 +123,7 @@ void SPH::loadJson(string fileName)
     // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    H = params.get<picojson::object>()["H"].get<double>();
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
 }
 
@@ -141,7 +150,11 @@ void SPH::simulate(double timeStep)
 
 	// update neighborhoods
 
-	// compute densities and ai factors
+	// compute densities
+	calculateDensity();
+
+	// compute ai factors
+	calculateAlpha();
 
 	// correctDivergenceError
 
@@ -305,45 +318,49 @@ void SPH::calculateDensity()
 	glm::vec4 *particleVel;
 	glm::vec4 *neighborVel;
 
-	
-
 	for(int i = 0; i < particleCount; i++)
 	{
+		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		dvec3 particlePos = water->at(i)->getPosition();
 		for(int j = 0; j < particleCount; j++)
 		{
 			dvec3 neighborPos = water->at(j)->getPosition();
-			//if(primaryPositionVector && secondaryPositionVector)
-			//{
-				distance = dot(particlePos - neighborPos, particlePos - neighborPos);
-			//}
-				
-			if(distance <= H*H)
-			{
-				//if(primaryPositionVector && secondaryPositionVector)
-				//{
-					water->at(i)->calculateDensity(water->at(j));			
-				//}
-	
-				//delete secondaryPositionVector;
-				delete particleVel;
-				delete neighborVel;
-			} else 
-			{
-				//delete secondaryPositionVector;
-	
-				break;
-			}
-				
-		}
-		//delete primaryPositionVector;
-	}
-	for(int i = 0; i<particleCount; i++)
-	{
-		water->at(i)->clearNAN();
-//		water->at(i)->printDensity();
-	}
 
+			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
+				
+			if(distance <= H*H) 
+				water->at(i)->setDensity( water->at(i)->getDensity() +  particleMass * water->at(i)->kernel(neighborPos, H));
+			else 
+				continue;	
+		}
+	}
+}
+
+void SPH::calculateAlpha()
+{
+	double distance = 0, sum2 = 0, tmpAlpha = 0;
+	dvec3 sum1 = dvec3(0,0,0);
+
+	for(int i = 0; i < particleCount; i++)
+	{	
+		dvec3 particlePos = water->at(i)->getPosition();
+		for(int j = 0; j < particleCount; j++)
+		{
+			dvec3 neighborPos = water->at(j)->getPosition();
+
+			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
+				
+			//only need to calc within neighborhood, kernel gradient will be zero otherwise 	
+			if(distance <= H*H) {
+				sum1 += particleMass * water->at(i)->gradientKernel(neighborPos, H);
+				sum2 += dot(abs(particleMass*water->at(i)->gradientKernel(neighborPos, H)),abs(particleMass*water->at(i)->gradientKernel(neighborPos, H)));
+			}
+			else 
+				continue;	
+		}
+		tmpAlpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		water->at(i)->setAlpha(tmpAlpha);
+	}	
 }
 
 

@@ -30,10 +30,6 @@ using namespace std;
 using namespace boost;
 using namespace glm;
 
-
-const double H = .005; // Cutoff radius
-
-
 struct BindingPoint
 {
 	vector <double> points;
@@ -56,7 +52,7 @@ class Particle
 		
 		// properties
 		double 	density;
-		double  A; // for kernelfunction (ai)
+		double  alpha; // for kernelfunction (ai)
 		double  stiffness; // k variable in report
 
 	public:
@@ -71,6 +67,7 @@ class Particle
 		void setColor(vec3 newColor);
         void setCellIndex(glm::ivec4 cell);
 		void setDensity(double);
+		void setAlpha(double);
 		
 
 		//getters
@@ -80,23 +77,22 @@ class Particle
 		vec3 getColor();
         glm::ivec4 getCellIndex();
 		double getDensity();
+		double getAlpha();
 		double getStiffness();
 		
 		
 		//void correctDensityError();
 		void updatePosition(double elapsedTime);	// apply the velocity to the position
 		//void updateNeighborhoods();
-		//void calculateDensityA();
 		//void correctDivergenceError();
 		//void updateVelocity(); // is this one needed?
 
 
 		// Can be removed after clean up
-		dvec3* pressureKernel(dvec3);	//smoothing kernel functions used in the getForceAtPoint function
-		dvec3* viscosityKernel(dvec3);
-		double densityKernel(dvec3);
+		virtual	double kernel(dvec3, double);
+		virtual	dvec3 gradientKernel(dvec3, double);
 		
-		void calculateDensity(Particle*);		//used to calculate the pressure force
+		//virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
 		inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
 

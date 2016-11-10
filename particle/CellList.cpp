@@ -83,7 +83,7 @@ vector<int>* CellList::findNeighbours(int pIndex, vector<Particle*> *water)
                 // Iterate through potential neighbours
                 for(vector<int>::iterator it = cellList[pos.x][pos.y][pos.z].begin(); it != cellList[pos.x][pos.y][pos.z].end(); ++it)
                 {
-                    if (pIndex != *it && glm::length(water->at(pIndex)->getPosition() - water->at(*it)->getPosition()) < H)
+                    if (pIndex != *it && glm::length(water->at(pIndex)->getPosition() - water->at(*it)->getPosition()) < radius)
                         neighbourList->push_back(*it);
                 }
 

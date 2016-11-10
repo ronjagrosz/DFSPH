@@ -42,36 +42,38 @@ class SPH
 		// particle properties
 		double 	particleRadius;
 		double 	particleMass;
+		double 	H;
 		double 	particleViscosity;
 		double  maxTimestep;
 		double  iterations;
 		double  constantAcceleration;
 		std::string sceneName;
 
-		virtual double getRadius();
-		virtual double getMass();
-		virtual double getViscosity();
+		double getRadius();
+		double getMass();
+		double getViscosity();
 
-		virtual void setRadius(double);
-		virtual void setMass(double);
-		virtual void setViscosity(double);
+		void setRadius(double);
+		void setMass(double);
+		void setViscosity(double);
 
-		virtual void loadJson(std::string);
-		virtual void createVAO(int particles);
-		virtual void calculateNonPressureForces();
-		virtual void predictVelocities();
-		virtual bool isSolid(double,double,double,int);
-		virtual void adaptTimestep(double timeDiff);
-		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
-		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
+		void loadJson(std::string);
+		void createVAO(int particles);
+		void calculateNonPressureForces();
+		void predictVelocities();
+		bool isSolid(double,double,double,int);
+		void adaptTimestep(double timeDiff);
+		void calculateDensity();	
+		void calculateAlpha();
+		void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
 	public:
 		SPH();
 		SPH(const SPH&);
 		~SPH();
 
-		virtual void display();
-		virtual void setTimer(timer*);
+		void display();
+		void setTimer(timer*);
 
 };
 
