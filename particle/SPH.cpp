@@ -127,10 +127,10 @@ void SPH::simulate(double timeStep)
 	calculateNonPressureForces();
 
 	// adapt timestep according to CFL condition
-	dT = adaptTimestep(timeStep);
+	adaptTimestep(timeStep);
 
 	// predict velocities
-	predictVelocities(dT);
+	predictVelocities();
 
 	// correctDensityError
 
@@ -186,11 +186,11 @@ void SPH::calculateNonPressureForces()
 		*/
 	}
 }
-
-double SPH::adaptTimestep(double timeStep)
+// Adapts the timestep according to the CFL condition
+void SPH::adaptTimestep(double timeStep)
 {
 	dvec3 val;
-	double mag, dT, vMax = 0.0;
+	double mag, vMax = 0.0;
 
 	for (int i = 0; i < particleCount; ++i)
 	{
@@ -204,12 +204,10 @@ double SPH::adaptTimestep(double timeStep)
 
 	if (timeStep < dT)
 		dT = timeStep;
-	
-	return dT;
 }
 
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
-void SPH::predictVelocities(double dT)
+void SPH::predictVelocities()
 {
 	dvec3 vel, pos, dPos;
 	double x,y,z;

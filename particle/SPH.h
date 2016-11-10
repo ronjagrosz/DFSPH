@@ -64,9 +64,9 @@ class SPH
 		virtual void loadJson(std::string);
 		virtual void createVAO(int particles);
 		virtual void calculateNonPressureForces();
-		virtual void predictVelocities(double);
+		virtual void predictVelocities();
 		virtual bool isSolid(double,double,double,int);
-		virtual double adaptTimestep(double timeDiff);
+		virtual void adaptTimestep(double timeDiff);
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
