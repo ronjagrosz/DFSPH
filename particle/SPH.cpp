@@ -99,9 +99,10 @@ double SPH::getRadius(){return particleRadius;}
 double SPH::getMass(){return particleMass;}
 double SPH::getViscosity(){return particleViscosity;}
 
-
+// Loads properties from json-file
 void SPH::loadJson(string fileName)
 {
+	// Load scene properties
 	picojson::value params;
     ifstream paramStream (fileName);
     paramStream >> params;
@@ -111,7 +112,7 @@ void SPH::loadJson(string fileName)
     constantAcceleration = params.get<picojson::object>()["constantAcceleration"].get<double>();
     sceneName = params.get<picojson::object>()["sceneName"].get<std::string>();
 
-
+    // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     particleMass = params.get<picojson::object>()["particleMass"].get<double>();
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
