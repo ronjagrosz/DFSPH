@@ -36,7 +36,7 @@ Viewport::Viewport()
 {
 	phi = 0.0f;
 	theta = M_PI / 4.0f;
-	rad = 2.5f;
+	rad = 4.0f;
 	zoomFactor = M_PI;
 	recordTime = deltaTime = currTime = 0.0f;	
 	fps = 0.0;
@@ -144,7 +144,7 @@ void Viewport::interaction(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_R) && recordTime > 0.5) {
             record = !record;
             if (record)
-            	std::cout << "Starting to record.." << std::endl;
+            	std::cout << "Starting to record..                                 " << std::endl;
             else
             	std::cout << "Recorded " << recordTime << " seconds (" 
             << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
@@ -237,24 +237,14 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe 
 		// I is the normal Identity matrix
 		viewMatrix = glm::make_mat4(I);
         // Translate a bit down and backwards
-		viewMatrix = viewMatrix * glm::translate(-cameraPosition);
-        // Rotate with theta around X
-        viewMatrix = viewMatrix * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f));
-        // Rotate with phi around Y
-        viewMatrix = viewMatrix * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
+		viewMatrix = viewMatrix * glm::translate(-cameraPosition)
+        * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f))
+        * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
 
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        /*
-        // why do the following when viewMatrix is in shader?
-        // Might as well calculate camPos and lightPos in there
-
-        light = glm::vec4(0.0, 5.0, 0.0, 1.0);
-        cam = glm::vec4(0.0, 0.0, 0.0, 1.0);
-        li = glm::inverse(viewMatrix)*light;
-        cam = glm::inverse(viewMatrix)*cam;
-        
+        /*        
         // send in light and camera location to glsl (not done in shaders yet)
         glUniform3fv(locationL, 1, glm::value_ptr(light));
         glUniform3fv(locationCa, 1, glm::value_ptr(cam));

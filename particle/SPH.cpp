@@ -50,7 +50,7 @@ SPH::SPH()
 
 		// random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.6;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.4;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		
 
@@ -107,14 +107,28 @@ void SPH::loadJson(string fileName)
     ifstream paramStream (fileName);
     paramStream >> params;
     particleCount = (int)(params.get<picojson::object>()["particlesCount"].get<double>());
-    maxTimestep = 1/params.get<picojson::object>()["fps"].get<double>();
+    maxTimestep = 1.0/params.get<picojson::object>()["fps"].get<double>();
     iterations = (int)(params.get<picojson::object>()["iterations"].get<double>());
     constantAcceleration = params.get<picojson::object>()["constantAcceleration"].get<double>();
-    sceneName = params.get<picojson::object>()["sceneName"].get<std::string>();
+    sceneName = params.get<picojson::object>()["sceneName"].get<std::string>();    
+    geometry = dvec4(params.get<picojson::object>()["geometry"]
+    		.get<picojson::object>()["a"].get<double>(),
+    	params.get<picojson::object>()["geometry"]
+    		.get<picojson::object>()["b"].get<double>(),
+		params.get<picojson::object>()["geometry"]
+	    	.get<picojson::object>()["c"].get<double>(),
+	    params.get<picojson::object>()["geometry"]
+    		.get<picojson::object>()["r"].get<double>());
+
 
     // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
-    particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    particleMass = 4.0*particleRadius*particleRadius*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>();
+
+    cout << "Particle radius: " << particleRadius << "m\n";
+    cout << "Particle mass calculated from radius: " << particleMass << "g\n";
+
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
 }
 
@@ -176,92 +190,88 @@ void SPH::adaptTimestep(double maxTimestep)
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
 void SPH::predictVelocities()
 {
-	dvec3 vel, pos, dPos;
-	double x,y,z;
+	dvec3 vel, dPos;
+	dvec4 pos, temp;
+	
 	for (int i = 0; i < particleCount; ++i) {
 		vel = water->at(i)->getVelocity() + water->at(i)->getForce() * particleMass * dT;
-		pos = water->at(i)->getPosition();
-		
-		// Dirichlet Boundary Condition
-		x = pos.x;
-		y = pos.y;
-		z = pos.z;
+		pos = dvec4(water->at(i)->getPosition(), 1.0);
 		dPos = vel * dT;
-		// is there solid in X?
-		if(isSolid(x-dPos.x,y,z, 0) && vel.x < 0.0)
-			vel.x = 0.0;
-		else if(isSolid(x+dPos.x,y,z, 0) && vel.x > 0.0)
-			vel.x = 0.0;
-		// Y
-		if(isSolid(x,y-dPos.y,z, 1) && vel.y < 0.0)
-			vel.y = 0.0;
-		else if(isSolid(x,y+dPos.y,z, 1) && vel.y > 0.0)
-			vel.y = 0.0;
-		// Z
-		if(isSolid(x,y,z-dPos.z, 2) && vel.z < 0.0)
-			vel.z = 0.0;
-		else if(isSolid(x,y,z+dPos.z, 2) && vel.z > 0.0)
-			vel.z = 0.0;
 
+		// Dirichlet Boundary Condition
+		temp = pos;
+		temp.x += dPos.x;
+		// is there solid in X?
+		if(isSolid(temp, geometry))
+			vel.x = 0.0;
+		temp = pos;
+		temp.y += dPos.y;
+		// Y
+		if(isSolid(temp, geometry)) 
+			vel.y = 0.0;
+		temp = pos;
+		temp.z += dPos.z;
+		// Z
+		if(isSolid(temp, geometry)) 
+			vel.z = 0.0;
+		
 		water->at(i)->setVelocity(vel);
 	}
 	
 }
 
-// Check if (x,y,z) is inside the obj object
-bool SPH::isSolid(double x, double y, double z, int c)
+// Check if (x,y,z) is inside an implicit geometry
+bool SPH::isSolid(dvec4 p, dvec4 g)
 {
+	dmat4 Q = dmat4(0.0);
 
+	// Cylinder
+	if (sceneName == "cylinder") {
+		Q[0][0] = 1.0;
+		Q[1][1] = 1.0;
+		Q[3][3] = -g.w;
+	}
+
+	// Ellipsoid
+	else if (sceneName == "ellipsoid") {
+		Q[0][0] = 1.0/pow(g.x,2);
+		Q[1][1] = 1.0/pow(g.y,2);
+		Q[2][2] = 1.0/pow(g.z,2);
+		Q[3][3] = -g.w;
+	}
+
+	// Plane
+	else if (sceneName == "plane") {
+		Q[0][3] = g.x/2.0;
+		Q[2][3] = g.y/2.0;
+		Q[1][3] = g.z/2.0;
+		Q[3] = {g.x/2.0, g.y/2.0, g.z/2.0, 0};
+	}
+
+	// Paraboloid
+	else if (sceneName == "paraboloid") {
+		Q[0][0] = g.x;
+		Q[1][1] = g.x; // + or -
+		Q[2][3] = -g.x/2;
+		Q[3][2] = -g.x/2;
+	}
+
+
+	// Hyperboloid
+	else if (sceneName == "hyperboloid") {
+		Q[0][0] = g.x;
+		Q[1][1] = g.x;
+		Q[2][2] = -g.x;
+		Q[3][3] = g.x; // + or -
+	}
+
+	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
+		return true;
 	// Cube
-	if (sceneName == "cube") {
-		switch (c) {
-			case 0:
-				if (x > 1.5 || x < -1.5)
-					return true;
-				break;
-			case 1:
-				if (y < 0.0)
-					return true;
-				break;
-			case 2:
-				if (z > 1.5 || z < -1.5)
-					return true;
-				break;
-			default:
-				return false;
-		}
+	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > g.w)
 		return false;
-	}
-
-	// Two levels
-
-	// Sphere
-	else if (sceneName == "sphere") {
-		double sqR = 4.0;
-		switch (c) {
-			case 0:
-				if (x*x+y*y+z*z-sqR == 0.0)
-					return true;
-				break;
-			case 1:
-				if (x*x+y*y+z*z-sqR == 0.0)
-					return true;
-				break;
-			case 2:
-				if (x*x+y*y+z*z-sqR == 0.0)
-					return true;
-				break;
-			default:
-				return false;
-		}
-		return false;
-	}
-
-	// Default case, if our sceneName is something odd
 	else
-		return false;
-
-			
+		return (abs(dot(p,(Q * p))) < 0.1);
 }
 
 //calculate density function
