@@ -65,7 +65,7 @@ class SPH
 		virtual void predictVelocities(double);
 		virtual bool isSolid(double,double,double,int);
 		virtual double adaptTimestep(double timeDiff);
-		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
+		virtual void calculateDensity();	
 		virtual void calculateAlpha();
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		

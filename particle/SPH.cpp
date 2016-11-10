@@ -72,9 +72,10 @@ SPH::SPH()
 		// compute densities
 		calculateDensity();	
 
-		cout << "density: " << water->at(i)->getDensity()<< "\n";	
+		//cout << "density: " << water->at(i)->getDensity()<< "\n";	
 
 		// compute ai
+		calculateAlpha();
 	}
 
 	createVAO(particleCount);
@@ -152,6 +153,7 @@ void SPH::simulate(double timeStep)
 	calculateDensity();
 
 	// compute ai factors
+	calculateAlpha();
 
 	// correctDivergenceError
 
@@ -317,19 +319,15 @@ void SPH::calculateDensity()
 	glm::vec4 *particleVel;
 	glm::vec4 *neighborVel;
 
-	
-
 	for(int i = 0; i < particleCount; i++)
 	{
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		dvec3 particlePos = water->at(i)->getPosition();
 		for(int j = 0; j < particleCount; j++)
 		{
-			 
 			dvec3 neighborPos = water->at(j)->getPosition();
 
 			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
-
 				
 			if(distance <= H*H) 
 				water->at(i)->setDensity( water->at(i)->getDensity() +  particleMass * water->at(i)->kernel(neighborPos, H));
@@ -337,19 +335,33 @@ void SPH::calculateDensity()
 				continue;	
 		}
 	}
-	for(int i = 0; i<particleCount; i++)
-	{
-		water->at(i)->clearNAN();
-	}
-
 }
 
 void SPH::calculateAlpha()
 {
-	/*for(int i = 0; i < particleCount; i++) {
-		//calc alpha
-		water->at(i)->A = water->at(i)->getDensity()/();
-	}*/	
+	double distance = 0, sum2 = 0, tmpAlpha = 0;
+	dvec3 sum1 = dvec3(0,0,0);
+
+	for(int i = 0; i < particleCount; i++)
+	{	
+		dvec3 particlePos = water->at(i)->getPosition();
+		for(int j = 0; j < particleCount; j++)
+		{
+			dvec3 neighborPos = water->at(j)->getPosition();
+
+			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
+				
+			//only need to calc within neighborhood, kernel gradient will be zero otherwise 	
+			if(distance <= H*H) {
+				sum1 += particleMass * water->at(i)->gradientKernel(neighborPos, H);
+				sum2 += dot(abs(particleMass*water->at(i)->gradientKernel(neighborPos, H)),abs(particleMass*water->at(i)->gradientKernel(neighborPos, H)));
+			}
+			else 
+				continue;	
+		}
+		tmpAlpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		water->at(i)->setAlpha(tmpAlpha);
+	}	
 }
 
 

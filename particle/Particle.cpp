@@ -61,6 +61,10 @@ void Particle::setDensity(double newDensity)
 {
 	density = newDensity;
 }
+void Particle::setAlpha(double newAlpha)
+{
+	alpha = newAlpha;
+}
 
 // Getters  ***************************************************************
 dvec3 Particle::getPosition(){return position;}
@@ -68,6 +72,7 @@ dvec3 Particle::getVelocity(){return velocity;}
 dvec3 Particle::getForce(){return force;}
 vec3 Particle::getColor(){return color;}
 double Particle::getDensity(){return density;}
+double Particle::getAlpha(){return alpha;}
 double Particle::getStiffness(){return stiffness;}
 
 // Update position with current velocity
@@ -75,17 +80,12 @@ void Particle::updatePosition(double elapsedTime)
 {
 	position += velocity * elapsedTime;	
 }
-
-//The following three kernel functions are used in th egetForceatPoint
-//function
-
-
 double Particle::kernel(dvec3 nPosition, double H)
 {
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) //maybe remove this when we calc neighbors in the correct way
 		return 1.0;
 	else if ( q >= 0 && q < 1)
 		return (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q);
@@ -94,7 +94,6 @@ double Particle::kernel(dvec3 nPosition, double H)
 	else 
 		return 0;
 }
-
 dvec3 Particle::gradientKernel(dvec3 nPosition, double H)
 {
 	// Cubic spline kernel
@@ -109,14 +108,5 @@ dvec3 Particle::gradientKernel(dvec3 nPosition, double H)
 		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(-3/4*(2-q)*(2-q));
 	else 
 		return dvec3(0.0, 0.0, 0.0);
-
 }
 
-//gives the particle's velocity a random kick
-/*
-void Particle::perterb()
-{
-	srand(timer(NULL));
-
-}
-*/

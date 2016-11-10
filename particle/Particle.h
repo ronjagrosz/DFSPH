@@ -51,7 +51,7 @@ class Particle
 		
 		// properties
 		double 	density;
-		double  A; // for kernelfunction (ai)
+		double  alpha; // for kernelfunction (ai)
 		double  stiffness; // k variable in report
 
 	public:
@@ -65,6 +65,7 @@ class Particle
 		virtual void setForce(double, double, double);
 		virtual void setColor(vec3 newColor);
 		virtual void setDensity(double);
+		virtual void setAlpha(double);
 		
 
 		//getters
@@ -73,13 +74,13 @@ class Particle
 		virtual dvec3 getForce();
 		virtual vec3 getColor();
 		virtual double getDensity();
+		virtual double getAlpha();
 		virtual double getStiffness();
 		
 		
 		//virtual void correctDensityError();
 		virtual void updatePosition(double elapsedTime);	// apply the velocity to the position
 		//virtual void updateNeighborhoods();
-		//virtual void calculateDensityA();
 		//virtual void correctDivergenceError();
 		//virtual void updateVelocity(); // is this one needed?
 
