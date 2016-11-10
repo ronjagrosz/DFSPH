@@ -50,7 +50,7 @@ SPH::SPH()
 
 		// random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.0;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.4;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		
 
@@ -113,7 +113,12 @@ void SPH::loadJson(string fileName)
 
 
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
-    particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
+    particleMass = 4.0*particleRadius*particleRadius*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>();
+
+    cout << "Particle radius: " << particleRadius << "m\n";
+    cout << "Particle mass calculated from radius: " << particleMass << "g\n";
+
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
 }
 
@@ -163,26 +168,10 @@ void SPH::calculateNonPressureForces()
 		// Gravity
 		water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
-		/*
 		// Surface tension - skipped
-		dvec3 currentPos = water->at(i)->getPosition();
-		dvec3 currentVel = water->at(i)->getVelocity();
-        float correctionFactor = 2.f * _restDensity / (density_i + density_j);
-        forceCohesion += correctionFactor * (r / rn) * _kernel.surfaceTension(rn);
-        forceCurvature += correctionFactor * (n_i - n_j);
-		
 
 		// Viscosity - skipped
-		for(iterator of neighbor)
-		{
-			neighborPos = water->at(neighbors.at(j))->getPosition();
-			neighborVel = water->at(neighbors.at(j))->getVelocity();
 
-			if (density_j > 0.0001f) {
-                viscosity -= (currentVel - neighborVel) * (_kernel.viscosityLaplace(rn) / density_j);
-            }
-		}
-		*/
 	}
 }
 
@@ -208,76 +197,42 @@ void SPH::adaptTimestep(double timeStep)
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
 void SPH::predictVelocities()
 {
-	dvec3 vel, pos, dPos;
-	double x,y,z;
+	dvec3 vel, dPos;
+	dvec4 pos, temp;
+	
 	for (int i = 0; i < particleCount; ++i) {
 		vel = water->at(i)->getVelocity() + water->at(i)->getForce() * particleMass * dT;
-		pos = water->at(i)->getPosition();
-		
-		// Dirichlet Boundary Condition
-		x = pos.x;
-		y = pos.y;
-		z = pos.z;
+		pos = dvec4(water->at(i)->getPosition(), 1.0);
 		dPos = vel * dT;
-		
-		cout << "Pos: " << to_string(pos+dPos) << ", ";
-		cout << "Vel: " << to_string(vel) << "\n";
 
+		// Dirichlet Boundary Condition
+		temp = pos;
+		temp.x += dPos.x;
 		// is there solid in X?
-		if(isSolid(x-dPos.x,y,z, 0) && vel.x < 0.0) {
+		if(isSolid(temp))
 			vel.x = 0.0;
-			cout << "X-: " << x-dPos.x << ", " << y << ", " << z << "\n";
-		}
-		else if(isSolid(x+dPos.x,y,z, 0) && vel.x > 0.0) {
-			vel.x = 0.0;
-			cout << "X+: " << x-dPos.x << ", " << y << ", " << z << "\n";
-		}
+		temp = pos;
+		temp.y += dPos.y;
 		// Y
-		if(isSolid(x,y-dPos.y,z, 1) && vel.y < 0.0)
+		if(isSolid(temp)) 
 			vel.y = 0.0;
-		else if(isSolid(x,y+dPos.y,z, 1) && vel.y > 0.0)
-			vel.y = 0.0;
+		temp = pos;
+		temp.z += dPos.z;
 		// Z
-		if(isSolid(x,y,z-dPos.z, 2) && vel.z < 0.0) {
+		if(isSolid(temp)) 
 			vel.z = 0.0;
-			cout << "Z-: " << x << ", " << y << ", " << z-dPos.z << "\n";
-		}
-		else if(isSolid(x,y,z+dPos.z, 2) && vel.z > 0.0) {
-			vel.z = 0.0;
-			cout << "Z+: " << x << ", " << y << ", " << z+dPos.z << "\n";
-		}
-
 		
 		water->at(i)->setVelocity(vel);
 	}
 	
 }
 
-// Check if (x,y,z) is inside the obj object
-bool SPH::isSolid(double x, double y, double z, int axis)
+// Check if (x,y,z) is inside an implicit geometry
+bool SPH::isSolid(dvec4 p)
 {
-	dvec4 p = vec4(x,y,z,1);
 	dmat4 Q = dmat4(0.0);
-	dmat3x4 Qsub = dmat3x4(0.0);
-
-	// Geometry variables
+	
 	double a = 1.0, b = 1.0, c = 1.0, r = 2.0;
-
-	/*
-	f(x,y,z) = 	Ax2 + 2Bxy + 2Cxz
-				+ 2Dx + Ey2 + 2Fyz
-				+ 2Gy + Hz2 + 2Iz
-				+ J
-	A B C D
-	B E F G
-	C F H I
-	D G I J
-	*/
-
-
-	// f(x,y,z) = p * Q * p = 0.0
-	// dF = 2 * make_mat3x4(Q) * p
-
 	// Cylinder
 	if (sceneName == "cylinder") {
 		Q[0][0] = 1.0;
@@ -287,7 +242,7 @@ bool SPH::isSolid(double x, double y, double z, int axis)
 
 	// Ellipsoid
 	else if (sceneName == "ellipsoid") {
-		a = 0.5, c = 0.5;
+		a = 0.4, b=0.4, c = 0.4;
 		Q[0][0] = 1.0/pow(a,2);
 		Q[1][1] = 1.0/pow(b,2);
 		Q[2][2] = 1.0/pow(c,2);
@@ -319,23 +274,13 @@ bool SPH::isSolid(double x, double y, double z, int axis)
 		Q[3][3] = -0.5; // + or -
 	}
 
-	// Cube
-	else if (sceneName == "cube") {
-		return (max(abs(x),abs(y+1.5),abs(z)) < 1.25);
-	}
-
-	//cout << "dF: " << to_string(2.0 * Qsub * p) << "\n";
-	//if (dot(p,(Q * p)) < 0.0) {
-		cout << "isSolid? " << dot(p,(Q * p)) << "\n";
-	//}
-
-	//if (y > 1.0)
-	//	return false;
-	/*else*/ if (y < -2.0)
+	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
 		return true;
-
-	
-	return (dot(p,(Q * p)) < 0.0); //&& dot(p,(Q * p)) > -0.01);
+	// Cube
+	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > 0.5)
+		return false;
+	else
+		return (abs(dot(p,(Q * p))) < 0.1);
 }
 
 //calculate density function

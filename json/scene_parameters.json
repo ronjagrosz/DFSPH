@@ -1,11 +1,12 @@
 {
-    "particlesCount" : 1,
+    "particlesCount" : 20000,
     "fps" : 30,
     "iterations" : 100,
     "constantAcceleration" : -9.81,
     "sceneName" : "ellipsoid",
+    "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 2.0},
 
-    "particleRadius" : 0.001,
+    "particleRadius" : 0.01,
     "particleMass" : 0.1,
     "particleViscosity" : 2.034,
     "density" : 998.29,

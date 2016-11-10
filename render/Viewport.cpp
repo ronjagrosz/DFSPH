@@ -36,7 +36,7 @@ Viewport::Viewport()
 {
 	phi = 0.0f;
 	theta = M_PI / 4.0f;
-	rad = 3.0f;
+	rad = 4.0f;
 	zoomFactor = M_PI;
 	recordTime = deltaTime = currTime = 0.0f;	
 	fps = 0.0;
@@ -144,7 +144,7 @@ void Viewport::interaction(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_R) && recordTime > 0.5) {
             record = !record;
             if (record)
-            	std::cout << "Starting to record.." << std::endl;
+            	std::cout << "Starting to record..                                 " << std::endl;
             else
             	std::cout << "Recorded " << recordTime << " seconds (" 
             << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
