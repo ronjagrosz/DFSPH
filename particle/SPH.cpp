@@ -110,7 +110,15 @@ void SPH::loadJson(string fileName)
     iterations = (int)(params.get<picojson::object>()["iterations"].get<double>());
     constantAcceleration = params.get<picojson::object>()["constantAcceleration"].get<double>();
     sceneName = params.get<picojson::object>()["sceneName"].get<std::string>();
-
+    
+    geometry = dvec4(params.get<picojson::object>()["geometry"]
+    		.get<picojson::object>()["a"].get<double>(),
+    	params.get<picojson::object>()["geometry"]
+    		.get<picojson::object>()["b"].get<double>(),
+		params.get<picojson::object>()["geometry"]
+	    	.get<picojson::object>()["c"].get<double>(),
+	    params.get<picojson::object>()["geometry"]
+    		.get<picojson::object>()["r"].get<double>());
 
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
@@ -209,17 +217,17 @@ void SPH::predictVelocities()
 		temp = pos;
 		temp.x += dPos.x;
 		// is there solid in X?
-		if(isSolid(temp))
+		if(isSolid(temp, geometry))
 			vel.x = 0.0;
 		temp = pos;
 		temp.y += dPos.y;
 		// Y
-		if(isSolid(temp)) 
+		if(isSolid(temp, geometry)) 
 			vel.y = 0.0;
 		temp = pos;
 		temp.z += dPos.z;
 		// Z
-		if(isSolid(temp)) 
+		if(isSolid(temp, geometry)) 
 			vel.z = 0.0;
 		
 		water->at(i)->setVelocity(vel);
@@ -228,56 +236,54 @@ void SPH::predictVelocities()
 }
 
 // Check if (x,y,z) is inside an implicit geometry
-bool SPH::isSolid(dvec4 p)
+bool SPH::isSolid(dvec4 p, dvec4 g)
 {
 	dmat4 Q = dmat4(0.0);
-	
-	double a = 1.0, b = 1.0, c = 1.0, r = 2.0;
+
 	// Cylinder
 	if (sceneName == "cylinder") {
 		Q[0][0] = 1.0;
 		Q[1][1] = 1.0;
-		Q[3][3] = -r;
+		Q[3][3] = -g.w;
 	}
 
 	// Ellipsoid
 	else if (sceneName == "ellipsoid") {
-		a = 0.4, b=0.4, c = 0.4;
-		Q[0][0] = 1.0/pow(a,2);
-		Q[1][1] = 1.0/pow(b,2);
-		Q[2][2] = 1.0/pow(c,2);
-		Q[3][3] = -r;
+		Q[0][0] = 1.0/pow(g.x,2);
+		Q[1][1] = 1.0/pow(g.y,2);
+		Q[2][2] = 1.0/pow(g.z,2);
+		Q[3][3] = -g.w;
 	}
 
 	// Plane
 	else if (sceneName == "plane") {
-		Q[0][3] = a/2.0;
-		Q[2][3] = b/2.0;
-		Q[1][3] = c/2.0;
-		Q[3] = {a/2.0, b/2.0, c/2.0, 0};
+		Q[0][3] = g.x/2.0;
+		Q[2][3] = g.y/2.0;
+		Q[1][3] = g.z/2.0;
+		Q[3] = {g.x/2.0, g.y/2.0, g.z/2.0, 0};
 	}
 
 	// Paraboloid
 	else if (sceneName == "paraboloid") {
-		Q[0][0] = 0.8;
-		Q[1][1] = -0.8; // + or -
-		Q[2][3] = -0.4;
-		Q[3][2] = -0.4;
+		Q[0][0] = g.x;
+		Q[1][1] = g.x; // + or -
+		Q[2][3] = -g.x/2;
+		Q[3][2] = -g.x/2;
 	}
 
 
 	// Hyperboloid
 	else if (sceneName == "hyperboloid") {
-		Q[0][0] = 0.5;
-		Q[1][1] = 0.5;
-		Q[2][2] = -0.5;
-		Q[3][3] = -0.5; // + or -
+		Q[0][0] = g.x;
+		Q[1][1] = g.x;
+		Q[2][2] = -g.x;
+		Q[3][3] = g.x; // + or -
 	}
 
 	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
 		return true;
 	// Cube
-	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > 0.5)
+	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > g.w)
 		return false;
 	else
 		return (abs(dot(p,(Q * p))) < 0.1);
