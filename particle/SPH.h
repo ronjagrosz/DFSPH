@@ -67,10 +67,10 @@ class SPH
 		virtual void createVAO(int particles);
 
 		virtual void predictVelocities();
-		virtual bool isSolid(dvec4, dvec4);
-		virtual void adaptTimestep(double timeDiff);
+		virtual bool isSolid(dvec4);
+		virtual void adaptTimestep();
 		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
-		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
+		virtual void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
 	public:
 		SPH();

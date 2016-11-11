@@ -11,9 +11,9 @@ The project is compiled with a Makefile, however as installation directories dep
 
 * `OpenGL v3.3+` - graphical context
 * `GLM` - mathematical library
-* `FreeImage` - saves rendered images
-* `ffmpeg` - used to save generate a video from the output
-* `picojson` - used to load simulation properties from a json-file
+* `FreeImage` - saves rendered frames
+* `ffmpeg` - generates a video from the output
+* `picojson` - loads simulation properties from a json-file
 
 
 ### Compile and Install

@@ -127,22 +127,22 @@ void SPH::loadJson(string fileName)
     particleMass = 4.0*particleRadius*particleRadius*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>();
 
     cout << "Particle radius: " << particleRadius << "m\n";
-    cout << "Particle mass calculated from radius: " << particleMass << "g\n";
+    cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
 
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
 }
 
 // Update positions with a small timestep
-void SPH::simulate(double maxTimestep)
+void SPH::simulate()
 {
 	// Self-advection - Skipped for SPH
 
 	// Calculate non-pressure forces (gravity)
-	for(int i = 0; i < particleCount; ++i)
-		water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
+	//for(int i = 0; i < particleCount; ++i)
+		//water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
 	// adapt timestep according to CFL condition
-	adaptTimestep(maxTimestep);
+	adaptTimestep();
 
 	// predict velocities
 	predictVelocities();
@@ -165,7 +165,7 @@ void SPH::simulate(double maxTimestep)
 }
 
 // Adapts the timestep according to the CFL condition
-void SPH::adaptTimestep(double maxTimestep)
+void SPH::adaptTimestep()
 {
 	dvec3 vel;
 	double mag, vMax = 0.0;
@@ -190,38 +190,28 @@ void SPH::adaptTimestep(double maxTimestep)
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
 void SPH::predictVelocities()
 {
-	dvec3 vel, dPos;
-	dvec4 pos, temp;
+	dvec3 vel, pos, dPos;
 	
 	for (int i = 0; i < particleCount; ++i) {
-		vel = water->at(i)->getVelocity() + water->at(i)->getForce() * particleMass * dT;
-		pos = dvec4(water->at(i)->getPosition(), 1.0);
+		vel = water->at(i)->getVelocity() + dvec3(0.0, constantAcceleration * dT, 0.0); //water->at(i)->getForce()/particleMass * dT;
+		pos = water->at(i)->getPosition();
 		dPos = vel * dT;
 
 		// Dirichlet Boundary Condition
-		temp = pos;
-		temp.x += dPos.x;
-		// is there solid in X?
-		if(isSolid(temp, geometry))
+		if(isSolid(vec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
 			vel.x = 0.0;
-		temp = pos;
-		temp.y += dPos.y;
-		// Y
-		if(isSolid(temp, geometry)) 
+		if(isSolid(vec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
 			vel.y = 0.0;
-		temp = pos;
-		temp.z += dPos.z;
-		// Z
-		if(isSolid(temp, geometry)) 
+		if(isSolid(vec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
 			vel.z = 0.0;
 		
-		water->at(i)->setVelocity(vel);
+		water->at(i)->setVelocity(vel); // should we store a predictedVelocity vector instead?
 	}
 	
 }
 
 // Check if (x,y,z) is inside an implicit geometry
-bool SPH::isSolid(dvec4 p, dvec4 g)
+bool SPH::isSolid(dvec4 p)
 {
 	dmat4 Q = dmat4(0.0);
 
@@ -229,49 +219,49 @@ bool SPH::isSolid(dvec4 p, dvec4 g)
 	if (sceneName == "cylinder") {
 		Q[0][0] = 1.0;
 		Q[1][1] = 1.0;
-		Q[3][3] = -g.w;
+		Q[3][3] = -geometry.w;
 	}
 
 	// Ellipsoid
 	else if (sceneName == "ellipsoid") {
-		Q[0][0] = 1.0/pow(g.x,2);
-		Q[1][1] = 1.0/pow(g.y,2);
-		Q[2][2] = 1.0/pow(g.z,2);
-		Q[3][3] = -g.w;
+		Q[0][0] = 1.0/pow(geometry.x,2);
+		Q[1][1] = 1.0/pow(geometry.y,2);
+		Q[2][2] = 1.0/pow(geometry.z,2);
+		Q[3][3] = -geometry.w;
 	}
 
 	// Plane
 	else if (sceneName == "plane") {
-		Q[0][3] = g.x/2.0;
-		Q[2][3] = g.y/2.0;
-		Q[1][3] = g.z/2.0;
-		Q[3] = {g.x/2.0, g.y/2.0, g.z/2.0, 0};
+		Q[0][3] = geometry.x/2.0;
+		Q[2][3] = geometry.y/2.0;
+		Q[1][3] = geometry.z/2.0;
+		Q[3] = {geometry.x/2.0, geometry.y/2.0, geometry.z/2.0, 0};
 	}
 
 	// Paraboloid
 	else if (sceneName == "paraboloid") {
-		Q[0][0] = g.x;
-		Q[1][1] = g.x; // + or -
-		Q[2][3] = -g.x/2;
-		Q[3][2] = -g.x/2;
+		Q[0][0] = geometry.w;
+		Q[1][1] = geometry.w; // + or -
+		Q[2][3] = -geometry.w/2;
+		Q[3][2] = -geometry.w/2;
 	}
 
 
 	// Hyperboloid
 	else if (sceneName == "hyperboloid") {
-		Q[0][0] = g.x;
-		Q[1][1] = g.x;
-		Q[2][2] = -g.x;
-		Q[3][3] = g.x; // + or -
+		Q[0][0] = geometry.w;
+		Q[1][1] = geometry.w;
+		Q[2][2] = -geometry.w;
+		Q[3][3] = -geometry.w; // + or -
 	}
 
 	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
 		return true;
 	// Cube
-	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > g.w)
+	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > geometry.w)
 		return false;
 	else
-		return (abs(dot(p,(Q * p))) < 0.1);
+		return (dot(p,(Q * p)) < 0.0);
 }
 
 //calculate density function
@@ -337,7 +327,7 @@ void SPH::display()
 		int iter = 0;
 		// Propagate the solution until requested time is reached
 		while (t < maxTimestep && iter < iterations) {
-			simulate(maxTimestep);
+			simulate();
 			t += dT;
 			iter++;
 		}
