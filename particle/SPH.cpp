@@ -45,14 +45,15 @@ SPH::SPH()
 	srand(time(0));
 
 	water = new vector<Particle*>(particleCount);
+    cellList = new CellList(glm::dvec3(-2.0, -2.0, -2.0), glm::dvec3(2.0, 2.0, 2.0), H);
 
+    // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
 
 		// random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.6;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.5;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		
 
 		// random velocity
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
@@ -63,12 +64,12 @@ SPH::SPH()
 		water->at(i)->setPosition(randX, randY, randZ);
 		water->at(i)->setColor(newColor);
 		water->at(i)->setVelocity(dvec3(randI, randJ, randK));
-
-
 	}
 
 	for(int i = 0; i < particleCount; ++i) {
-		// find neighborhood
+		// Divide particles into cells
+        cellList->addParticle(water->at(i), i);
+
 		// compute densities
 		calculateDensity();	
 
@@ -91,7 +92,6 @@ SPH::~SPH()
 	}
 	delete water;
 	delete frameTimer;
-
 }
 
 void SPH::setRadius(double rad) {
@@ -143,22 +143,26 @@ void SPH::simulate(double timeStep)
 
 	// correctDensityError
 
-	// update positions
+	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
+        cellList->moveParticle(water->at(i), i);
 	}
+    
+    // Find neighbours
+    for (int i = 0; i < particleCount; ++i) {
+        water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
+    }
 
-	// update neighborhoods
-
-	// compute densities
+	// Compute densities
 	calculateDensity();
 
-	// compute ai factors
+	// Compute ai factors
 	calculateAlpha();
 
 	// correctDivergenceError
 
-	// update velocities
+	// Update velocities
 	
 }
 
@@ -313,53 +317,47 @@ bool SPH::isSolid(double x, double y, double z, int c)
 //calculate density function
 void SPH::calculateDensity()
 {
-	double distance = 0;
-	
 	glm::vec4 *particleVel;
 	glm::vec4 *neighborVel;
 
-	for(int i = 0; i < particleCount; i++)
-	{
+	for(int i = 0; i < particleCount; i++) {
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		dvec3 particlePos = water->at(i)->getPosition();
-		for(int j = 0; j < particleCount; j++)
-		{
-			dvec3 neighborPos = water->at(j)->getPosition();
 
-			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
-				
-			if(distance <= H*H) 
-				water->at(i)->setDensity( water->at(i)->getDensity() +  particleMass * water->at(i)->kernel(neighborPos, H));
-			else 
-				continue;	
+        // Loop through neighbours and set density
+        for (vector<int>::iterator it 
+                = water->at(i)->getNeighbours()->begin();
+                it != water->at(i)->getNeighbours()->end(); ++it) {
+			water->at(i)->setDensity(
+                    water->at(i)->getDensity()
+                    + particleMass
+                    * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 		}
 	}
 }
 
 void SPH::calculateAlpha()
 {
-	double distance = 0, sum2 = 0, tmpAlpha = 0;
-	dvec3 sum1 = dvec3(0,0,0);
 
-	for(int i = 0; i < particleCount; i++)
-	{	
-		dvec3 particlePos = water->at(i)->getPosition();
-		for(int j = 0; j < particleCount; j++)
-		{
-			dvec3 neighborPos = water->at(j)->getPosition();
+	for(int i = 0; i < particleCount; i++) {	
+	    double sum2 = 0, alpha = 0;
+	    dvec3 sum1 = dvec3(0,0,0);
 
-			distance = dot(particlePos - neighborPos, particlePos - neighborPos);
+        // Go through neighbours
+        for (vector<int>::iterator it 
+                = water->at(i)->getNeighbours()->begin();
+                it != water->at(i)->getNeighbours()->end(); ++it) {
 				
-			//only need to calc within neighborhood, kernel gradient will be zero otherwise 	
-			if(distance <= H*H) {
-				sum1 += particleMass * water->at(i)->gradientKernel(neighborPos, H);
-				sum2 += dot(abs(particleMass*water->at(i)->gradientKernel(neighborPos, H)),abs(particleMass*water->at(i)->gradientKernel(neighborPos, H)));
-			}
-			else 
-				continue;	
+			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
+			sum1 += particleMass
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
+			sum2 += dot(abs(particleMass
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)), 
+                abs(particleMass
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
 		}
-		tmpAlpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
-		water->at(i)->setAlpha(tmpAlpha);
+		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		water->at(i)->setAlpha(alpha);
 	}	
 }
 

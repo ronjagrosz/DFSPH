@@ -41,11 +41,12 @@ using namespace glm;
 class CellList
 {
     public:
-        CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, const double H, vector<Particle*> *water);
+        CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, double H);
         ~CellList();
 
-        void moveParticle(Particle* particle);
-        vector<int>* findNeighbours(int pInd, vector<Particle*> *water);
+        void addParticle(Particle* particle, int pIndex);
+        void moveParticle(Particle* particle, int pIndex);
+        vector<int>* findNeighbours(vector<Particle*> *water, int pIndex);
 
     protected:
         vector<vector<vector<vector<int>>>> cellList;

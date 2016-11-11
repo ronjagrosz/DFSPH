@@ -42,13 +42,13 @@ class Particle
 {
 	protected:
 		
-		vector<int>	*neighbors;	
+		vector<int>	*neighbours;	
 
 		dvec3 	position;
 		dvec3 	velocity;
 		dvec3   force;
 		vec3	color;	//the color of the smooth particle
-        glm::ivec4  cellIndex;
+        glm::ivec3  cellIndex;
 		
 		// properties
 		double 	density;
@@ -65,7 +65,7 @@ class Particle
 		void setVelocity(dvec3);
 		void setForce(double, double, double);
 		void setColor(vec3 newColor);
-        void setCellIndex(glm::ivec4 cell);
+        void setCellIndex(glm::ivec3 cell);
 		void setDensity(double);
 		void setAlpha(double);
 		
@@ -75,7 +75,8 @@ class Particle
 		dvec3 getVelocity();
 		dvec3 getForce();
 		vec3 getColor();
-        glm::ivec4 getCellIndex();
+        glm::ivec3 getCellIndex();
+        vector<int>* getNeighbours();
 		double getDensity();
 		double getAlpha();
 		double getStiffness();
@@ -83,7 +84,7 @@ class Particle
 		
 		//void correctDensityError();
 		void updatePosition(double elapsedTime);	// apply the velocity to the position
-		//void updateNeighborhoods();
+		void updateNeighbours(vector<int>* neighbourList);
 		//void correctDivergenceError();
 		//void updateVelocity(); // is this one needed?
 
@@ -99,7 +100,7 @@ class Particle
 		void clearNAN()	//a very kludgey solution to a nan problem I was having in the density calculation.
 		{			//finding the root cause of this is on my list of things to do.
 			if(std::isnan(density))
-                glm::ivec4 getCellIndex();
+                glm::ivec3 getCellIndex();
 				density = 0;
 		};
 };

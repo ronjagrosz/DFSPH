@@ -25,7 +25,7 @@ using namespace glm;
 
 Particle::Particle()
 {
-	neighbors = new vector<int>;
+	neighbours = new vector<int>;
 
 	velocity  = dvec3(0.0, 0.0, 0.0);
 	force = dvec3(0.0, 0.0, 0.0);
@@ -35,7 +35,7 @@ Particle::Particle()
 
 Particle::~Particle()
 {
-	delete neighbors;
+	delete neighbours;
 }
 
 // Setters  ***************************************************************
@@ -57,7 +57,7 @@ void Particle::setColor(vec3 newColor)
 	if(newColor != color)
 		color = newColor;
 }
-void Particle::setCellIndex(glm::ivec4 cell)
+void Particle::setCellIndex(glm::ivec3 cell)
 {
     cellIndex = cell;
 }
@@ -75,7 +75,8 @@ dvec3 Particle::getPosition(){return position;}
 dvec3 Particle::getVelocity(){return velocity;}
 dvec3 Particle::getForce(){return force;}
 vec3 Particle::getColor(){return color;}
-glm::ivec4 Particle::getCellIndex(){return cellIndex;}
+glm::ivec3 Particle::getCellIndex(){return cellIndex;}
+vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
 double Particle::getAlpha(){return alpha;}
 double Particle::getStiffness(){return stiffness;}
@@ -85,12 +86,17 @@ void Particle::updatePosition(double elapsedTime)
 {
 	position += velocity * elapsedTime;	
 }
+
+// Update neighbour list
+void Particle::updateNeighbours(vector<int>* neighbourList) {
+    neighbours = neighbourList;
+}
 double Particle::kernel(dvec3 nPosition, double H)
 {
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) //maybe remove this when we calc neighbors in the correct way
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) //maybe remove this when we calc neighbours in the correct way
 		return 1.0;
 	else if ( q >= 0 && q < 1)
 		return (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q);

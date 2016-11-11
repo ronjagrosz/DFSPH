@@ -36,6 +36,7 @@ class SPH
 		double			dT;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
+        CellList* cellList;
 		GLuint vao, vbo[2];		// handles to vao and abo
 		//GLfloat *vertices[particleCount][3];	// pointer to all vertices
 

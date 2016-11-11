@@ -8,7 +8,7 @@ neighbouring particles faster.
 
 #include "CellList.h"
 
-CellList::CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, const double H, vector<Particle*> *water) : lowerLeft(lowestPoint), radius(H)
+CellList::CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, double H) : lowerLeft(lowestPoint), radius(H)
 {
     // Amount of cubes in every direction
     glm::ivec3 noOfCubes = glm::ceil((highestPoint - lowerLeft) / radius) + 1.0;
@@ -23,47 +23,52 @@ CellList::CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, const double
             cellList[i][j].resize(noOfCubes.z);
         }
     }
-
-    for (int i = 0; i < water->size(); i++)
-    {
-        // Get which cell the particle belongs to
-        glm::ivec3 cell = getCellPos(water->at(i)->getPosition());
-
-        // Validate new cell position
-        if (!validCellPos(cell))
-            cout << "Particle is out of bounds in cell list, move the bounds of the cell list to encapsulate the whole scene\n";
-
-
-        // Add particles index to cell
-        cellList[cell.x][cell.y][cell.z].push_back(i);
-
-        // Add cell index to particle
-        water->at(i)->setCellIndex(glm::ivec4(cell, cellList[cell.x][cell.y][cell.z].size() - 1));
-    }
 }
 
-void CellList::moveParticle(Particle* particle)
+void CellList::addParticle(Particle* particle, int pIndex)
+{
+    // Get which cell the particle belongs to
+    glm::ivec3 cell = getCellPos(particle->getPosition());
+
+    // Validate new cell position
+    if (!validCellPos(cell))
+        cout << "Particle is out of bounds in cell list, move the bounds of the cell list to encapsulate the whole scene\n";
+
+    // Add particles index to cell
+    cellList[cell.x][cell.y][cell.z].push_back(pIndex);
+
+    // Add cell index to particle
+    particle->setCellIndex(cell);
+}
+
+void CellList::moveParticle(Particle* particle, int pIndex)
 {
     // Get new and old cell for particle
-    glm::ivec3 newCell= getCellPos(particle->getPosition());
-    glm::ivec4 oldCell = particle->getCellIndex();
+    glm::ivec3 newCell = getCellPos(particle->getPosition());
+    glm::ivec3 oldCell = particle->getCellIndex();
     
     // Move particle if it has left the old cell and the new cell is valid
     if (validCellPos(newCell) && (newCell.x != oldCell.x || newCell.y != oldCell.y || newCell.z != oldCell.z))
     {
-        cout << "Moving\n";
+        // Find particle in old cell
+        vector<int>::iterator it = cellList[oldCell.x][oldCell.y][oldCell.z].begin();
+        for(; it != cellList[oldCell.x][oldCell.y][oldCell.z].end(); ++it) {
+            if (*it == pIndex)
+                break;
+        }
+
         // Insert into new cell
-        cellList[newCell.x][newCell.y][newCell.z].push_back(cellList[oldCell.x][oldCell.y][oldCell.z][oldCell.w]);
+        cellList[newCell.x][newCell.y][newCell.z].push_back(pIndex);
 
         // Remove old cell
-        cellList[oldCell.x][oldCell.y][oldCell.z].erase(cellList[oldCell.x][oldCell.y][oldCell.z].begin() + particle->getCellIndex().w);
+        cellList[oldCell.x][oldCell.y][oldCell.z].erase(it);
 
         // Update particles cell index
-        particle->setCellIndex(glm::ivec4(newCell, cellList[oldCell.x][oldCell.y][oldCell.z].size() - 1));
-    } //else {cout << "Didn't move\n";}
+        particle->setCellIndex(newCell);
+    }
 }
 
-vector<int>* CellList::findNeighbours(int pIndex, vector<Particle*> *water)
+vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex)
 {
     vector<int>* neighbourList = new vector<int>;
     glm::ivec3 cell = getCellPos(water->at(pIndex)->getPosition());
@@ -75,7 +80,7 @@ vector<int>* CellList::findNeighbours(int pIndex, vector<Particle*> *water)
             for (int z = -1; z < 2; z++)
             {
                 // Get neighbouring cells position
-                glm::ivec3 pos = glm::ivec3(cell.x + x, cell.y + y, cell.z +z);
+                glm::ivec3 pos = glm::ivec3(cell.x + x, cell.y + y, cell.z + z);
 
                 if (!validCellPos(pos))
                     continue;
@@ -83,7 +88,7 @@ vector<int>* CellList::findNeighbours(int pIndex, vector<Particle*> *water)
                 // Iterate through potential neighbours
                 for(vector<int>::iterator it = cellList[pos.x][pos.y][pos.z].begin(); it != cellList[pos.x][pos.y][pos.z].end(); ++it)
                 {
-                    if (pIndex != *it && glm::length(water->at(pIndex)->getPosition() - water->at(*it)->getPosition()) < radius)
+                    if (pIndex != *it && glm::length(water->at(pIndex)->getPosition() - water->at(*it)->getPosition()) <= radius)
                         neighbourList->push_back(*it);
                 }
 
