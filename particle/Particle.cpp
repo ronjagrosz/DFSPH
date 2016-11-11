@@ -96,14 +96,22 @@ double Particle::kernel(dvec3 nPosition, double H)
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) //maybe remove this when we calc neighbours in the correct way
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) { //maybe remove this when we calc neighbours in the correct way
+		//cout << "1\n";
 		return 1.0;
-	else if ( q >= 0 && q < 1)
+	}
+	else if ( q >= 0 && q < 1) {
+		//cout << "2\n";
 		return (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q);
-	else if ( q >= 1 && q < 2 )
+	}
+	else if ( q >= 1 && q < 2 ) {
+		//cout << "3\n";
 		return (1/(H*H*H))*(1/M_PI)*(1/4*(2-q)*(2-q)*(2-q));
-	else 
+	}
+	else {
+		//cout << "4\n";
 		return 0;
+	}
 }
 dvec3 Particle::gradientKernel(dvec3 nPosition, double H)
 {

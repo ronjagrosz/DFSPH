@@ -29,7 +29,6 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 #include "glm/ext.hpp"
 #endif
 
-class uVect;
 class SPH;
 
 using namespace std;

@@ -43,8 +43,9 @@ SPH::SPH()
 	double randI, randJ, randK; //velocity vector values
 	
 	srand(time(0));
+
 	water = new vector<Particle*>(particleCount);
-    cellList = new CellList(dvec3(-2.0, -2.0, -2.0), dvec3(2.0, 2.0, 2.0), H);
+    cellList = new CellList(glm::dvec3(-2.0, -2.0, -2.0), glm::dvec3(2.0, 2.0, 2.0), H);
 
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
@@ -68,15 +69,15 @@ SPH::SPH()
 	for(int i = 0; i < particleCount; ++i) {
 		// Divide particles into cells
         cellList->addParticle(water->at(i), i);
+	}
+
+	// Find neighbours
+    for (int i = 0; i < particleCount; ++i) {
+        water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
-		// compute densities
-		calculateDensity();	
 
-		//cout << "density: " << water->at(i)->getDensity()<< "\n";	
-
-		// compute ai
-		calculateAlpha();
-	
+	// compute densities and alpha factors
+	calculateDensityAndAlpha();		
 
 	createVAO(particleCount);
 	timeLastFrame = frameTimer->elapsed();
@@ -132,12 +133,11 @@ void SPH::loadJson(string fileName)
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
     particleMass = 4.0*particleRadius*particleRadius*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>();
-
+    H = params.get<picojson::object>()["H"].get<double>();
     cout << "Particle radius: " << particleRadius << "m\n";
     cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
 
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
-    H = params.get<picojson::object>()["H"].get<double>();
 }
 
 // Update positions with a small timestep
@@ -168,11 +168,8 @@ void SPH::simulate()
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
 
-	// Compute densities
-	calculateDensity();
-
-	// Compute ai factors
-	calculateAlpha();
+	// Compute densities and alpha factors
+	calculateDensityAndAlpha();
 
 	// correctDivergenceError
 
@@ -281,15 +278,13 @@ bool SPH::isSolid(dvec4 p)
 }
 
 //calculate density function
-void SPH::calculateDensity()
+void SPH::calculateDensityAndAlpha()
 {
-	glm::vec4 *particleVel;
-	glm::vec4 *neighborVel;
-
 	for(int i = 0; i < particleCount; i++) {
+		double sum2 = 0, alpha = 0;
+	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
-		dvec3 particlePos = water->at(i)->getPosition();
-
+		
         // Loop through neighbours and set density
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
@@ -298,22 +293,7 @@ void SPH::calculateDensity()
                     water->at(i)->getDensity()
                     + particleMass
                     * water->at(i)->kernel(water->at(*it)->getPosition(), H));
-		}
-	}
-}
 
-void SPH::calculateAlpha()
-{
-
-	for(int i = 0; i < particleCount; i++) {	
-	    double sum2 = 0, alpha = 0;
-	    dvec3 sum1 = dvec3(0,0,0);
-
-        // Go through neighbours
-        for (vector<int>::iterator it 
-                = water->at(i)->getNeighbours()->begin();
-                it != water->at(i)->getNeighbours()->end(); ++it) {
-				
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
@@ -322,14 +302,15 @@ void SPH::calculateAlpha()
                 abs(particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
 		}
-		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
-		water->at(i)->setAlpha(alpha);
-	}	
+        alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		water->at(i)->setAlpha(alpha);          
+	}
 }
 
 
 void SPH::display()	
 {	
+
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
