@@ -274,7 +274,7 @@ void SPH::calculateDensityAndAlpha() {
 	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		
-        // Loop through neighbours and set density
+        // Loop through neighbours and set density and alpha
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
@@ -301,35 +301,41 @@ void SPH::calculateDensityAndAlpha() {
 // Correct density error
 void SPH::correctDensityError()
 {
-	double avg_density = 0.0, tmpDensity = 0.0;
+	double avgDensity = 0.0, dDensity = 0.0;
 	int iter = 0;
 
 	for (int i = 0; i < 0; ++i) 
-		avg_density += water->at(i)->getDensity();
-	
-	avg_density /= particleCount;
+		avgDensity += water->at(i)->getDensity();
+	avgDensity /= particleCount;
 
 	//while p_avg - p_0 != 0 (density error) && iter < 2
 	//hur stort epsilon?
-	while ((avg_density - REST_DENSITY) > EPSILON*100 || iter < 2) {
+	while ((avgDensity - REST_DENSITY) > EPSILON*100 || iter < 2) {
 		
+		avgDensity = 0.0;
+
 		//for all particles
 		for (int i = 0; i < 0; ++i) {
 			
 			//calc density by Euler integration
-			for (all neighbors j) {
-				particleMass * (water->at(i)->getVelocity() - water->at(j)->getVelocity() * water);
+			for (vector<int>::iterator it 
+                = water->at(i)->getNeighbours()->begin();
+                it != water->at(i)->getNeighbours()->end(); ++it) {
+
+				dDensity += particleMass 
+					* (water->at(i)->getVelocity() - water->at(*it)->getVelocity() ) 
+					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			}
-			water->at(i)->setDensity(  );
-			tmpDensity = 0.0;
+			water->at(i)->setDensity( water->at(i)->getDensity() + dT*dDensity );
+			avgDensity += water->at(i)->getDensity()
+			dDensity = 0.0;
 
 			//calc k with the correct pressure forces (updated density -> k is updated, k includes pressure forces) 
 
 			//update velocity
 		}
+		avgDensity /= particleCount;
 	}
-
-
 }
 
 void SPH::display()	
