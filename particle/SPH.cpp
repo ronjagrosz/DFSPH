@@ -283,9 +283,6 @@ bool SPH::isSolid(dvec4 p)
 //calculate density function
 void SPH::calculateDensity()
 {
-	glm::vec4 *particleVel;
-	glm::vec4 *neighborVel;
-
 	for(int i = 0; i < particleCount; i++) {
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		dvec3 particlePos = water->at(i)->getPosition();
@@ -295,16 +292,15 @@ void SPH::calculateDensity()
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 			water->at(i)->setDensity(
-                    water->at(i)->getDensity()
-                    + particleMass
-                    * water->at(i)->kernel(water->at(*it)->getPosition(), H));
+                water->at(i)->getDensity()
+                + particleMass
+                * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 		}
 	}
 }
 
 void SPH::calculateAlpha()
 {
-
 	for(int i = 0; i < particleCount; i++) {	
 	    double sum2 = 0, alpha = 0;
 	    dvec3 sum1 = dvec3(0,0,0);

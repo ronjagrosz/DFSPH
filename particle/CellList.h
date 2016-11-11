@@ -43,7 +43,7 @@ using namespace glm;
 class CellList
 {
     public:
-        CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, double H);
+        CellList(dvec3 lowestPoint, dvec3 highestPoint, double H);
         ~CellList();
 
         void addParticle(Particle* particle, int pIndex);
@@ -52,9 +52,9 @@ class CellList
 
     protected:
         vector< vector< vector< vector< int > > > > cellList;
-        glm::dvec3 lowerLeft;
+        dvec3 lowerLeft;
         const double radius;
 
-        glm::ivec3 getCellPos(glm::dvec3 pos);
-        bool validCellPos(glm::ivec3 pos);
+        ivec3 getCellPos(dvec3 pos);
+        bool validCellPos(ivec3 pos);
 };
