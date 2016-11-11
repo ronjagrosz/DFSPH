@@ -63,8 +63,7 @@ class SPH
 		void predictVelocities();
 		bool isSolid(dvec4);
 		void adaptTimestep();
-		void calculateDensity();	
-		void calculateAlpha();
+		void calculateDensityAndAlpha();	
 		void correctDivergenceError();
 		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		

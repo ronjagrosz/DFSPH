@@ -30,16 +30,14 @@ using namespace std;
 using namespace boost;
 using namespace glm;
 
-struct BindingPoint
-{
+struct BindingPoint {
 	vector <double> points;
 //	vector <SmoothedParticle*> bound;
 
 };
 
 
-class Particle
-{
+class Particle {
 	protected:
 		
 		vector<int>	*neighbours;	
@@ -48,7 +46,7 @@ class Particle
 		dvec3 	velocity;
 		dvec3   force;
 		vec3	color;	//the color of the smooth particle
-        ivec3  cellIndex;
+        ivec4  cellIndex;
 		
 		// properties
 		double 	density;
@@ -66,7 +64,7 @@ class Particle
 		void setVelocity(dvec3);
 		void setForce(double, double, double);
 		void setColor(vec3 newColor);
-        void setCellIndex(ivec3 cell);
+        void setCellIndex(ivec4 cell);
 		void setDensity(double);
 		void setdDensity(double);
 		void setAlpha(double);
@@ -77,7 +75,7 @@ class Particle
 		dvec3 getVelocity();
 		dvec3 getForce();
 		vec3 getColor();
-        ivec3 getCellIndex();
+        ivec4 getCellIndex();
         vector<int>* getNeighbours();
 		double getDensity();
 		double getdDensity();
@@ -98,7 +96,7 @@ class Particle
 		
 		//virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
-		inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
+		inline void printDensity() {cout << "density = " << density << " " << std::isnan(density) << endl;};
 };
 
 #endif

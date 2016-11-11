@@ -23,8 +23,7 @@ particle at a certain point.
 using namespace std;
 using namespace glm;
 
-Particle::Particle()
-{
+Particle::Particle() {
 	neighbours = new vector<int>;
 
 	velocity  = dvec3(0.0, 0.0, 0.0);
@@ -33,36 +32,29 @@ Particle::Particle()
 	density = 0;
 }
 
-Particle::~Particle()
-{
+Particle::~Particle() {
 	delete neighbours;
 }
 
 // Setters  ***************************************************************
-void Particle::setPosition(float x, float y, float z)
-{
+void Particle::setPosition(float x, float y, float z) {
 	position = dvec3(x, y, z);
 }
 
-void Particle::setVelocity(dvec3 vel)
-{
+void Particle::setVelocity(dvec3 vel) {
 	velocity = vel;
 }
-void Particle::setForce(double i, double j, double k)
-{
+void Particle::setForce(double i, double j, double k) {
 	force = dvec3(i, j, k);
 }
-void Particle::setColor(vec3 newColor)
-{
+void Particle::setColor(vec3 newColor) {
 	if(newColor != color)
 		color = newColor;
 }
-void Particle::setCellIndex(ivec3 cell)
-{
+void Particle::setCellIndex(ivec4 cell) {
     cellIndex = cell;
 }
-void Particle::setDensity(double newDensity)
-{
+void Particle::setDensity(double newDensity) {
 	density = newDensity;
 }
 void Particle::setdDensity(double newDensity)
@@ -79,7 +71,7 @@ dvec3 Particle::getPosition(){return position;}
 dvec3 Particle::getVelocity(){return velocity;}
 dvec3 Particle::getForce(){return force;}
 vec3 Particle::getColor(){return color;}
-ivec3 Particle::getCellIndex(){return cellIndex;}
+ivec4 Particle::getCellIndex(){return cellIndex;}
 vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
 double Particle::getdDensity(){return dDensity;}
@@ -87,8 +79,7 @@ double Particle::getAlpha(){return alpha;}
 double Particle::getStiffness(){return stiffness;}
 
 // Update position with current velocity
-void Particle::updatePosition(double elapsedTime)
-{
+void Particle::updatePosition(double elapsedTime) {
 	position += velocity * elapsedTime;	
 }
 
@@ -96,22 +87,28 @@ void Particle::updatePosition(double elapsedTime)
 void Particle::updateNeighbours(vector<int>* neighbourList) {
     neighbours = neighbourList;
 }
-double Particle::kernel(dvec3 nPosition, double H)
-{
+double Particle::kernel(dvec3 nPosition, double H) {
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) //maybe remove this when we calc neighbours in the correct way
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) { //maybe remove this when we calc neighbours in the correct way
+		//cout << "1\n";
 		return 1.0;
-	else if ( q >= 0 && q < 1)
+	}
+	else if ( q >= 0 && q < 1) {
+		//cout << "2\n";
 		return (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q);
-	else if ( q >= 1 && q < 2 )
+	}
+	else if ( q >= 1 && q < 2 ) {
+		//cout << "3\n";
 		return (1/(H*H*H))*(1/M_PI)*(1/4*(2-q)*(2-q)*(2-q));
-	else 
+	}
+	else {
+		//cout << "4\n";
 		return 0;
+	}
 }
-dvec3 Particle::gradientKernel(dvec3 nPosition, double H)
-{
+dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
 	// Cubic spline kernel
 	
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
