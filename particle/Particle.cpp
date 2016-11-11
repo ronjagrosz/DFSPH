@@ -25,15 +25,17 @@ using namespace glm;
 
 Particle::Particle()
 {
-	neighbors = new vector<int>;
+	neighbours = new vector<int>;
 
 	velocity  = dvec3(0.0, 0.0, 0.0);
 	force = dvec3(0.0, 0.0, 0.0);
+
+	density = 0;
 }
 
 Particle::~Particle()
 {
-	delete neighbors;
+	delete neighbours;
 }
 
 // Setters  ***************************************************************
@@ -55,9 +57,17 @@ void Particle::setColor(vec3 newColor)
 	if(newColor != color)
 		color = newColor;
 }
+void Particle::setCellIndex(glm::ivec3 cell)
+{
+    cellIndex = cell;
+}
 void Particle::setDensity(double newDensity)
 {
 	density = newDensity;
+}
+void Particle::setAlpha(double newAlpha)
+{
+	alpha = newAlpha;
 }
 
 // Getters  ***************************************************************
@@ -65,7 +75,10 @@ dvec3 Particle::getPosition(){return position;}
 dvec3 Particle::getVelocity(){return velocity;}
 dvec3 Particle::getForce(){return force;}
 vec3 Particle::getColor(){return color;}
+glm::ivec3 Particle::getCellIndex(){return cellIndex;}
+vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
+double Particle::getAlpha(){return alpha;}
 double Particle::getStiffness(){return stiffness;}
 
 // Update position with current velocity
@@ -74,67 +87,37 @@ void Particle::updatePosition(double elapsedTime)
 	position += velocity * elapsedTime;	
 }
 
-//The following three kernel functions are used in th egetForceatPoint
-//function
-
-dvec3* Particle::pressureKernel(dvec3 r)
+// Update neighbour list
+void Particle::updateNeighbours(vector<int>* neighbourList) {
+    neighbours = neighbourList;
+}
+double Particle::kernel(dvec3 nPosition, double H)
 {
-	dvec3 *tempVect = new dvec3;
+	// Cubic spline kernel
+	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
+	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) //maybe remove this when we calc neighbours in the correct way
+		return 1.0;
+	else if ( q >= 0 && q < 1)
+		return (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q);
+	else if ( q >= 1 && q < 2 )
+		return (1/(H*H*H))*(1/M_PI)*(1/4*(2-q)*(2-q)*(2-q));
+	else 
+		return 0;
+}
+dvec3 Particle::gradientKernel(dvec3 nPosition, double H)
+{
+	// Cubic spline kernel
 	
-	double mag = dot(r,r);
+	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 
-	tempVect->x = (45.0/(M_PI*H*H*H*H*H*H)) * ((H*mag)*
-		(H*mag)*(H*mag)) * (r.x/mag);
-				
-	tempVect->y = (45.0/(M_PI*H*H*H*H*H*H)) *
-	 	((H*mag)*(H*mag)*(H*mag)) * (r.y/mag);
-
-	tempVect->z = (45.0/(M_PI*H*H*H*H*H*H)) * 
-		((H*mag)*(H*mag)*(H*mag)) * (r.z/mag);
-
-
-	return tempVect;
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
+		return dvec3(1.0, 1.0, 1.0);
+	else if ( q >= 0 && q < 1)
+		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(- 3*q + 9/4*q*q);
+	else if ( q >= 1 && q < 2 )
+		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(-3/4*(2-q)*(2-q));
+	else 
+		return dvec3(0.0, 0.0, 0.0);
 }
 
-dvec3* Particle::viscosityKernel(dvec3 r)
-{
-	dvec3 *tempVect = new dvec3;
-
-	double mag = dot(r,r);
-
-	tempVect->x = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
-				
-	tempVect->y = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
-
-	tempVect->z = (45.0/(M_PI*H*H*H*H*H*H)) * (H*mag);
-
-
-	return tempVect;
-}
-
-double Particle::densityKernel(dvec3 r)
-{
-	double mag = dot(r,r);
-	
-	return ((315.0)/(64 * M_PI * H*H*H*H*H*H*H*H*H))*
-		(H*H - mag*mag)*(H*H - mag*mag)*(H*H - mag*mag); 
-
-}
-
-// The density is used in several force calculations.
-void Particle::calculateDensity(Particle *neighbor)
-{
-	/*if(neighbor)
-	{
-		density += neighbor->mass * densityKernel(neighbor->position);
-	}*/
-}
-
-//gives the particle's velocity a random kick
-/*
-void Particle::perterb()
-{
-	srand(timer(NULL));
-
-}
-*/

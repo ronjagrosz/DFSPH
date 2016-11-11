@@ -24,7 +24,7 @@ SPH is responsible for orginization of a group of smooth particles.
 #include "boost/timer.hpp"
 #include <vector>
 #include "../particle/Particle.h"
-//#include "../render/TriangleSoup.h"
+#include "CellList.h"
 
 using namespace boost;
 
@@ -38,47 +38,45 @@ class SPH
 		double			dT;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
+        CellList* cellList;
 		GLuint vao, vbo[2];		// handles to vao and abo
 		//GLfloat *vertices[particleCount][3];	// pointer to all vertices
 
 		// particle properties
 		double 	particleRadius;
 		double 	particleMass;
+		double 	H;
 		double 	particleViscosity;
 		double  maxTimestep;
 		double  iterations;
 		double  constantAcceleration;
 		std::string sceneName;
-
 		vec4 geometry;
 
-		
+		double getRadius();
+		double getMass();
+		double getViscosity();
 
+		void setRadius(double);
+		void setMass(double);
+		void setViscosity(double);
 
-		virtual double getRadius();
-		virtual double getMass();
-		virtual double getViscosity();
-
-		virtual void setRadius(double);
-		virtual void setMass(double);
-		virtual void setViscosity(double);
-
-		virtual void loadJson(std::string);
-		virtual void createVAO(int particles);
-
-		virtual void predictVelocities();
-		virtual bool isSolid(dvec4);
-		virtual void adaptTimestep();
-		virtual void calculateDensity();	//this runs through material finds neighboring particles and calls their calculateDensity()
-		virtual void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
+		void loadJson(std::string);
+		void createVAO(int particles);
+		void predictVelocities();
+		bool isSolid(dvec4);
+		void adaptTimestep();
+		void calculateDensity();	
+		void calculateAlpha();
+		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
 	public:
 		SPH();
 		SPH(const SPH&);
 		~SPH();
 
-		virtual void display();
-		virtual void setTimer(timer*);
+		void display();
+		void setTimer(timer*);
 
 };
 
