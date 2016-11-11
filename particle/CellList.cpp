@@ -38,19 +38,25 @@ void CellList::addParticle(Particle* particle, int pIndex) {
     cellList[cell.x][cell.y][cell.z].push_back(pIndex);
 
     // Add cell index to particle
-    particle->setCellIndex(cell);
+    particle->setCellIndex(ivec4(cell, cellList[cell.x][cell.y][cell.z].size() - 1));
 }
 
 void CellList::moveParticle(Particle* particle, int pIndex) {
     // Get new and old cell for particle
     ivec3 newCell = getCellPos(particle->getPosition());
-    ivec3 oldCell = particle->getCellIndex();
+    ivec4 oldCell = particle->getCellIndex();
+    vector< int >::iterator it;
     
     // Move particle if it has left the old cell and the new cell is valid
     if (validCellPos(newCell) && (newCell.x != oldCell.x || newCell.y != oldCell.y || newCell.z != oldCell.z)) {
         // Find particle in old cell
-        vector< int >::iterator it = cellList[oldCell.x][oldCell.y][oldCell.z].begin();
-        for(; it != cellList[oldCell.x][oldCell.y][oldCell.z].end(); ++it) {
+        if (oldCell.w > cellList[oldCell.x][oldCell.y][oldCell.z].size() - 1) {
+            it = cellList[oldCell.x][oldCell.y][oldCell.z].end();
+            it--;
+        } else {
+             it = cellList[oldCell.x][oldCell.y][oldCell.z].begin() + oldCell.w;
+        }
+        for(; it != cellList[oldCell.x][oldCell.y][oldCell.z].begin(); --it) {
             if (*it == pIndex)
                 break;
         }
@@ -62,7 +68,7 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
         cellList[oldCell.x][oldCell.y][oldCell.z].erase(it);
 
         // Update particles cell index
-        particle->setCellIndex(newCell);
+        particle->setCellIndex(ivec4(newCell, cellList[newCell.x][newCell.y][newCell.z].size() - 1));
     }
 }
 
@@ -81,10 +87,11 @@ vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
 
                 // Iterate through potential neighbours
                 for(vector<int>::iterator it = cellList[pos.x][pos.y][pos.z].begin(); it != cellList[pos.x][pos.y][pos.z].end(); ++it) {
-                    if (pIndex != *it && length(water->at(pIndex)->getPosition() - water->at(*it)->getPosition()) <= radius)
+                    if (pIndex != *it 
+                        && length(water->at(pIndex)->getPosition() 
+                        - water->at(*it)->getPosition()) <= radius)
                         neighbourList->push_back(*it);
                 }
-
             }
         }
     }

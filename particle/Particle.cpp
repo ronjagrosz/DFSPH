@@ -51,7 +51,7 @@ void Particle::setColor(vec3 newColor) {
 	if(newColor != color)
 		color = newColor;
 }
-void Particle::setCellIndex(ivec3 cell) {
+void Particle::setCellIndex(ivec4 cell) {
     cellIndex = cell;
 }
 void Particle::setDensity(double newDensity) {
@@ -66,7 +66,7 @@ dvec3 Particle::getPosition() {return position;}
 dvec3 Particle::getVelocity() {return velocity;}
 dvec3 Particle::getForce() {return force;}
 vec3 Particle::getColor() {return color;}
-ivec3 Particle::getCellIndex() {return cellIndex;}
+ivec4 Particle::getCellIndex() {return cellIndex;}
 vector<int>* Particle::getNeighbours() {return neighbours;}
 double Particle::getDensity() {return density;}
 double Particle::getAlpha() {return alpha;}
