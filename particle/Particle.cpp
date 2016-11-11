@@ -104,7 +104,6 @@ double Particle::kernel(dvec3 nPosition, double H) {
 }
 dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
 	// Cubic spline kernel
-	
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
@@ -116,4 +115,3 @@ dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
 	else 
 		return dvec3(0.0, 0.0, 0.0);
 }
-

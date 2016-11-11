@@ -30,7 +30,7 @@ bool compareZ(Particle* left, Particle* right) {
 SPH::SPH() {
 	frameTimer = new timer;
 
-	// load json parameters
+	// Load json parameters
 	loadJson("json/scene_parameters.json");
 
 	//scene.readOBJ(sceneName.c_str());
@@ -38,7 +38,7 @@ SPH::SPH() {
 
 	GLfloat randX, randY, randZ;
 	vec3 newColor = vec3(1.0f,1.0f,1.0f);
-	double randI, randJ, randK; //velocity vector values
+	double randI, randJ, randK; // Velocity vector values
 	
 	srand(time(0));
 
@@ -48,12 +48,12 @@ SPH::SPH() {
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
 
-		// random position
+		// Random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.4;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 
-		// random velocity
+		// Random velocity
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
@@ -74,7 +74,7 @@ SPH::SPH() {
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
 
-	// compute densities and alpha factors
+	// Compute densities and alpha factors
 	calculateDensityAndAlpha();		
 
 	createVAO(particleCount);
@@ -143,13 +143,13 @@ void SPH::simulate() {
 	//for(int i = 0; i < particleCount; ++i)
 		//water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
-	// adapt timestep according to CFL condition
+	// Adapt timestep according to CFL condition
 	adaptTimestep();
 
-	// predict velocities
+	// Predict velocities
 	predictVelocities();
 
-	// correctDensityError
+	// CorrectDensityError
 
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
@@ -165,7 +165,7 @@ void SPH::simulate() {
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();
 
-	// correctDivergenceError
+	// CorrectDivergenceError
 
 	// Update velocities
 	
@@ -187,7 +187,7 @@ void SPH::adaptTimestep() {
 
 	dT = (particleRadius * 0.8 / vMax) - EPSILON;
 
-	// make sure dT is less than the maximum timestep
+	// Make sure dT is less than the maximum timestep
 	if (maxTimestep < dT)
 		dT = maxTimestep;
 }
@@ -267,7 +267,7 @@ bool SPH::isSolid(dvec4 p) {
 		return (dot(p,(Q * p)) < 0.0);
 }
 
-//calculate density function
+// Calculate density function
 void SPH::calculateDensityAndAlpha() {
 	for(int i = 0; i < particleCount; i++) {
 		double sum2 = 0, alpha = 0;
@@ -298,13 +298,12 @@ void SPH::calculateDensityAndAlpha() {
 	}
 }
 
-
 void SPH::display()	
 {	
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
-	//this is used to log the elapsed time since the last frame
+	// This is used to log the elapsed time since the last frame
 	double timeDiff = frameTimer->elapsed() - timeLastFrame;
 	if (timeDiff - EPSILON > 0.0) {
 		double t = 0.0;
@@ -358,12 +357,12 @@ void SPH::display()
 	    glEnableVertexAttribArray(1);
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Make background black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vao);
 
-	glEnable(GL_PROGRAM_POINT_SIZE); //enable gl_PointSize in vertex shader
+	glEnable(GL_PROGRAM_POINT_SIZE); // Enable gl_PointSize in vertex shader
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
