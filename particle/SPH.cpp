@@ -364,6 +364,39 @@ void SPH::calculateAlpha()
 	}	
 }
 
+// Correct density error
+void SPH::correctDensityError()
+{
+	double avg_density = 0.0, tmpDensity = 0.0;
+	int iter = 0;
+
+	for (int i = 0; i < 0; ++i) 
+		avg_density += water->at(i)->getDensity();
+	
+	avg_density /= particleCount;
+
+	//while p_avg - p_0 != 0 (density error) && iter < 2
+	//hur stort epsilon?
+	while ((avg_density - REST_DENSITY) > EPSILON*100 || iter < 2) {
+		
+		//for all particles
+		for (int i = 0; i < 0; ++i) {
+			
+			//calc density by Euler integration
+			for (all neighbors j) {
+				particleMass * (water->at(i)->getVelocity() - water->at(j)->getVelocity() * water);
+			}
+			water->at(i)->setDensity(  );
+			tmpDensity = 0.0;
+
+			//calc k with the correct pressure forces (updated density -> k is updated, k includes pressure forces) 
+
+			//update velocity
+		}
+	}
+
+
+}
 
 void SPH::display()	
 {	

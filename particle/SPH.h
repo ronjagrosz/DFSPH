@@ -26,6 +26,7 @@ SPH is responsible for orginization of a group of smooth particles.
 
 using namespace boost;
 
+const double REST_DENSITY = 2.861;
 
 class SPH
 {
@@ -68,6 +69,8 @@ class SPH
 		virtual void calculateDensity();	
 		virtual void calculateAlpha();
 		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
+		
+		virtual void correctDensityError();
 		
 	public:
 		SPH();
