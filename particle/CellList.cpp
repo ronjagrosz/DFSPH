@@ -26,6 +26,7 @@ CellList::CellList(dvec3 lowestPoint, dvec3 highestPoint, double H) : lowerLeft(
     }
 }
 
+// Add a particle to the cellList structure
 void CellList::addParticle(Particle* particle, int pIndex) {
     // Get which cell the particle belongs to
     ivec3 cell = getCellPos(particle->getPosition());
@@ -41,6 +42,7 @@ void CellList::addParticle(Particle* particle, int pIndex) {
     particle->setCellIndex(ivec4(cell, cellList[cell.x][cell.y][cell.z].size() - 1));
 }
 
+// Move the particle from one cell to another if it has moved
 void CellList::moveParticle(Particle* particle, int pIndex) {
     // Get new and old cell for particle
     ivec3 newCell = getCellPos(particle->getPosition());
@@ -72,6 +74,7 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
     }
 }
 
+// Find the particles actual neighbours in the neighbouring cells
 vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
     vector< int >* neighbourList = new vector< int >;
     ivec3 cell = getCellPos(water->at(pIndex)->getPosition());
@@ -98,11 +101,13 @@ vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
     return neighbourList; 
 }
 
+// Get which cell the particle belongs to
 ivec3 CellList::getCellPos(dvec3 pos) {
     // Return which cell the particle belongs to
     return ceil(pos - lowerLeft) / radius;
 }
 
+// Validate that the cell position is in bounds
 bool CellList::validCellPos(ivec3 pos) {
     // Return true if position is inside the boundaries
     return pos.x > 0 && 
