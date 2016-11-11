@@ -11,8 +11,8 @@ neighbouring particles faster.
 CellList::CellList(glm::dvec3 lowestPoint, glm::dvec3 highestPoint, double H) : lowerLeft(lowestPoint), radius(H)
 {
     // Amount of cubes in every direction
-    glm::ivec3 noOfCubes = glm::ceil((highestPoint - lowerLeft) / radius) + 1.0;
 
+    glm::ivec3 noOfCubes = glm::ceil((highestPoint - lowerLeft) / radius) + 1.0;
     // Set up the cell list.
     cellList.resize(noOfCubes.x);
     for (int i = 0; i < noOfCubes.x; ++i)

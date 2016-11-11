@@ -12,9 +12,11 @@ neighbouring particles faster.
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
+#include "../glm/glm/ext.hpp"
 #elif __APPLE__
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/ext.hpp"
 #endif
 
 #include "Particle.h"

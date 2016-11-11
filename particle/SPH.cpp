@@ -43,9 +43,8 @@ SPH::SPH()
 	double randI, randJ, randK; //velocity vector values
 	
 	srand(time(0));
-
 	water = new vector<Particle*>(particleCount);
-    cellList = new CellList(glm::dvec3(-2.0, -2.0, -2.0), glm::dvec3(2.0, 2.0, 2.0), H);
+    cellList = new CellList(dvec3(-2.0, -2.0, -2.0), dvec3(2.0, 2.0, 2.0), H);
 
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
@@ -69,7 +68,7 @@ SPH::SPH()
 	for(int i = 0; i < particleCount; ++i) {
 		// Divide particles into cells
         cellList->addParticle(water->at(i), i);
-
+    }
 		// compute densities
 		calculateDensity();	
 
@@ -77,7 +76,7 @@ SPH::SPH()
 
 		// compute ai
 		calculateAlpha();
-	}
+	
 
 	createVAO(particleCount);
 	timeLastFrame = frameTimer->elapsed();
@@ -138,6 +137,7 @@ void SPH::loadJson(string fileName)
     cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
 
     particleViscosity = params.get<picojson::object>()["particleViscosity"].get<double>();
+    H = params.get<picojson::object>()["H"].get<double>();
 }
 
 // Update positions with a small timestep
@@ -251,7 +251,7 @@ bool SPH::isSolid(dvec4 p)
 		Q[0][3] = geometry.x/2.0;
 		Q[2][3] = geometry.y/2.0;
 		Q[1][3] = geometry.z/2.0;
-		Q[3] = {geometry.x/2.0, geometry.y/2.0, geometry.z/2.0, 0};
+		Q[3] = vec4(geometry.x/2.0, geometry.y/2.0, geometry.z/2.0, 0);
 	}
 
 	// Paraboloid
@@ -330,7 +330,6 @@ void SPH::calculateAlpha()
 
 void SPH::display()	
 {	
-
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
