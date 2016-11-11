@@ -14,15 +14,17 @@ SPH is responsible for orginization of a group of smooth particles.
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/type_ptr.hpp"
+#include "../glm/glm/ext.hpp"
 #elif __APPLE__
 #include "glm/glm.hpp"
-#include "glm/gtc/type_ptr.hpp"	
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/ext.hpp"	
 #endif
 
 #include "boost/timer.hpp"
 #include <vector>
 #include "../particle/Particle.h"
-//#include "../render/TriangleSoup.h"
+#include "CellList.h"
 
 using namespace boost;
 
@@ -37,6 +39,7 @@ class SPH
 		double			dT;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
+        CellList* cellList;
 		GLuint vao, vbo[2];		// handles to vao and abo
 		//GLfloat *vertices[particleCount][3];	// pointer to all vertices
 
@@ -49,26 +52,23 @@ class SPH
 		double  iterations;
 		double  constantAcceleration;
 		std::string sceneName;
+		vec4 geometry;
 
-		//TriangleSoup* scene;
+		double getRadius();
+		double getMass();
+		double getViscosity();
 
-		virtual double getRadius();
-		virtual double getMass();
-		virtual double getViscosity();
+		void setRadius(double);
+		void setMass(double);
+		void setViscosity(double);
 
-		virtual void setRadius(double);
-		virtual void setMass(double);
-		virtual void setViscosity(double);
-
-		virtual void loadJson(std::string);
-		virtual void createVAO(int particles);
-		virtual void calculateNonPressureForces();
-		virtual void predictVelocities(double);
-		virtual bool isSolid(double,double,double,int);
-		virtual double adaptTimestep(double timeDiff);
-		virtual void calculateDensity();	
-		virtual void calculateAlpha();
-		virtual void simulate(double timeDiff);	//gets neighboring particels and calls their getForceAtPoint, applyForce...
+		void loadJson(std::string);
+		void createVAO(int particles);
+		void predictVelocities();
+		bool isSolid(dvec4);
+		void adaptTimestep();
+		void calculateDensityAndAlpha();	
+		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
 		virtual void correctDensityError();
 		
@@ -77,8 +77,8 @@ class SPH
 		SPH(const SPH&);
 		~SPH();
 
-		virtual void display();
-		virtual void setTimer(timer*);
+		void display();
+		void setTimer(timer*);
 
 };
 
