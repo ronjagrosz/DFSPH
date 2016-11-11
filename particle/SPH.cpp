@@ -23,13 +23,11 @@ SPH is responsible for orginization of a group of smooth particles.
 
 using namespace glm;
 
-bool compareZ(Particle* left, Particle* right)
-{
+bool compareZ(Particle* left, Particle* right) {
 	return (left->getPosition().z < right->getPosition().z);
 }
 
-SPH::SPH()
-{
+SPH::SPH() {
 	frameTimer = new timer;
 
 	// load json parameters
@@ -84,10 +82,8 @@ SPH::SPH()
 }
 
 
-SPH::~SPH()
-{
-	for(int i = 0; i < particleCount; i++)
-	{
+SPH::~SPH() {
+	for(int i = 0; i < particleCount; i++) {
 		delete water->at(i);
 	}
 	delete water;
@@ -103,13 +99,12 @@ void SPH::setMass(double mass) {
 void SPH::setViscosity(double vis) {
 	particleViscosity = vis;
 }
-double SPH::getRadius(){return particleRadius;}
-double SPH::getMass(){return particleMass;}
-double SPH::getViscosity(){return particleViscosity;}
+double SPH::getRadius() {return particleRadius;}
+double SPH::getMass() {return particleMass;}
+double SPH::getViscosity() {return particleViscosity;}
 
 // Loads properties from json-file
-void SPH::loadJson(string fileName)
-{
+void SPH::loadJson(string fileName) {
 	// Load scene properties
 	picojson::value params;
     ifstream paramStream (fileName);
@@ -141,8 +136,7 @@ void SPH::loadJson(string fileName)
 }
 
 // Update positions with a small timestep
-void SPH::simulate()
-{
+void SPH::simulate() {
 	// Self-advection - Skipped for SPH
 
 	// Calculate non-pressure forces (gravity)
@@ -178,14 +172,12 @@ void SPH::simulate()
 }
 
 // Adapts the timestep according to the CFL condition
-void SPH::adaptTimestep()
-{
+void SPH::adaptTimestep() {
 	dvec3 vel;
 	double mag, vMax = 0.0;
 
 	// Find max velocity
-	for (int i = 0; i < particleCount; ++i)
-	{
+	for (int i = 0; i < particleCount; ++i) {
 		vel = water->at(i)->getVelocity();
 		mag = dot(vel, vel);
 
@@ -201,8 +193,7 @@ void SPH::adaptTimestep()
 }
 
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
-void SPH::predictVelocities()
-{
+void SPH::predictVelocities() {
 	dvec3 vel, pos, dPos;
 	
 	for (int i = 0; i < particleCount; ++i) {
@@ -224,8 +215,7 @@ void SPH::predictVelocities()
 }
 
 // Check if (x,y,z) is inside an implicit geometry
-bool SPH::isSolid(dvec4 p)
-{
+bool SPH::isSolid(dvec4 p) {
 	dmat4 Q = dmat4(0.0);
 
 	// Cylinder
@@ -278,8 +268,7 @@ bool SPH::isSolid(dvec4 p)
 }
 
 //calculate density function
-void SPH::calculateDensityAndAlpha()
-{
+void SPH::calculateDensityAndAlpha() {
 	for(int i = 0; i < particleCount; i++) {
 		double sum2 = 0, alpha = 0;
 	    dvec3 sum1 = dvec3(0,0,0);
@@ -289,10 +278,11 @@ void SPH::calculateDensityAndAlpha()
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
+			
 			water->at(i)->setDensity(
-                    water->at(i)->getDensity()
-                    + particleMass
-                    * water->at(i)->kernel(water->at(*it)->getPosition(), H));
+                water->at(i)->getDensity()
+                + particleMass
+                * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
@@ -301,16 +291,16 @@ void SPH::calculateDensityAndAlpha()
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)), 
                 abs(particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
+
 		}
-        alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
-		water->at(i)->setAlpha(alpha);          
+		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		water->at(i)->setAlpha(alpha); 
 	}
 }
 
 
 void SPH::display()	
 {	
-
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
@@ -400,7 +390,6 @@ void SPH::createVAO ( int particles ) {
 	glGenBuffers(2, vbo);
 }
 
-void SPH::setTimer(timer *newTimer)
-{
+void SPH::setTimer(timer *newTimer) {
 	frameTimer = newTimer;
 }
