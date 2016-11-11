@@ -52,6 +52,7 @@ class Particle
 		
 		// properties
 		double 	density;
+		double  dDensity;
 		double  alpha; // for kernelfunction (ai)
 		double  stiffness; // k variable in report
 
@@ -67,6 +68,7 @@ class Particle
 		void setColor(vec3 newColor);
         void setCellIndex(ivec3 cell);
 		void setDensity(double);
+		void setdDensity(double);
 		void setAlpha(double);
 		
 
@@ -78,6 +80,7 @@ class Particle
         ivec3 getCellIndex();
         vector<int>* getNeighbours();
 		double getDensity();
+		double getdDensity();
 		double getAlpha();
 		double getStiffness();
 		

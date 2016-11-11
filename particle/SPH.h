@@ -33,15 +33,12 @@ class SPH
 {
 	protected:
 		int				particleCount;	
-		timer			*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
-		double			timeLastFrame;	//the time that the last frame was rendered at
 		double			dT;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
         CellList* cellList;
 		GLuint vao, vbo[2];		// handles to vao and abo
-		//GLfloat *vertices[particleCount][3];	// pointer to all vertices
-
+		
 		// particle properties
 		double 	particleRadius;
 		double 	particleMass;
@@ -62,21 +59,20 @@ class SPH
 		void setViscosity(double);
 
 		void loadJson(std::string);
-		void createVAO(int particles);
+		void createVAO();
 		void predictVelocities();
 		bool isSolid(dvec4);
 		void adaptTimestep();
 		void calculateDensity();	
 		void calculateAlpha();
+		void correctDivergenceError();
 		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
 	public:
 		SPH();
-		SPH(const SPH&);
 		~SPH();
 
 		void display();
-		void setTimer(timer*);
 
 };
 

@@ -65,6 +65,10 @@ void Particle::setDensity(double newDensity)
 {
 	density = newDensity;
 }
+void Particle::setdDensity(double newDensity)
+{
+	dDensity = newDensity;
+}
 void Particle::setAlpha(double newAlpha)
 {
 	alpha = newAlpha;
@@ -78,6 +82,7 @@ vec3 Particle::getColor(){return color;}
 ivec3 Particle::getCellIndex(){return cellIndex;}
 vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
+double Particle::getdDensity(){return dDensity;}
 double Particle::getAlpha(){return alpha;}
 double Particle::getStiffness(){return stiffness;}
 
