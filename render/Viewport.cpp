@@ -32,8 +32,7 @@ std::string ZeroPadNumber(int num) {
   return result;
 }
 
-Viewport::Viewport()
-{
+Viewport::Viewport() {
 	phi = 0.0f;
 	theta = M_PI / 4.0f;
 	rad = 4.0f;
@@ -47,12 +46,11 @@ Viewport::Viewport()
 	timeSinceStart = new timer();
 }
 
-Viewport::~Viewport(){}
+Viewport::~Viewport() {}
 
 /* showFPS() - Calculate and report frames per second
 (updated once per second) in the window title bar */
-void Viewport::displayFPS(GLFWwindow *window)
-{
+void Viewport::displayFPS(GLFWwindow *window) {
 	static double t0 = 0.0;
 	static int frames = 0;
 	double frametime = 0.0;
@@ -63,8 +61,7 @@ void Viewport::displayFPS(GLFWwindow *window)
 	// Get current time
 	t = glfwGetTime();  // Gets number of seconds since glfwInit()
 	// If one second has passed, or if this is the very first frame
-	if ((t - t0) > 1.0 || frames == 0)
-	{
+	if ((t - t0) > 1.0 || frames == 0) {
 		fps = (double)frames / (t - t0);
 		if (frames > 0) frametime = 1000.0 * (t - t0) / frames;
 		sprintf(titlestring, "SPH, %.2f ms/frame (%.1f FPS)", frametime, fps);
@@ -77,8 +74,8 @@ void Viewport::displayFPS(GLFWwindow *window)
 	//return fps;
 }
 
-void Viewport::init(void)		//enable texture, lighting, shading.
-{
+//enable texture, lighting, shading.
+void Viewport::init(void) {
     //GL calls
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -89,14 +86,13 @@ void Viewport::init(void)		//enable texture, lighting, shading.
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // with?
 }
 
-void Viewport::initWorld()
-{
+void Viewport::initWorld() {
 	Viewport::hydro = new SPH();	//this is the object that will manage all of the particles
 	Viewport::hydro->setTimer(timeSinceStart);	//I'm setting a timer to bind the particles to real time regardless of the coputer that they are run on
 }
 
-void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)		//just in case some one wants to resize the window
-{
+// Just in case some one wants to resize the window
+void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)	{
 	glfwGetWindowSize(window, &width, &height);
 
 	P[0] = P[5] * height / width;
@@ -106,8 +102,7 @@ void Viewport::setupPerspective(GLFWwindow *window, GLfloat *P)		//just in case 
 }
 
 // Control the camera with the arrow keys. Hold left control button and UP/DOWN for zoom
-void Viewport::interaction(GLFWwindow *window)
-{
+void Viewport::interaction(GLFWwindow *window) {
 	recordTime = glfwGetTime() - timeSinceAction;
 	deltaTime = (glfwGetTime() - currTime) / 10;
 	currTime = glfwGetTime();
@@ -153,10 +148,8 @@ void Viewport::interaction(GLFWwindow *window)
 
         }
 }
-
-int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe call backs
-{   
-
+// Initialize glut and set all of tAe call backs
+int Viewport::start(int argc, char** argv) {   
     GLfloat I[16] = { 1.0f, 0.0f, 0.0f, 0.0f,
 					  0.0f, 1.0f, 0.0f, 0.0f,
 					  0.0f, 0.0f, 1.0f, 0.0f,
@@ -173,7 +166,6 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe 
 	glm::mat4 viewMatrix;
 	glm::vec4 light;
 	glm::vec4 cam;
-
 
     // start GLEW extension handler
     if (!glfwInit()) {
@@ -210,7 +202,6 @@ int Viewport::start(int argc, char** argv)	//initialize glut and set all of tAe 
     printf("OpenGL version supported %s\n", version);
 
     initWorld();
-
     
     Shader phongShader;
 	phongShader.createShader("glsl/vertexshader.glsl", "glsl/fragmentshader.glsl");

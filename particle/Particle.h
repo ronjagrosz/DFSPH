@@ -30,16 +30,14 @@ using namespace std;
 using namespace boost;
 using namespace glm;
 
-struct BindingPoint
-{
+struct BindingPoint {
 	vector <double> points;
 //	vector <SmoothedParticle*> bound;
 
 };
 
 
-class Particle
-{
+class Particle {
 	protected:
 		
 		vector<int>	*neighbours;	
@@ -95,7 +93,7 @@ class Particle
 		
 		//virtual void calculateDensity(Particle*);		//used to calculate the pressure force
 		
-		inline void printDensity(){cout << "density = " << density << " " << std::isnan(density) << endl;};
+		inline void printDensity() {cout << "density = " << density << " " << std::isnan(density) << endl;};
 };
 
 #endif
