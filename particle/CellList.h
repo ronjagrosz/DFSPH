@@ -48,10 +48,10 @@ class CellList
 
         void addParticle(Particle* particle, int pIndex);
         void moveParticle(Particle* particle, int pIndex);
-        vector<int>* findNeighbours(vector<Particle*> *water, int pIndex);
+        vector< int >* findNeighbours(vector< Particle* > *water, int pIndex);
 
     protected:
-        vector<vector<vector<vector<int>>>> cellList;
+        vector< vector< vector< vector< int > > > > cellList;
         glm::dvec3 lowerLeft;
         const double radius;
 

@@ -51,7 +51,7 @@ void CellList::moveParticle(Particle* particle, int pIndex)
     if (validCellPos(newCell) && (newCell.x != oldCell.x || newCell.y != oldCell.y || newCell.z != oldCell.z))
     {
         // Find particle in old cell
-        vector<int>::iterator it = cellList[oldCell.x][oldCell.y][oldCell.z].begin();
+        vector< int >::iterator it = cellList[oldCell.x][oldCell.y][oldCell.z].begin();
         for(; it != cellList[oldCell.x][oldCell.y][oldCell.z].end(); ++it) {
             if (*it == pIndex)
                 break;
@@ -70,7 +70,7 @@ void CellList::moveParticle(Particle* particle, int pIndex)
 
 vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex)
 {
-    vector<int>* neighbourList = new vector<int>;
+    vector< int >* neighbourList = new vector< int >;
     glm::ivec3 cell = getCellPos(water->at(pIndex)->getPosition());
 
     for (int x = -1; x < 2; x++)
