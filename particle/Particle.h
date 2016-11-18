@@ -20,8 +20,10 @@ particle at a certain point.
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
+#include "../glm/glm/ext.hpp"	
 #elif __APPLE__
 #include "glm/glm.hpp"
+#include "glm/ext.hpp"	
 #endif
 
 #define WATER 0

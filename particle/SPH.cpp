@@ -120,7 +120,7 @@ void SPH::loadJson(string fileName) {
     // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
-    particleMass = 4.0*particleRadius*particleRadius*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>();
+    particleMass = 4.0*pow(particleRadius,3)*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>() * 1000;
     H = params.get<picojson::object>()["H"].get<double>();
     cout << "Particle radius: " << particleRadius << "m\n";
     cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
@@ -149,7 +149,7 @@ void SPH::simulate() {
 		water->at(i)->updatePosition(dT);
         cellList->moveParticle(water->at(i), i);
 	}
-    
+   
     // Find neighbours
     for (int i = 0; i < particleCount; ++i) {
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
@@ -157,9 +157,9 @@ void SPH::simulate() {
 
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();
-
+	
 	// correctDivergenceError
-	//correctDivergenceError();
+	correctDivergenceError();
 
 	// Update velocities
 	
@@ -179,10 +179,10 @@ void SPH::adaptTimestep() {
 			vMax = mag;
 	}
 
-	dT = (particleRadius * 0.8 / vMax) - EPSILON;
+	dT = (particleRadius * 0.8 / vMax);
 
 	// make sure dT is less than the maximum timestep
-	if (maxTimestep < dT)
+	//if (maxTimestep < dT)
 		dT = maxTimestep;
 }
 
@@ -197,11 +197,11 @@ void SPH::predictVelocities() {
 
 		// Dirichlet Boundary Condition
 		if(isSolid(vec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
-			vel.x = 0.0;
+			vel.x = -0.3*vel.x; //0.0;
 		if(isSolid(vec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
 			vel.y = 0.0;
 		if(isSolid(vec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
-			vel.z = 0.0;
+			vel.z = -0.3*vel.z; //0.0;
 		
 		water->at(i)->setVelocity(vel); // should we store a predictedVelocity vector instead?
 	}
@@ -255,8 +255,12 @@ bool SPH::isSolid(dvec4 p) {
 	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
 		return true;
 	// Cube
-	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > geometry.w)
-		return false;
+	else if (sceneName == "cube") {
+		if (max(abs(p.x),abs(p.y+1.0),abs(p.z)) > geometry.w)
+			return false;
+		else
+			return true;
+	}
 	else
 		return (dot(p,(Q * p)) < 0.0);
 }
@@ -278,26 +282,27 @@ void SPH::calculateDensityAndAlpha() {
                 + particleMass
                 * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
+
+
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
-			sum2 += dot(abs(particleMass
-                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)), 
-                abs(particleMass
-                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
+			sum2 += dot(abs(sum1), abs(sum1));
 
 		}
+		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
 		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		
+
 		water->at(i)->setAlpha(alpha); 
 	}
 }
 
 // Maintains the pressure difference = 0 in each simulation loop
-void SPH::correctDivergenceError() 
-{
+void SPH::correctDivergenceError() {
 	double dPavg = 10.0, dPi;
 	int iter = 0;
-	while (dPavg > 0.1 && iter < 1) {
+	while (abs(dPavg) > 0.005 && iter < 10) {
 		dPi = 0.0;
 		dPavg = 0.0;
 
@@ -311,34 +316,33 @@ void SPH::correctDivergenceError()
 			}
 			water->at(i)->setdDensity(dPi);
 			dPavg += dPi;
+			dPi = 0.0;
 		}
 		dPavg /= particleCount;
+		//cout << dPavg << ", iter: " << iter << "                                       \n";
 
+		// vel = vel - dT * m * (ki/pi + kj/pj)*dWij
 		for (int i = 0; i < particleCount; ++i) {
+			//cout << "Alpha " << i << ": " << water->at(i)->getAlpha() << "             \n";
 			// adapt velocities
-			double ki = 1/dT * water->at(i)->getdDensity() * water->at(i)->getAlpha(); 
-
+			double ki = 1/dT * water->at(i)->getdDensity() * water->at(i)->getAlpha();
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
 				double kj = 1/dT * water->at(*it)->getdDensity() * water->at(*it)->getAlpha();
-
 				sum += particleMass 
 				* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity()) 
 				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			}
-			dvec3 temp = water->at(i)->getVelocity();// − (sum * dT);
-			temp -= sum * dT;
+			dvec3 temp = water->at(i)->getVelocity() - (sum * dT);
 			water->at(i)->setVelocity(temp);
 		}
 	iter++;		
 	}
-	
 }
 
-void SPH::display()	
-{	
+void SPH::display()	{	
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
