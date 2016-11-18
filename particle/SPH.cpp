@@ -292,8 +292,6 @@ void SPH::calculateDensityAndAlpha() {
 		}
 		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
 		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
-		
-
 		water->at(i)->setAlpha(alpha); 
 	}
 }

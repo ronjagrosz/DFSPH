@@ -46,7 +46,7 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
     ivec3 newCell = getCellPos(particle->getPosition());
     ivec4 oldCell = particle->getCellIndex();
     vector< int >::iterator it;
-    
+
     // Move particle if it has left the old cell and the new cell is valid
     if (validCellPos(newCell) && (newCell.x != oldCell.x || newCell.y != oldCell.y || newCell.z != oldCell.z)) {
         // Find particle in old cell
@@ -60,6 +60,8 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
             if (*it == pIndex)
                 break;
         }
+        if (*it != pIndex)
+            cout << "Didn't find particle in cell\n";
 
         // Insert into new cell
         cellList[newCell.x][newCell.y][newCell.z].push_back(pIndex);
