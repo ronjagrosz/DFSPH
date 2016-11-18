@@ -273,12 +273,11 @@ void SPH::calculateDensityAndAlpha() {
 		double sum2 = 0, alpha = 0;
 	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
-		
+
         // Loop through neighbours and set density
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-			
 			water->at(i)->setDensity(
                 water->at(i)->getDensity()
                 + particleMass

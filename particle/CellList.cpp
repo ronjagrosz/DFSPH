@@ -10,7 +10,6 @@ neighbouring particles faster.
 
 CellList::CellList(dvec3 lowestPoint, dvec3 highestPoint, double H) : lowerLeft(lowestPoint), radius(H) {
     // Amount of cubes in every direction
-
     ivec3 noOfCubes = ceil((highestPoint - lowerLeft) / radius) + 1.0;
     if (noOfCubes.x < 0 || noOfCubes.y < 0 || noOfCubes.z < 0) {
         cout << "Radius or dimension of cellList is wrong";
@@ -58,7 +57,7 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
         } else {
              it = cellList[oldCell.x][oldCell.y][oldCell.z].begin() + oldCell.w;
         }
-        for(; it != cellList[oldCell.x][oldCell.y][oldCell.z].begin(); --it) {
+        for (; it != cellList[oldCell.x][oldCell.y][oldCell.z].begin(); --it) {
             if (*it == pIndex)
                 break;
         }
@@ -71,7 +70,7 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
 
         // Update particles cell index
         particle->setCellIndex(ivec4(newCell, cellList[newCell.x][newCell.y][newCell.z].size() - 1));
-    }
+    } 
 }
 
 // Find the particles actual neighbours in the neighbouring cells
@@ -90,8 +89,7 @@ vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
 
                 // Iterate through potential neighbours
                 for(vector<int>::iterator it = cellList[pos.x][pos.y][pos.z].begin(); it != cellList[pos.x][pos.y][pos.z].end(); ++it) {
-                    if (pIndex != *it 
-                        && length(water->at(pIndex)->getPosition() 
+                    if (length(water->at(pIndex)->getPosition() 
                         - water->at(*it)->getPosition()) <= radius)
                         neighbourList->push_back(*it);
                 }
@@ -110,9 +108,9 @@ ivec3 CellList::getCellPos(dvec3 pos) {
 // Validate that the cell position is in bounds
 bool CellList::validCellPos(ivec3 pos) {
     // Return true if position is inside the boundaries
-    return pos.x > 0 && 
-           pos.y > 0 && 
-           pos.z > 0 && 
+    return pos.x >= 0 && 
+           pos.y >= 0 && 
+           pos.z >= 0 && 
            pos.x < cellList.size() && 
            pos.y < cellList[0].size() && 
            pos.z < cellList[0][0].size();
