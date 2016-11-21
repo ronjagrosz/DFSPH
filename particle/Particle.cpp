@@ -19,7 +19,6 @@ particle at a certain point.
 
 //#define WEIGHTLESS
 
-
 using namespace std;
 using namespace glm;
 
@@ -57,12 +56,10 @@ void Particle::setCellIndex(ivec4 cell) {
 void Particle::setDensity(double newDensity) {
 	density = newDensity;
 }
-void Particle::setdDensity(double newDensity)
-{
+void Particle::setdDensity(double newDensity) {
 	dDensity = newDensity;
 }
-void Particle::setAlpha(double newAlpha)
-{
+void Particle::setAlpha(double newAlpha) {
 	alpha = newAlpha;
 }
 
@@ -82,36 +79,25 @@ double Particle::getStiffness(){return stiffness;}
 void Particle::updatePosition(double elapsedTime) {
 	position += velocity * elapsedTime;	
 }
-
 // Update neighbour list
 void Particle::updateNeighbours(vector<int>* neighbourList) {
     neighbours = neighbourList;
 }
+// Cubic spline kernel function
 double Particle::kernel(dvec3 nPosition, double H) {
-	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
-	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
-	
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) { //maybe remove this when we calc neighbours in the correct way
-		//cout << "1\n";
+
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) 
 		return 1.0;
-	}
-	else if ( q >= 0 && q <= 1) {
-		//cout << "2\n";
-		//cout << (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q) << "\n";
+	else if ( q >= 0 && q <= 1)
 		return (1/(H*H*H)*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q));
-	}
-	else if ( q >= 1 && q <= 2 ) {
-		//cout << "3\n";
+	else if ( q >= 1 && q <= 2 ) 
 		return (1/(H*H*H))*(1/M_PI)*(1/4*(2-q)*(2-q)*(2-q));
-	}
-	else {
-		//cout << "4\n";
+	else 
 		return 0;
-	}
 }
+// Gradient for cubic spline kernel function
 dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
-	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0))

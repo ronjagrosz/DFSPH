@@ -70,7 +70,6 @@ class Particle {
 		void setDensity(double);
 		void setdDensity(double);
 		void setAlpha(double);
-		
 
 		// Getters
 		dvec3 getPosition();
@@ -84,11 +83,8 @@ class Particle {
 		double getAlpha();
 		double getStiffness();
 		
-		
-		//void correctDensityError();
 		void updatePosition(double elapsedTime);	// Apply the velocity to the position
 		void updateNeighbours(vector<int>* neighbourList);
-		//void correctDivergenceError();
 		//void updateVelocity(); // is this one needed?
 
 
