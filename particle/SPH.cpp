@@ -197,19 +197,19 @@ void SPH::predictVelocities() {
 	dvec3 vel, pos, dPos;
 	
 	for (int i = 0; i < particleCount; ++i) {
-		vel = water->at(i)->getVelocity() + dvec3(0.0, constantAcceleration * dT, 0.0); //water->at(i)->getForce()/particleMass * dT;
+		vel = water->at(i)->getVelocity() + dvec3(0.0, constantAcceleration * dT, 0.0);
 		pos = water->at(i)->getPosition();
 		dPos = vel * dT;
 
 		// Dirichlet Boundary Condition
-		if(isSolid(vec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
+		if(isSolid(vec4(pos.x + dPos.x, pos.y, pos.z, 1.0))) // X
 			vel.x = 0.0;
-		if(isSolid(vec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
+		if(isSolid(vec4(pos.x, pos.y + dPos.y, pos.z, 1.0))) // Y
 			vel.y = 0.0;
-		if(isSolid(vec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
+		if(isSolid(vec4(pos.x, pos.y, pos.z + dPos.z, 1.0))) // Z
 			vel.z = 0.0;
 		
-		water->at(i)->setVelocity(vel); // should we store a predictedVelocity vector instead?
+		water->at(i)->setVelocity(vel);
 	}
 	
 }
