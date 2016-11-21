@@ -55,7 +55,7 @@ SPH::SPH()
 		
 		water->at(i) = new Particle();
 		water->at(i)->setPosition(randX, randY, randZ);
-		water->at(i)->setColor(newColor);
+		water->at(i)->setColor(newColor); // Remove?
 		water->at(i)->setVelocity(dvec3(randI, randJ, randK));
 	}
 
@@ -73,7 +73,7 @@ SPH::SPH()
 	calculateDensityAndAlpha();		
 
 	restDensity = 0.0;
-	for (int i = 0; i < 0; ++i) 
+	for (int i = 0; i < particleCount; ++i) 
 		restDensity += water->at(i)->getDensity();
 	restDensity /= particleCount;
 
@@ -166,9 +166,6 @@ void SPH::simulate() {
 	
 	// correctDivergenceError
 	correctDivergenceError();
-
-	// Update velocities
-	
 }
 
 // Adapts the timestep according to the CFL condition
@@ -185,10 +182,10 @@ void SPH::adaptTimestep() {
 			vMax = mag;
 	}
 
-	dT = (particleRadius * 0.8 / vMax);
+	dT = (particleRadius * 0.8 / sqrt(vMax));
 
 	// make sure dT is less than the maximum timestep
-	//if (maxTimestep < dT)
+	if (maxTimestep < dT)
 		dT = maxTimestep;
 }
 
@@ -315,14 +312,14 @@ void SPH::correctDensityError()
 	while ((avgDensity - restDensity) > 0.01*restDensity || iter < 2) {	
 		avgDensity = 0.0;
 
-		for (int i = 0; i < 0; ++i) {	
+		for (int i = 0; i < particleCount; ++i) {	
 			//calc density by Euler integration
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-				dDensity += particleMass 
-					* dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
-					  water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
+			    	dDensity += particleMass 
+					    * dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
+					    water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
 			}
 			water->at(i)->setDensity( water->at(i)->getDensity() + dT*dDensity );
 			avgDensity += water->at(i)->getDensity();
@@ -331,12 +328,11 @@ void SPH::correctDensityError()
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
+				    ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
+				    kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
 				
-				ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
-				kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
-				
-				tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
-					 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
+				    tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
+					    * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
 			}	
 			//update velocity
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - dT*tmpV);
@@ -466,7 +462,6 @@ void SPH::createVAO () {
 	// It contains all VBOs (Vertex Buffer Objects)
 	// A VBO stores information about the vertices. 
 	// Now we're using two VBOs, one for coordinates and one for colors
-	
 
 	// Allocate and bind Vertex Array Object to the handle vao
 	glGenVertexArrays(1, &vao);
