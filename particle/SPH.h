@@ -28,7 +28,6 @@ SPH is responsible for orginization of a group of smooth particles.
 
 using namespace boost;
 
-const double REST_DENSITY = 2.861;
 
 class SPH
 {
@@ -37,6 +36,7 @@ class SPH
 		timer			*frameTimer;	//this tracks the amount of time between frames for reasonable rendering
 		double			timeLastFrame;	//the time that the last frame was rendered at
 		double			dT;
+		double 			restDensity;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
         CellList* cellList;

@@ -77,6 +77,11 @@ SPH::SPH() {
 	// compute densities and alpha factors
 	calculateDensityAndAlpha();		
 
+	restDensity = 0.0;
+	for (int i = 0; i < 0; ++i) 
+		restDensity += water->at(i)->getDensity();
+	restDensity /= particleCount;
+
 	createVAO(particleCount);
 	timeLastFrame = frameTimer->elapsed();
 }
@@ -150,6 +155,7 @@ void SPH::simulate() {
 	predictVelocities();
 
 	// correctDensityError
+	correctDensityError();
 
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
@@ -287,6 +293,7 @@ void SPH::calculateDensityAndAlpha() {
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
+			
 			sum2 += dot(abs(particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)), 
                 abs(particleMass
@@ -301,16 +308,11 @@ void SPH::calculateDensityAndAlpha() {
 // Correct density error
 void SPH::correctDensityError()
 {
-	double avgDensity = 0.0, dDensity = 0.0;
+	double avgDensity = restDensity, ki, kj, dDensity = 0.0;
+	dvec3 tmpV = dvec3(0.0, 0.0, 0.0);
 	int iter = 0;
 
-	for (int i = 0; i < 0; ++i) 
-		avgDensity += water->at(i)->getDensity();
-	avgDensity /= particleCount;
-
-	//while p_avg - p_0 != 0 (density error) && iter < 2
-	//hur stort epsilon?
-	while ((avgDensity - REST_DENSITY) > EPSILON*100 || iter < 2) {
+	while ((avgDensity - restDensity) > 0.0001 || iter < 2) {
 		
 		avgDensity = 0.0;
 
@@ -323,18 +325,33 @@ void SPH::correctDensityError()
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
 				dDensity += particleMass 
-					* (water->at(i)->getVelocity() - water->at(*it)->getVelocity() ) 
-					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
+					* dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
+					  water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
 			}
 			water->at(i)->setDensity( water->at(i)->getDensity() + dT*dDensity );
-			avgDensity += water->at(i)->getDensity()
+			avgDensity += water->at(i)->getDensity();
 			dDensity = 0.0;
 
-			//calc k with the correct pressure forces (updated density -> k is updated, k includes pressure forces) 
+			for (vector<int>::iterator it 
+                = water->at(i)->getNeighbours()->begin();
+                it != water->at(i)->getNeighbours()->end(); ++it) {
 
+				//calc k with the correct pressure forces (updated density -> k is updated, k includes pressure forces) 
+				ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
+
+				kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
+
+				tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
+					 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
+			}
+			
 			//update velocity
+			water->at(i)->setVelocity(water->at(i)->getVelocity() - dT*tmpV);
 		}
+		
 		avgDensity /= particleCount;
+		iter++;
+		tmpV = dvec3(0.0,0.0,0.0);
 	}
 }
 
