@@ -1,9 +1,9 @@
 {
     "particlesCount" : 2000,
     "fps" : 30,
-    "iterations" : 300,
+    "iterations" : 500,
     "constantAcceleration" : -9.81,
-    "sceneName" : "ellipsoid",
+    "sceneName" : "asd",
     "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 0.6 },
 
     "particleRadius" : 0.01,
@@ -13,5 +13,5 @@
     "A" : 0,
     "k" : 100,
     "stiffness" : 7.065,
-    "H" : 0.05
+    "H" : 0.3
 };

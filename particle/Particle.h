@@ -20,8 +20,10 @@ particle at a certain point.
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
+#include "../glm/glm/ext.hpp"	
 #elif __APPLE__
 #include "glm/glm.hpp"
+#include "glm/ext.hpp"	
 #endif
 
 #define WATER 0
@@ -45,11 +47,12 @@ class Particle {
 		dvec3 	position;
 		dvec3 	velocity;
 		dvec3   force;
-		vec3	color;	//the color of the smooth particle
-        ivec3  cellIndex;
+		vec3	color;	// The color of the smooth particle
+        ivec4  cellIndex;
 		
-		// properties
+		// Properties
 		double 	density;
+		double  dDensity;
 		double  alpha; // for kernelfunction (ai)
 		double  stiffness; // k variable in report
 
@@ -58,30 +61,32 @@ class Particle {
 		//Particle(const Particle&);
 		~Particle();
 		
-		//setters
+		// Setters
 		void setPosition(float,float,float);
 		void setVelocity(dvec3);
 		void setForce(double, double, double);
 		void setColor(vec3 newColor);
-        void setCellIndex(ivec3 cell);
+        void setCellIndex(ivec4 cell);
 		void setDensity(double);
+		void setdDensity(double);
 		void setAlpha(double);
 		
 
-		//getters
+		// Getters
 		dvec3 getPosition();
 		dvec3 getVelocity();
 		dvec3 getForce();
 		vec3 getColor();
-        ivec3 getCellIndex();
+        ivec4 getCellIndex();
         vector<int>* getNeighbours();
 		double getDensity();
+		double getdDensity();
 		double getAlpha();
 		double getStiffness();
 		
 		
 		//void correctDensityError();
-		void updatePosition(double elapsedTime);	// apply the velocity to the position
+		void updatePosition(double elapsedTime);	// Apply the velocity to the position
 		void updateNeighbours(vector<int>* neighbourList);
 		//void correctDivergenceError();
 		//void updateVelocity(); // is this one needed?
@@ -91,22 +96,9 @@ class Particle {
 		virtual	double kernel(dvec3, double);
 		virtual	dvec3 gradientKernel(dvec3, double);
 		
-		//virtual void calculateDensity(Particle*);		//used to calculate the pressure force
+		//virtual void calculateDensity(Particle*);		// Used to calculate the pressure force
 		
 		inline void printDensity() {cout << "density = " << density << " " << std::isnan(density) << endl;};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-

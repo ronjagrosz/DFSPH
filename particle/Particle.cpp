@@ -51,26 +51,32 @@ void Particle::setColor(vec3 newColor) {
 	if(newColor != color)
 		color = newColor;
 }
-void Particle::setCellIndex(ivec3 cell) {
+void Particle::setCellIndex(ivec4 cell) {
     cellIndex = cell;
 }
 void Particle::setDensity(double newDensity) {
 	density = newDensity;
 }
-void Particle::setAlpha(double newAlpha) {
+void Particle::setdDensity(double newDensity)
+{
+	dDensity = newDensity;
+}
+void Particle::setAlpha(double newAlpha)
+{
 	alpha = newAlpha;
 }
 
 // Getters  ***************************************************************
-dvec3 Particle::getPosition() {return position;}
-dvec3 Particle::getVelocity() {return velocity;}
-dvec3 Particle::getForce() {return force;}
-vec3 Particle::getColor() {return color;}
-ivec3 Particle::getCellIndex() {return cellIndex;}
-vector<int>* Particle::getNeighbours() {return neighbours;}
-double Particle::getDensity() {return density;}
-double Particle::getAlpha() {return alpha;}
-double Particle::getStiffness() {return stiffness;}
+dvec3 Particle::getPosition(){return position;}
+dvec3 Particle::getVelocity(){return velocity;}
+dvec3 Particle::getForce(){return force;}
+vec3 Particle::getColor(){return color;}
+ivec4 Particle::getCellIndex(){return cellIndex;}
+vector<int>* Particle::getNeighbours(){return neighbours;}
+double Particle::getDensity(){return density;}
+double Particle::getdDensity(){return dDensity;}
+double Particle::getAlpha(){return alpha;}
+double Particle::getStiffness(){return stiffness;}
 
 // Update position with current velocity
 void Particle::updatePosition(double elapsedTime) {
@@ -85,13 +91,15 @@ double Particle::kernel(dvec3 nPosition, double H) {
 	// Cubic spline kernel
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 	//cout << "dist: " << sqrt(dot(position-nPosition, position-nPosition)) << "\n";
+	
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) { //maybe remove this when we calc neighbours in the correct way
 		//cout << "1\n";
 		return 1.0;
 	}
 	else if ( q >= 0 && q < 1) {
 		//cout << "2\n";
-		return (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q);
+		//cout << (1/(H*H*H))*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q) << "\n";
+		return (1/(H*H*H)*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q));
 	}
 	else if ( q >= 1 && q < 2 ) {
 		//cout << "3\n";
@@ -104,16 +112,15 @@ double Particle::kernel(dvec3 nPosition, double H) {
 }
 dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
 	// Cubic spline kernel
-	
 	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
 
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
 		return dvec3(1.0, 1.0, 1.0);
-	else if ( q >= 0 && q < 1)
+	else if ( q >= 0 && q < 1) {
+		//cout << "Gradient kernel: " << glm::to_string(position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(- 3*q + 9/4*q*q)) << "\n";
 		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(- 3*q + 9/4*q*q);
-	else if ( q >= 1 && q < 2 )
+	} else if ( q >= 1 && q < 2 )
 		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(-3/4*(2-q)*(2-q));
 	else 
 		return dvec3(0.0, 0.0, 0.0);
 }
-

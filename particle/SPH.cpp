@@ -23,13 +23,8 @@ SPH is responsible for orginization of a group of smooth particles.
 
 using namespace glm;
 
-bool compareZ(Particle* left, Particle* right) {
-	return (left->getPosition().z < right->getPosition().z);
-}
-
-SPH::SPH() {
-	frameTimer = new timer;
-
+SPH::SPH()
+{
 	// load json parameters
 	loadJson("json/scene_parameters.json");
 
@@ -38,22 +33,22 @@ SPH::SPH() {
 
 	GLfloat randX, randY, randZ;
 	vec3 newColor = vec3(1.0f,1.0f,1.0f);
-	double randI, randJ, randK; //velocity vector values
+	double randI, randJ, randK; // Velocity vector values
 	
 	srand(time(0));
 
 	water = new vector<Particle*>(particleCount);
-    cellList = new CellList(glm::dvec3(-2.0, -2.0, -2.0), glm::dvec3(2.0, 2.0, 2.0), H);
+    cellList = new CellList(glm::dvec3(-0.5, -0.5, -0.5), glm::dvec3(0.5, 0.5, 0.5), H);
 
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
 
-		// random position
+		// Random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.4;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 
-		// random velocity
+		// Random velocity
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
@@ -74,7 +69,7 @@ SPH::SPH() {
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
 
-	// compute densities and alpha factors
+	// Compute densities and alpha factors
 	calculateDensityAndAlpha();		
 
 	restDensity = 0.0;
@@ -82,8 +77,7 @@ SPH::SPH() {
 		restDensity += water->at(i)->getDensity();
 	restDensity /= particleCount;
 
-	createVAO(particleCount);
-	timeLastFrame = frameTimer->elapsed();
+	createVAO();
 }
 
 
@@ -92,7 +86,6 @@ SPH::~SPH() {
 		delete water->at(i);
 	}
 	delete water;
-	delete frameTimer;
 }
 
 void SPH::setRadius(double rad) {
@@ -132,7 +125,7 @@ void SPH::loadJson(string fileName) {
     // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
-    particleMass = 4.0*particleRadius*particleRadius*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>();
+    particleMass = 4.0*pow(particleRadius,3)*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>() * 1000;
     H = params.get<picojson::object>()["H"].get<double>();
     cout << "Particle radius: " << particleRadius << "m\n";
     cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
@@ -148,10 +141,10 @@ void SPH::simulate() {
 	//for(int i = 0; i < particleCount; ++i)
 		//water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
-	// adapt timestep according to CFL condition
+	// Adapt timestep according to CFL condition
 	adaptTimestep();
 
-	// predict velocities
+	// Predict velocities
 	predictVelocities();
 
 	// correctDensityError
@@ -162,7 +155,7 @@ void SPH::simulate() {
 		water->at(i)->updatePosition(dT);
         cellList->moveParticle(water->at(i), i);
 	}
-    
+   
     // Find neighbours
     for (int i = 0; i < particleCount; ++i) {
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
@@ -170,8 +163,9 @@ void SPH::simulate() {
 
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();
-
+	
 	// correctDivergenceError
+	correctDivergenceError();
 
 	// Update velocities
 	
@@ -191,10 +185,10 @@ void SPH::adaptTimestep() {
 			vMax = mag;
 	}
 
-	dT = (particleRadius * 0.8 / vMax) - EPSILON;
+	dT = (particleRadius * 0.8 / vMax);
 
 	// make sure dT is less than the maximum timestep
-	if (maxTimestep < dT)
+	//if (maxTimestep < dT)
 		dT = maxTimestep;
 }
 
@@ -209,11 +203,11 @@ void SPH::predictVelocities() {
 
 		// Dirichlet Boundary Condition
 		if(isSolid(vec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
-			vel.x = 0.0;
+			vel.x = /*0.0;*/ -0.1*vel.x;
 		if(isSolid(vec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
-			vel.y = 0.0;
+			vel.y = /*0.0;*/ -0.1*vel.y;
 		if(isSolid(vec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
-			vel.z = 0.0;
+			vel.z = /*0.0;*/ -0.3*vel.z;
 		
 		water->at(i)->setVelocity(vel); // should we store a predictedVelocity vector instead?
 	}
@@ -264,16 +258,20 @@ bool SPH::isSolid(dvec4 p) {
 		Q[3][3] = -geometry.w; // + or -
 	}
 
-	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
+	if (max(abs(p.x),abs(p.y),abs(p.z)) > 0.5)
 		return true;
 	// Cube
-	else if (sceneName == "cube" && max(abs(p.x),abs(p.y),abs(p.z)) > geometry.w)
-		return false;
+	else if (sceneName == "cube") {
+		if (max(abs(p.x),abs(p.y+1.0),abs(p.z)) > geometry.w)
+			return false;
+		else
+			return true;
+	}
 	else
 		return (dot(p,(Q * p)) < 0.0);
 }
 
-//calculate density function
+// Calculate density function
 void SPH::calculateDensityAndAlpha() {
 	for(int i = 0; i < particleCount; i++) {
 		double sum2 = 0, alpha = 0;
@@ -284,22 +282,24 @@ void SPH::calculateDensityAndAlpha() {
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-			
 			water->at(i)->setDensity(
                 water->at(i)->getDensity()
                 + particleMass
                 * water->at(i)->kernel(water->at(*it)->getPosition(), H));
+
+
 
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			
 			sum2 += dot(abs(particleMass
-                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)), 
-                abs(particleMass
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)),
+                 abs(particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
 
 		}
+		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
 		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
 		water->at(i)->setAlpha(alpha); 
 	}
@@ -312,18 +312,14 @@ void SPH::correctDensityError()
 	dvec3 tmpV = dvec3(0.0, 0.0, 0.0);
 	int iter = 0;
 
-	while ((avgDensity - restDensity) > 0.0001 || iter < 2) {
-		
+	while ((avgDensity - restDensity) > 0.01*restDensity || iter < 2) {	
 		avgDensity = 0.0;
 
-		//for all particles
-		for (int i = 0; i < 0; ++i) {
-			
+		for (int i = 0; i < 0; ++i) {	
 			//calc density by Euler integration
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-
 				dDensity += particleMass 
 					* dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
 					  water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
@@ -335,16 +331,13 @@ void SPH::correctDensityError()
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-
-				//calc k with the correct pressure forces (updated density -> k is updated, k includes pressure forces) 
+				
 				ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
-
 				kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
-
+				
 				tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
 					 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
-			}
-			
+			}	
 			//update velocity
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - dT*tmpV);
 		}
@@ -355,83 +348,120 @@ void SPH::correctDensityError()
 	}
 }
 
-void SPH::display()	
-{	
+// Maintains the pressure difference = 0 in each simulation loop
+void SPH::correctDivergenceError() {
+	double dPavg = 10.0, dPi;
+	int iter = 0;
+	while (abs(dPavg) > 0.02 || iter < 1) {
+		dPi = 0.0;
+		dPavg = 0.0;
+
+		// Compute pressure difference in particle i (dPi), dPavg is the average difference
+		for (int i = 0; i < particleCount; ++i) {
+			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+                it != water->at(i)->getNeighbours()->end(); ++it) {
+				dPi += (particleMass * 
+					dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
+					, water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
+			}
+			water->at(i)->setdDensity(dPi);
+			dPavg += dPi;
+			//cout << dPi << "\n";
+			dPi = 0.0;
+		}
+		dPavg /= particleCount;
+		//cout << dPavg << ", iter: " << iter << "                                       \n";
+
+		// vel = vel - dT * m * (ki/pi + kj/pj)*dWij
+		for (int i = 0; i < particleCount; ++i) {
+			//cout << "Alpha " << i << ": " << water->at(i)->getAlpha() << "             \n";
+			// adapt velocities
+			double ki = 1/dT * water->at(i)->getdDensity() * water->at(i)->getAlpha();
+			dvec3 sum = dvec3(0.0, 0.0, 0.0);
+			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+                it != water->at(i)->getNeighbours()->end(); ++it) {
+
+				double kj = 1/dT * water->at(*it)->getdDensity() * water->at(*it)->getAlpha();
+				sum += particleMass 
+				* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity()) 
+				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
+			}
+			dvec3 temp = water->at(i)->getVelocity() - (sum * dT);
+			water->at(i)->setVelocity(temp);
+		}
+	iter++;		
+	}
+}
+
+void SPH::display()	{	
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
-	//this is used to log the elapsed time since the last frame
-	double timeDiff = frameTimer->elapsed() - timeLastFrame;
-	if (timeDiff - EPSILON > 0.0) {
-		double t = 0.0;
-		int iter = 0;
-		// Propagate the solution until requested time is reached
-		while (t < maxTimestep && iter < iterations) {
-			simulate();
-			t += dT;
-			iter++;
-		}
-
-		// "   " used as padding as sometimes we get 10 iterations, sometimes 9
-		cout << "Iterations: " << iter << ", Timestep: " << t << "        " << '\r' << flush;
-
-		// Render stuff
-		for(int i = 0; i < particleCount; ++i) {
-			vertices[i][0] = water->at(i)->getPosition().x;
-			vertices[i][1] = water->at(i)->getPosition().y;
-			vertices[i][2] = water->at(i)->getPosition().z;
-			
-			//tmp = water->at(i)->getColor();
-			colors[i][0] = 0.7 - water->at(i)->getPosition().x;
-			colors[i][1] = 0.7 - water->at(i)->getPosition().y;
-			colors[i][2] = 0.7 - water->at(i)->getPosition().z;
-			
-		}
-
-
-		// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
-	    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-
-		// Copy the vertex data from diamond to our buffer 
-	    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
-	    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
-
-	    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
-	    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	    // Enable attribute index 0 as being used 
-	    glEnableVertexAttribArray(0);
-
-	    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
-	    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-
-	    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), colors, GL_STATIC_DRAW);
-
-	    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
-	    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-	    // Enable attribute index 1 as being used
-	    glEnableVertexAttribArray(1);
+	double t = 0.0;
+	int iter = 0;
+	// Propagate the solution until requested time is reached
+	while (t < maxTimestep && iter < iterations) {
+		simulate();
+		t += dT;
+		iter++;
 	}
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
+	// "   " used as padding as sometimes we get 10 iterations, sometimes 9
+	cout << "Iterations: " << iter << ", Timestep: " << t << "        " << '\r' << flush;
+
+	// Render stuff
+	for(int i = 0; i < particleCount; ++i) {
+		vertices[i][0] = water->at(i)->getPosition().x;
+		vertices[i][1] = water->at(i)->getPosition().y;
+		vertices[i][2] = water->at(i)->getPosition().z;
+		
+		//tmp = water->at(i)->getColor();
+		colors[i][0] = 0.7 - water->at(i)->getPosition().x;
+		colors[i][1] = 0.7 - water->at(i)->getPosition().y;
+		colors[i][2] = 0.7 - water->at(i)->getPosition().z;
+		
+	}
+
+
+	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+	// Copy the vertex data from diamond to our buffer 
+    // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
+    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), vertices,/* 9 * sizeof(GLfloat), diamond, */ GL_STATIC_DRAW);
+
+    // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // Enable attribute index 0 as being used 
+    glEnableVertexAttribArray(0);
+
+    // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+
+    // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    // Enable attribute index 1 as being used
+    glEnableVertexAttribArray(1);
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Make background black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vao);
 
-	glEnable(GL_PROGRAM_POINT_SIZE); //enable gl_PointSize in vertex shader
+	glEnable(GL_PROGRAM_POINT_SIZE); // Enable gl_PointSize in vertex shader
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
 	glDrawArrays(GL_POINTS, 0, particleCount);
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
-
-
-	timeLastFrame = frameTimer->elapsed();
 }
 
-void SPH::createVAO ( int particles ) {
+void SPH::createVAO () {
 	// A VAO (Vertex Array Object) stores information of a complete rendered object.
 	// It contains all VBOs (Vertex Buffer Objects)
 	// A VBO stores information about the vertices. 
@@ -444,8 +474,4 @@ void SPH::createVAO ( int particles ) {
 
 	// Generate (one) new Vertex Buffer Object and get the associated id
 	glGenBuffers(2, vbo);
-}
-
-void SPH::setTimer(timer *newTimer) {
-	frameTimer = newTimer;
 }

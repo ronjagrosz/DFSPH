@@ -88,7 +88,6 @@ void Viewport::init(void) {
 
 void Viewport::initWorld() {
 	Viewport::hydro = new SPH();	//this is the object that will manage all of the particles
-	Viewport::hydro->setTimer(timeSinceStart);	//I'm setting a timer to bind the particles to real time regardless of the coputer that they are run on
 }
 
 // Just in case some one wants to resize the window
