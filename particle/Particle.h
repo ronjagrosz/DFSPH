@@ -20,8 +20,10 @@ particle at a certain point.
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
+#include "../glm/glm/ext.hpp"	
 #elif __APPLE__
 #include "glm/glm.hpp"
+#include "glm/ext.hpp"	
 #endif
 
 #define WATER 0
@@ -50,7 +52,8 @@ class Particle {
 		
 		// Properties
 		double 	density;
-		double  alpha; // For kernelfunction (ai)
+		double  dDensity;
+		double  alpha; // for kernelfunction (ai)
 		double  stiffness; // k variable in report
 
 	public:
@@ -65,6 +68,7 @@ class Particle {
 		void setColor(vec3 newColor);
         void setCellIndex(ivec4 cell);
 		void setDensity(double);
+		void setdDensity(double);
 		void setAlpha(double);
 		
 
@@ -76,6 +80,7 @@ class Particle {
         ivec4 getCellIndex();
         vector<int>* getNeighbours();
 		double getDensity();
+		double getdDensity();
 		double getAlpha();
 		double getStiffness();
 		
