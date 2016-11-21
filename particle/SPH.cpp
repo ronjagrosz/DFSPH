@@ -317,7 +317,7 @@ void SPH::correctDivergenceError() {
 			dPi = 0.0;
 		}
 		dPavg /= particleCount;
-		//cout << dPavg << ", iter: " << iter << "                                       \n";
+		cout << dPavg << ", iter: " << iter << "                                       \n";
 
 		// vel = vel - dT * m * (ki/pi + kj/pj)*dWij
 		for (int i = 0; i < particleCount; ++i) {
