@@ -47,10 +47,10 @@ class Particle {
 		dvec3 	position;
 		dvec3 	velocity;
 		dvec3   force;
-		vec3	color;	//the color of the smooth particle
+		vec3	color;	// The color of the smooth particle
         ivec4  cellIndex;
 		
-		// properties
+		// Properties
 		double 	density;
 		double  dDensity;
 		double  alpha; // for kernelfunction (ai)
@@ -61,7 +61,7 @@ class Particle {
 		//Particle(const Particle&);
 		~Particle();
 		
-		//setters
+		// Setters
 		void setPosition(float,float,float);
 		void setVelocity(dvec3);
 		void setForce(double, double, double);
@@ -72,7 +72,7 @@ class Particle {
 		void setAlpha(double);
 		
 
-		//getters
+		// Getters
 		dvec3 getPosition();
 		dvec3 getVelocity();
 		dvec3 getForce();
@@ -86,7 +86,7 @@ class Particle {
 		
 		
 		//void correctDensityError();
-		void updatePosition(double elapsedTime);	// apply the velocity to the position
+		void updatePosition(double elapsedTime);	// Apply the velocity to the position
 		void updateNeighbours(vector<int>* neighbourList);
 		//void correctDivergenceError();
 		//void updateVelocity(); // is this one needed?
@@ -96,22 +96,9 @@ class Particle {
 		virtual	double kernel(dvec3, double);
 		virtual	dvec3 gradientKernel(dvec3, double);
 		
-		//virtual void calculateDensity(Particle*);		//used to calculate the pressure force
+		//virtual void calculateDensity(Particle*);		// Used to calculate the pressure force
 		
 		inline void printDensity() {cout << "density = " << density << " " << std::isnan(density) << endl;};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-

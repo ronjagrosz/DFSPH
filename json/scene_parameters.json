@@ -3,10 +3,10 @@
     "fps" : 30,
     "iterations" : 500,
     "constantAcceleration" : -9.81,
-    "sceneName" : "ellipsoid",
+    "sceneName" : "asd",
     "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 0.6 },
 
-    "particleRadius" : 0.01,
+    "particleRadius" : 0.1,
     "particleMass" : 0.1,
     "particleViscosity" : 2.034,
     "density" : 0.99829,

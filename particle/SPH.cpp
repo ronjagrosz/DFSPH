@@ -33,22 +33,22 @@ SPH::SPH()
 
 	GLfloat randX, randY, randZ;
 	vec3 newColor = vec3(1.0f,1.0f,1.0f);
-	double randI, randJ, randK; //velocity vector values
+	double randI, randJ, randK; // Velocity vector values
 	
 	srand(time(0));
 
 	water = new vector<Particle*>(particleCount);
-    cellList = new CellList(glm::dvec3(-2.0, -2.0, -2.0), glm::dvec3(2.0, 2.0, 2.0), H);
+    cellList = new CellList(glm::dvec3(-0.5, -0.5, -0.5), glm::dvec3(0.5, 0.5, 0.5), H);
 
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
 
-		// random position
+		// Random position
 		randX = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
-		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5 + 1.4;
+		randY = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 		randZ = ((float)rand()/(float)RAND_MAX) * 1.0 - 0.5;
 
-		// random velocity
+		// Random velocity
 		randI = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randJ = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
 		randK = (((double)rand()/(double)RAND_MAX) * 0.2) - 0.1;
@@ -69,7 +69,7 @@ SPH::SPH()
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
 
-	// compute densities and alpha factors
+	// Compute densities and alpha factors
 	calculateDensityAndAlpha();		
 
 	createVAO();
@@ -136,13 +136,13 @@ void SPH::simulate() {
 	//for(int i = 0; i < particleCount; ++i)
 		//water->at(i)->setForce(0.0, particleMass * constantAcceleration, 0.0);
 
-	// adapt timestep according to CFL condition
+	// Adapt timestep according to CFL condition
 	adaptTimestep();
 
-	// predict velocities
+	// Predict velocities
 	predictVelocities();
 
-	// correctDensityError
+	// CorrectDensityError
 
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
@@ -197,11 +197,11 @@ void SPH::predictVelocities() {
 
 		// Dirichlet Boundary Condition
 		if(isSolid(vec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
-			vel.x = -0.3*vel.x; //0.0;
+			vel.x = /*0.0;*/ -0.1*vel.x;
 		if(isSolid(vec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
-			vel.y = 0.0;
+			vel.y = /*0.0;*/ -0.1*vel.y;
 		if(isSolid(vec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
-			vel.z = -0.3*vel.z; //0.0;
+			vel.z = /*0.0;*/ -0.3*vel.z;
 		
 		water->at(i)->setVelocity(vel); // should we store a predictedVelocity vector instead?
 	}
@@ -252,7 +252,7 @@ bool SPH::isSolid(dvec4 p) {
 		Q[3][3] = -geometry.w; // + or -
 	}
 
-	if (max(abs(p.x),abs(p.y),abs(p.z)) > 2.0)
+	if (max(abs(p.x),abs(p.y),abs(p.z)) > 0.5)
 		return true;
 	// Cube
 	else if (sceneName == "cube") {
@@ -265,18 +265,17 @@ bool SPH::isSolid(dvec4 p) {
 		return (dot(p,(Q * p)) < 0.0);
 }
 
-//calculate density function
+// Calculate density function
 void SPH::calculateDensityAndAlpha() {
 	for(int i = 0; i < particleCount; i++) {
 		double sum2 = 0, alpha = 0;
 	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
-		
+
         // Loop through neighbours and set density
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-			
 			water->at(i)->setDensity(
                 water->at(i)->getDensity()
                 + particleMass
@@ -287,7 +286,10 @@ void SPH::calculateDensityAndAlpha() {
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
-			sum2 += dot(abs(sum1), abs(sum1));
+			sum2 += dot(abs(particleMass
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)),
+                 abs(particleMass
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
 
 		}
 		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
@@ -300,7 +302,7 @@ void SPH::calculateDensityAndAlpha() {
 void SPH::correctDivergenceError() {
 	double dPavg = 10.0, dPi;
 	int iter = 0;
-	while (abs(dPavg) > 0.005 && iter < 10) {
+	while (abs(dPavg) > 0.02 || iter < 1) {
 		dPi = 0.0;
 		dPavg = 0.0;
 
@@ -314,10 +316,11 @@ void SPH::correctDivergenceError() {
 			}
 			water->at(i)->setdDensity(dPi);
 			dPavg += dPi;
+			//cout << dPi << "\n";
 			dPi = 0.0;
 		}
 		dPavg /= particleCount;
-		cout << dPavg << ", iter: " << iter << "                                       \n";
+		//cout << dPavg << ", iter: " << iter << "                                       \n";
 
 		// vel = vel - dT * m * (ki/pi + kj/pj)*dWij
 		for (int i = 0; i < particleCount; ++i) {
@@ -394,12 +397,12 @@ void SPH::display()	{
     // Enable attribute index 1 as being used
     glEnableVertexAttribArray(1);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // make background black
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Make background black
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vao);
 
-	glEnable(GL_PROGRAM_POINT_SIZE); //enable gl_PointSize in vertex shader
+	glEnable(GL_PROGRAM_POINT_SIZE); // Enable gl_PointSize in vertex shader
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
