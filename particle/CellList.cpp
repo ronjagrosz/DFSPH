@@ -43,6 +43,14 @@ void CellList::addParticle(Particle* particle, int pIndex) {
 
 // Move the particle from one cell to another if it has moved
 void CellList::moveParticle(Particle* particle, int pIndex) {
+    // Validate that particles position is ok
+    if (std::isnan(particle->getPosition().x) ||
+        std::isnan(particle->getPosition().y) ||
+        std::isnan(particle->getPosition().z)) {
+        cout << "Position for particle is NaN\n";
+        return;
+    }
+
     // Get new and old cell for particle
     ivec3 newCell = getCellPos(particle->getPosition());
     ivec4 oldCell = particle->getCellIndex();
@@ -81,7 +89,12 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
 // Find the particles actual neighbours in the neighbouring cells
 vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
     vector< int >* neighbourList = new vector< int >;
-    ivec3 cell = getCellPos(water->at(pIndex)->getPosition());
+    if (std::isnan(water->at(pIndex)->getPosition().x) ||
+        std::isnan(water->at(pIndex)->getPosition().y) ||
+        std::isnan(water->at(pIndex)->getPosition().z)) {
+        cout << "Position for particle is NaN\n";
+    }
+    ivec3 cell = water->at(pIndex)->getCellIndex();
 
     for (int x = -1; x < 2; x++) { 
         for (int y = -1; y < 2; y++) {
@@ -113,10 +126,13 @@ ivec3 CellList::getCellPos(dvec3 pos) {
 // Validate that the cell position is in bounds
 bool CellList::validCellPos(ivec3 pos) {
     // Return true if position is inside the boundaries
-    return pos.x >= 0 && 
-           pos.y >= 0 && 
-           pos.z >= 0 && 
-           pos.x < cellList.size() && 
-           pos.y < cellList[0].size() && 
-           pos.z < cellList[0][0].size();
+    return  !std::isnan(pos.x) &&
+            !std::isnan(pos.y) &&
+            !std::isnan(pos.z) &&
+            pos.x >= 0 && 
+            pos.y >= 0 && 
+            pos.z >= 0 && 
+            pos.x < cellList.size() && 
+            pos.y < cellList[0].size() && 
+            pos.z < cellList[0][0].size();
 }

@@ -276,7 +276,6 @@ void SPH::calculateDensityAndAlpha() {
 	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		
-		// Loop through neighbours and set density and alpha
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
@@ -341,13 +340,13 @@ void SPH::correctDensityError()
 	cout << "avgDensity: " << avgDensity << ", avgVel: " << to_string(avgVel)
 	<< ", Go in: " << (abs(avgDensity - restDensity) > 0.1*restDensity) << "\n";
 
-	while (abs(avgDensity - restDensity) > 0.1*restDensity || iter < 1) {
+	while (abs(avgDensity - restDensity) > 0.1*restDensity || iter < 0) {
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
 			double ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
-			
+
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
@@ -402,7 +401,7 @@ void SPH::correctDivergenceError() {
 	cout << "dDensityAvg: " << dDensityAvg << ", avgVel: " << to_string(avgVel)
 	<< ", Go in: " << (abs(dDensityAvg) > 0.2) << "\n";
 
-	while (abs(dDensityAvg) > 0.2 || iter < 1) {
+	while (abs(dDensityAvg) > 0.2 || iter < 0) {
 		dDensityAvg = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
