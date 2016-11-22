@@ -144,8 +144,6 @@ void SPH::simulate() {
 	
 	// correctDivergenceError
 	correctDivergenceError();
-
-	// Update velocities
 }
 
 // Adapts the timestep according to the CFL condition
@@ -174,14 +172,14 @@ void SPH::predictVelocities() {
 	dvec3 vel, pos, dPos;
 	
 	for (int i = 0; i < particleCount; ++i) {
-		vel = water->at(i)->getVelocity() + dvec3(0.0, constantAcceleration * dT, 0.0); //water->at(i)->getForce()/particleMass * dT;
+		vel = water->at(i)->getVelocity() + dvec3(0.0, constantAcceleration * dT, 0.0);
 		pos = water->at(i)->getPosition();
 		dPos = vel * dT;
 
 		// Dirichlet Boundary Condition
 		vel = dirichletBoundary(pos, dPos, vel);
 		
-		water->at(i)->setVelocity(vel); // should we store a predictedVelocity vector instead?
+		water->at(i)->setVelocity(vel);
 	}
 	
 }
@@ -265,11 +263,9 @@ void SPH::calculateDensityAndAlpha() {
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-			water->at(i)->setDensity(
-                water->at(i)->getDensity()
-                + particleMass
-                * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
+			water->at(i)->setDensity(water->at(i)->getDensity() + particleMass
+                * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
@@ -302,9 +298,9 @@ void SPH::correctDensityError()
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-				dDensity += particleMass 
-					* dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
-					  water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
+			    	dDensity += particleMass 
+					    * dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
+					    water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
 			}
 			water->at(i)->setDensity( water->at(i)->getDensity() + dT*dDensity );
 			avgDensity += water->at(i)->getDensity();
@@ -313,12 +309,11 @@ void SPH::correctDensityError()
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
+				    ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
+				    kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
 				
-				ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
-				kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
-				
-				tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
-					 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
+				    tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
+					    * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
 			}	
 			//update velocity
 
@@ -463,7 +458,6 @@ void SPH::createVAO () {
 	// It contains all VBOs (Vertex Buffer Objects)
 	// A VBO stores information about the vertices. 
 	// Now we're using two VBOs, one for coordinates and one for colors
-	
 
 	// Allocate and bind Vertex Array Object to the handle vao
 	glGenVertexArrays(1, &vao);
