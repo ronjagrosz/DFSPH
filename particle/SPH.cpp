@@ -295,6 +295,10 @@ void SPH::calculateDensityAndAlpha() {
 		}
 		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
 		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+
+		if (alpha < 0.000001) // set as constant
+			alpha = 0.000001;
+		
 		water->at(i)->setAlpha(alpha); 
 	}
 }
@@ -344,13 +348,13 @@ void SPH::correctDensityError()
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
-			double ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
+			double ki = 1/(dT*dT) * abs(water->at(i)->getDensity() - restDensity) * water->at(i)->getAlpha(); 
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
 
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
-				double kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
+				double kj = 1/(dT*dT) * abs(water->at(*it)->getDensity() - restDensity) * water->at(*it)->getAlpha(); 
 				
 				sum += particleMass 
 					* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
