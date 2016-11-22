@@ -94,7 +94,7 @@ vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
         std::isnan(water->at(pIndex)->getPosition().z)) {
         cout << "Position for particle is NaN\n";
     }
-    ivec3 cell = water->at(pIndex)->getCellIndex();
+    ivec4 cell = water->at(pIndex)->getCellIndex();
 
     for (int x = -1; x < 2; x++) { 
         for (int y = -1; y < 2; y++) {
