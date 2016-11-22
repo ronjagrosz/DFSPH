@@ -136,16 +136,14 @@ void Viewport::interaction(GLFWwindow *window) {
 		phi = fmod(phi, M_PI*2.0);
 	}
 	if (glfwGetKey(window, GLFW_KEY_R) && recordTime > 0.5) {
-            record = !record;
-            if (record)
-            	std::cout << "Starting to record..                                 " << std::endl;
-            else
-            	std::cout << "Recorded " << recordTime << " seconds (" 
-            << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
-            timeSinceAction = glfwGetTime();
-
-
-        }
+        record = !record;
+        if (record)
+            std::cout << "Starting to record..                                 " << std::endl;
+        else
+            std::cout << "Recorded " << recordTime << " seconds (" 
+        << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
+        timeSinceAction = glfwGetTime();
+    }
 }
 // Initialize glut and set all of tAe call backs
 int Viewport::start(int argc, char** argv) {   
@@ -268,5 +266,3 @@ int Viewport::start(int argc, char** argv) {
 
 	return 0;
 }
- 
-
