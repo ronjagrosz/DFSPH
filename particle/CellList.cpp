@@ -49,20 +49,23 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
     vector< int >::iterator it;
 
     // Move particle if it has left the old cell and the new cell is valid
-    if (validCellPos(newCell) && (newCell.x != oldCell.x || newCell.y != oldCell.y || newCell.z != oldCell.z)) {
+    if ((newCell.x != oldCell.x || newCell.y != oldCell.y || newCell.z != oldCell.z) && validCellPos(newCell)) {
         // Find particle in old cell
+        // Check if the old cell w coord is larger than the amount of particles in cell
         if (oldCell.w > cellList[oldCell.x][oldCell.y][oldCell.z].size() - 1) {
             it = cellList[oldCell.x][oldCell.y][oldCell.z].end();
             it--;
-        } else {
+        } else { // Set iterator at the predicted cell index
              it = cellList[oldCell.x][oldCell.y][oldCell.z].begin() + oldCell.w;
         }
+        // Iterate to the position where the index actually is
         for (; it != cellList[oldCell.x][oldCell.y][oldCell.z].begin(); --it) {
             if (*it == pIndex)
                 break;
         }
+        // Validate that the iterator actually is at the particle
         if (*it != pIndex)
-            cout << "Didn't find particle in cell\n";
+            cout << "Didn't find particle in cell in moveParticle\n";
 
         // Insert into new cell
         cellList[newCell.x][newCell.y][newCell.z].push_back(pIndex);

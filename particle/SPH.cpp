@@ -284,8 +284,6 @@ void SPH::calculateDensityAndAlpha() {
                 + particleMass
                 * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
-
-
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
 			sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
