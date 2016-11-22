@@ -277,8 +277,8 @@ void SPH::calculateDensityAndAlpha() {
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		
 		vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, densityandalpha" << endl;
+        if (it == water->at(i)->getNeighbours()->end())
+            cout << "NO NEIGHBOURS, densityandalpha" << endl;
         // Loop through neighbours and set density and alpha
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
@@ -306,8 +306,8 @@ void SPH::calculateDensityAndAlpha() {
 double SPH::calculateDensityChange(int i) {
 	double dDensity = 0.0;
 	vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, calculateDensityChange" << endl;
+    if (it == water->at(i)->getNeighbours()->end())
+        cout << "NO NEIGHBOURS, calculateDensityChange" << endl;
 	for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
         it != water->at(i)->getNeighbours()->end(); ++it) {
 		dDensity += (particleMass * 
@@ -342,7 +342,7 @@ void SPH::correctDensityError()
 
 			vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
             if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, correctDensityError" << endl;
+                cout << "NO NEIGHBOURS, correctDensityError pos: "<< water->at(i)->getPosition().x << " "  << water->at(i)->getPosition().y << " "  << water->at(i)->getPosition().z << " "  << endl;
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
