@@ -44,31 +44,26 @@ class SPH
 		double 	particleRadius;
 		double 	particleMass;
 		double 	H;
-		double 	particleViscosity;
 		double  maxTimestep;
 		double  iterations;
 		double  constantAcceleration;
 		std::string sceneName;
 		vec4 geometry;
 
-		double getRadius();
-		double getMass();
-		double getViscosity();
-
-		void setRadius(double);
-		void setMass(double);
-		void setViscosity(double);
-
 		void loadJson(std::string);
 		void createVAO();
-		void predictVelocities();
-		bool isSolid(dvec4);
+
 		void adaptTimestep();
+		void predictVelocities();
+		dvec3 dirichletBoundary(dvec3, dvec3, dvec3);
+		bool isSolid(dvec4);
+		double calculateDensityChange();
+		void correctDensityError();
 		void calculateDensityAndAlpha();	
 		void correctDivergenceError();
 		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
 		
-		virtual void correctDensityError();
+		
 		
 	public:
 		SPH();
