@@ -276,10 +276,7 @@ void SPH::calculateDensityAndAlpha() {
 	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		
-		vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, densityandalpha" << endl;
-        // Loop through neighbours and set density and alpha
+		// Loop through neighbours and set density and alpha
         for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
@@ -305,9 +302,9 @@ void SPH::calculateDensityAndAlpha() {
 
 double SPH::calculateDensityChange(int i) {
 	double dDensity = 0.0;
-	vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, calculateDensityChange" << endl;
+	vector<int>::iterator check = water->at(i)->getNeighbours()->begin();
+	if (check == water->at(i)->getNeighbours()->end())
+        cout << "No neighbours" << endl;
 	for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
         it != water->at(i)->getNeighbours()->end(); ++it) {
 		dDensity += (particleMass * 
@@ -333,16 +330,24 @@ void SPH::correctDensityError()
 	avgDensity /= particleCount;
 
 	cout << "DensityError:                              \n";
-	while (abs(avgDensity - restDensity) > 0.1*restDensity || iter < 0) {
+
+	// Print what we get in:
+	dvec3 avgVel = dvec3(0.0,0.0,0.0);
+	for (int i = 0; i < particleCount; ++i) {
+		avgVel += water->at(i)->getVelocity();
+	}
+	avgVel /= particleCount;
+
+	cout << "avgDensity: " << avgDensity << ", avgVel: " << to_string(avgVel)
+	<< ", Go in: " << (abs(avgDensity - restDensity) > 0.1*restDensity) << "\n";
+
+	while (abs(avgDensity - restDensity) > 0.1*restDensity || iter < 1) {
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
 			double ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
-
-			vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, correctDensityError" << endl;
+			
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
@@ -363,7 +368,14 @@ void SPH::correctDensityError()
 		}
 		avgDensity /= particleCount;
 		
-		cout << iter << ": " << avgDensity << ", " << restDensity << ", " << 0.1*restDensity << "\n";
+		dvec3 avgVel = dvec3(0.0,0.0,0.0);
+		for (int i = 0; i < particleCount; ++i) {
+			avgVel += water->at(i)->getVelocity();
+		}
+		avgVel /= particleCount;
+
+		cout << iter << ": " << avgDensity << ", " << restDensity << ", " 
+		<< "avgVel: " << to_string(avgVel) << ", Go in: " << (abs(avgDensity - restDensity) > 0.1*restDensity) << "\n";
 		iter++;
 	}
 }
@@ -379,7 +391,17 @@ void SPH::correctDivergenceError() {
 	}
 	dDensityAvg /= particleCount;
 	
-	cout << "DivergenceError:                      ";
+	cout << "DivergenceError:                      \n";
+	// Print what we get in:
+	dvec3 avgVel = dvec3(0.0,0.0,0.0);
+	for (int i = 0; i < particleCount; ++i) {
+		avgVel += water->at(i)->getVelocity();
+	}
+	avgVel /= particleCount;
+
+	cout << "dDensityAvg: " << dDensityAvg << ", avgVel: " << to_string(avgVel)
+	<< ", Go in: " << (abs(dDensityAvg) > 0.2) << "\n";
+
 	while (abs(dDensityAvg) > 0.2 || iter < 1) {
 		dDensityAvg = 0.0;
 
@@ -388,10 +410,8 @@ void SPH::correctDivergenceError() {
 			double ki = 1/dT * water->at(i)->getdDensity() * water->at(i)->getAlpha();
 			
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
-            vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            if (it == water->at(i)->getNeighbours()->end())
-                cout << "NO NEIGHBOURS, DivergenceError" << endl;
-			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            vector<int>::iterator check = water->at(i)->getNeighbours()->begin();
+            for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
 				double kj = 1/dT * water->at(*it)->getdDensity() * water->at(*it)->getAlpha();
