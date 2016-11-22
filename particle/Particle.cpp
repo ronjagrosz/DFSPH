@@ -26,8 +26,6 @@ Particle::Particle() {
 	neighbours = new vector<int>;
 
 	velocity  = dvec3(0.0, 0.0, 0.0);
-	force = dvec3(0.0, 0.0, 0.0);
-
 	density = 0;
 }
 
@@ -42,13 +40,6 @@ void Particle::setPosition(float x, float y, float z) {
 
 void Particle::setVelocity(dvec3 vel) {
 	velocity = vel;
-}
-void Particle::setForce(double i, double j, double k) {
-	force = dvec3(i, j, k);
-}
-void Particle::setColor(vec3 newColor) {
-	if(newColor != color)
-		color = newColor;
 }
 void Particle::setCellIndex(ivec4 cell) {
     cellIndex = cell;
@@ -66,14 +57,11 @@ void Particle::setAlpha(double newAlpha) {
 // Getters  ***************************************************************
 dvec3 Particle::getPosition(){return position;}
 dvec3 Particle::getVelocity(){return velocity;}
-dvec3 Particle::getForce(){return force;}
-vec3 Particle::getColor(){return color;}
 ivec4 Particle::getCellIndex(){return cellIndex;}
 vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
 double Particle::getdDensity(){return dDensity;}
 double Particle::getAlpha(){return alpha;}
-double Particle::getStiffness(){return stiffness;}
 
 // Update position with current velocity
 void Particle::updatePosition(double elapsedTime) {
