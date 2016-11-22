@@ -73,9 +73,11 @@ SPH::SPH()
 	calculateDensityAndAlpha();		
 
 	restDensity = 0.0;
-	for (int i = 0; i < 0; ++i) 
+	for (int i = 0; i < particleCount; ++i) 
 		restDensity += water->at(i)->getDensity();
 	restDensity /= particleCount;
+
+	cout << "restDensity: " << restDensity << "\n";
 
 	createVAO();
 }
@@ -136,6 +138,10 @@ void SPH::loadJson(string fileName) {
 // Update positions with a small timestep
 void SPH::simulate() {
 	// Self-advection - Skipped for SPH
+	
+	/* cout << "pos: " << water->at(0)->getPosition().x << " " 
+			<< water->at(0)->getPosition().y << " " 
+			<< water->at(0)->getPosition().z << "\n";  */
 
 	// Calculate non-pressure forces (gravity)
 	//for(int i = 0; i < particleCount; ++i)
@@ -144,28 +150,43 @@ void SPH::simulate() {
 	// Adapt timestep according to CFL condition
 	adaptTimestep();
 
+	//cout << water->at(0)->getVelocity().y << " 1\n";
+
 	// Predict velocities
 	predictVelocities();
 
+
+	//cout << water->at(0)->getVelocity().y << " 2\n";
+
 	// correctDensityError
 	correctDensityError();
+
+	//cout << water->at(0)->getVelocity().y << " 3\n";
 
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
         cellList->moveParticle(water->at(i), i);
 	}
+
+	//cout << water->at(0)->getVelocity().y << " 4\n";
    
     // Find neighbours
     for (int i = 0; i < particleCount; ++i) {
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
 
+	//cout << water->at(0)->getVelocity().y <<  " 5\n";
+
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();
+
+	//cout << water->at(0)->getVelocity().y << " 6\n";
 	
 	// correctDivergenceError
 	correctDivergenceError();
+
+	//cout << water->at(0)->getVelocity().y << " 7\n";
 
 	// Update velocities
 	
@@ -185,7 +206,7 @@ void SPH::adaptTimestep() {
 			vMax = mag;
 	}
 
-	dT = (particleRadius * 0.8 / vMax);
+	dT = (particleRadius * 0.8 / sqrt(vMax));
 
 	// make sure dT is less than the maximum timestep
 	//if (maxTimestep < dT)
@@ -308,31 +329,42 @@ void SPH::calculateDensityAndAlpha() {
 // Correct density error
 void SPH::correctDensityError()
 {
+	cout << "new simulate...\n";
 	double avgDensity = restDensity, ki, kj, dDensity = 0.0;
 	dvec3 tmpV = dvec3(0.0, 0.0, 0.0);
 	int iter = 0;
 
-	while ((avgDensity - restDensity) > 0.01*restDensity || iter < 2) {	
+	while (abs(avgDensity - restDensity) > 0.01*restDensity || iter < 2) {	
 		avgDensity = 0.0;
 
-		for (int i = 0; i < 0; ++i) {	
+		for (int i = 0; i < particleCount; ++i) {	
 			//calc density by Euler integration
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
+				//cout << "has a neighbor\n";
+				//cout << "i " << water->at(i)->getVelocity().y <<  "\n";
+				//cout << "j " << water->at(*it)->getVelocity().y <<  "\n\n";
+
 				dDensity += particleMass 
 					* dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity() ), 
 					  water->at(i)->gradientKernel(water->at(*it)->getPosition(), H));
 			}
-			water->at(i)->setDensity( water->at(i)->getDensity() + dT*dDensity );
-			avgDensity += water->at(i)->getDensity();
+			double tmp = water->at(i)->getDensity() + dT*dDensity;
+			water->at(i)->setDensity( tmp );
+			avgDensity += tmp;
+			//cout << "density " << avgDensity << endl;
 			dDensity = 0.0;
+		}
+		avgDensity /= particleCount;
+		cout << "avgDensity " << avgDensity << endl;
 
+		for (int i = 0; i < particleCount; ++i) {
+			ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
 			for (vector<int>::iterator it 
                 = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
-				ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
 				kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
 				
 				tmpV += particleMass * (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
@@ -340,11 +372,11 @@ void SPH::correctDensityError()
 			}	
 			//update velocity
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - dT*tmpV);
-		}
+			tmpV = dvec3(0.0,0.0,0.0);
+		}		
 		
-		avgDensity /= particleCount;
 		iter++;
-		tmpV = dvec3(0.0,0.0,0.0);
+		
 	}
 }
 
