@@ -283,6 +283,23 @@ void SPH::calculateDensityAndAlpha() {
 	}
 }
 
+double SPH::calculateDensityChange() {
+	double dDensity = 0.0, dPi = 0.0;
+	for (int i = 0; i < particleCount; ++i) {
+		for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            it != water->at(i)->getNeighbours()->end(); ++it) {
+			dPi += (particleMass * 
+				dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
+				, water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
+		}
+		water->at(i)->setdDensity(dPi);
+		dDensity += dPi;
+		dPi = 0.0;
+	}
+
+	return dDensity;
+}
+
 // Correct density error
 void SPH::correctDensityError()
 {
@@ -330,23 +347,6 @@ void SPH::correctDensityError()
 		iter++;
 		tmpV = dvec3(0.0,0.0,0.0);
 	}
-}
-
-double SPH::calculateDensityChange() {
-	double dPavg = 0.0, dPi = 0.0;
-	for (int i = 0; i < particleCount; ++i) {
-		for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
-            it != water->at(i)->getNeighbours()->end(); ++it) {
-			dPi += (particleMass * 
-				dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
-				, water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
-		}
-		water->at(i)->setdDensity(dPi);
-		dPavg += dPi;
-		dPi = 0.0;
-	}
-
-	return (dPavg /= particleCount);
 }
 
 // Maintains the pressure difference = 0 in each simulation loop
