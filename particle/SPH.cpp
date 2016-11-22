@@ -300,9 +300,11 @@ void SPH::calculateDensityAndAlpha() {
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		
         // Loop through neighbours and set density and alpha
-        for (vector<int>::iterator it 
-                = water->at(i)->getNeighbours()->begin();
-                it != water->at(i)->getNeighbours()->end(); ++it) {
+        vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+        if (it == water->at(i)->getNeighbours()->end())
+            cout << "NO NEIGHBOURS, denalpha" << endl;
+
+        for (it; it != water->at(i)->getNeighbours()->end(); ++it) {
 			water->at(i)->setDensity(
                 water->at(i)->getDensity()
                 + particleMass
@@ -338,9 +340,11 @@ void SPH::correctDensityError()
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {	
-			//calc density by Euler integration
-			for (vector<int>::iterator it 
-                = water->at(i)->getNeighbours()->begin();
+            vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            if (it == water->at(i)->getNeighbours()->end())
+                cout << "NO NEIGHBOURS, correctDensityError1" << endl;
+            // Calc density by Euler integration
+			for (it;
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				//cout << "has a neighbor\n";
 				//cout << "i " << water->at(i)->getVelocity().y <<  "\n";
@@ -357,12 +361,16 @@ void SPH::correctDensityError()
 			dDensity = 0.0;
 		}
 		avgDensity /= particleCount;
-		cout << "avgDensity " << avgDensity << endl;
+		//cout << "avgDensity " << avgDensity << endl;
 
 		for (int i = 0; i < particleCount; ++i) {
 			ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
-			for (vector<int>::iterator it 
-                = water->at(i)->getNeighbours()->begin();
+
+            vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            if (it == water->at(i)->getNeighbours()->end())
+                cout << "NO NEIGHBOURS, corrDensErr2" << endl;
+
+			for (it;
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
 				kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
@@ -390,7 +398,10 @@ void SPH::correctDivergenceError() {
 
 		// Compute pressure difference in particle i (dPi), dPavg is the average difference
 		for (int i = 0; i < particleCount; ++i) {
-			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            if (it == water->at(i)->getNeighbours()->end())
+                cout << "NO NEIGHBOURS, corrdiverr1" << endl;
+			for (it;
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				dPi += (particleMass * 
 					dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
@@ -410,7 +421,10 @@ void SPH::correctDivergenceError() {
 			// adapt velocities
 			double ki = 1/dT * water->at(i)->getdDensity() * water->at(i)->getAlpha();
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
-			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
+            if (it == water->at(i)->getNeighbours()->end())
+                cout << "NO NEIGHBOURS, corrdiverr2" << endl;
+			for (it;
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
 				double kj = 1/dT * water->at(*it)->getdDensity() * water->at(*it)->getAlpha();

@@ -38,19 +38,15 @@ void Shader::createShader(const char *vertexFilePath, const char *fragmentFilePa
 	// Create empty vertex shader handle
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
-	// Send the source code in teh shader to GL
+	// Send the source code in the shader to GL
 	const GLchar *sourceVertex = (const GLchar *)vertexSource.c_str();
 	glShaderSource(vertexShader, 1, &sourceVertex, 0);
-
 	glCompileShader(vertexShader);
-
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
 	
 	if (isCompiled == GL_FALSE) {
-
 		glGetShaderInfoLog(vertexShader, sizeof(str), NULL, str);
 		fprintf(stderr, "%s: %s\n", "Vertex shader compile error", str);
-
 		glDeleteShader(vertexShader);
 
 		return;
@@ -62,13 +58,10 @@ void Shader::createShader(const char *vertexFilePath, const char *fragmentFilePa
 	// Send the source code in the shader to GL
 	const GLchar *sourceFragment = (const GLchar *)fragmentSource.c_str();
 	glShaderSource(fragmentShader, 1, &sourceFragment, 0);
-
 	glCompileShader(fragmentShader);
-
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
 
 	if (isCompiled == GL_FALSE) {
-
 		glGetShaderInfoLog(fragmentShader, sizeof(str), NULL, str);
 		fprintf(stderr, "%s: %s\n", "Fragment shader compile error", str);
 
@@ -91,7 +84,6 @@ void Shader::createShader(const char *vertexFilePath, const char *fragmentFilePa
 	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
 
 	if (isLinked == GL_FALSE) {
-
 		glGetProgramInfoLog(program, sizeof(str), NULL, str);
 		fprintf(stderr, "%s: %s\n", "Program object linking error", str);
 
@@ -114,15 +106,12 @@ void Shader::createShader(const char *vertexFilePath, const char *fragmentFilePa
 
 //! Reads the source code in the shader file into a string.
 string Shader::readFile(const char *filePath) {
-
 	string sourceCode;
 	string line = "";
 	ifstream fileStream (filePath);
 
 	if (fileStream.is_open()) {
-		
 		while (!fileStream.eof()) {
-
 			std::getline(fileStream, line);
 			sourceCode.append(line + "\n");
 		}
