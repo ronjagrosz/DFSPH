@@ -37,7 +37,7 @@ SPH::SPH()
 	srand(time(0));
 
 	water = new vector<Particle*>(particleCount);
-    cellList = new CellList(glm::dvec3(-0.5, -0.5, -0.5), glm::dvec3(0.5, 0.5, 0.5), H);
+    cellList = new CellList(dvec3(-0.5, -0.5, -0.5), dvec3(0.5, 0.5, 0.5), H);
 
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
@@ -308,6 +308,7 @@ double SPH::calculateDensityChange(int i) {
 	vector<int>::iterator check = water->at(i)->getNeighbours()->begin();
 	if (check == water->at(i)->getNeighbours()->end())
         cout << "No neighbours" << endl;
+
 	for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
         it != water->at(i)->getNeighbours()->end(); ++it) {
 		dDensity += (particleMass * 
