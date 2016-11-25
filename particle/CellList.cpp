@@ -47,7 +47,8 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
     if (std::isnan(particle->getPosition().x) ||
         std::isnan(particle->getPosition().y) ||
         std::isnan(particle->getPosition().z)) {
-        cout << "Position for particle is NaN\n";
+        cout << "Position for particle " << particle->getCellIndex().w << " is NaN\n";
+
         return;
     }
 
@@ -89,10 +90,13 @@ void CellList::moveParticle(Particle* particle, int pIndex) {
 // Find the particles actual neighbours in the neighbouring cells
 vector<int>* CellList::findNeighbours(vector<Particle*> *water, int pIndex) {
     vector< int >* neighbourList = new vector< int >;
+
+    // In case the particle has a nan position
     if (std::isnan(water->at(pIndex)->getPosition().x) ||
         std::isnan(water->at(pIndex)->getPosition().y) ||
         std::isnan(water->at(pIndex)->getPosition().z)) {
-        cout << "Position for particle is NaN\n";
+        neighbourList->push_back(pIndex);
+        return neighbourList;
     }
     ivec4 cell = water->at(pIndex)->getCellIndex();
 
