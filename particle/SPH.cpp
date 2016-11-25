@@ -156,7 +156,7 @@ void SPH::simulate() {
 	//cout << water->at(0)->getVelocity().y << " 6\n";
 	
 	// correctDivergenceError
-	//correctDivergenceError();
+	correctDivergenceError();
 }
 
 // Adapts the timestep according to the CFL condition
@@ -375,13 +375,14 @@ void SPH::correctDivergenceError() {
 	for (int i = 0; i < particleCount; i++) {
 		calculateDensityAdv(i);
 		dDensityAvg += (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
-		water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT); // faster
+		//water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT); // faster
 	}
 	dDensityAvg /= particleCount;
 
 	double eta = invdT * 0.01 * restDensity * maxErrorV;
 	
-	//cout << "DivergenceError:                      \n";
+	cout << "DivergenceError:                      \n";
+	cout << "dDensityAvg: " << dDensityAvg << endl;
 	
 	while (((dDensityAvg > eta) || (iter < 1)) && (iter < maxIterV)) {
 		dDensityAvg = 0.0;
@@ -389,15 +390,14 @@ void SPH::correctDivergenceError() {
 		for (int i = 0; i < particleCount; ++i) {
 			//cout << "Alpha " << i << ": " << water->at(i)->getAlpha() << "             \n";
 			double dDi = (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
-			double ki = dDi * water->at(i)->getAlpha();
+			double ki = dDi * water->at(i)->getAlpha() * invdT;
 			
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
-            vector<int>::iterator check = water->at(i)->getNeighbours()->begin();
             for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
             	double dDj = (water->at(*it)->getDensityAdv() - water->at(*it)->getDensity() ) / dT;
-				double kj = dDj * water->at(*it)->getAlpha();
+				double kj = dDj * water->at(*it)->getAlpha() * invdT;
 				sum += particleMass 
 				* (ki/water->at(i)->getDensity() + kj/water->at(i)->getDensity())
 				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
@@ -418,9 +418,9 @@ void SPH::correctDivergenceError() {
 	}
 
 	// Change alpha back
-	for (int i = 0; i < particleCount; i++) {
+	/*for (int i = 0; i < particleCount; i++) {
 		water->at(i)->setAlpha(water->at(i)->getAlpha() * dT);
-	}
+	}*/
 }
 
 void SPH::display()	{	
