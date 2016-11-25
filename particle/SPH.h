@@ -47,6 +47,9 @@ class SPH
 		double  maxTimestep;
 		double  iterations;
 		double  constantAcceleration;
+		double  maxError;
+		double  maxErrorV;
+
 		std::string sceneName;
 		vec4 geometry;
 
@@ -57,7 +60,7 @@ class SPH
 		void predictVelocities();
 		dvec3 dirichletBoundary(dvec3, dvec3, dvec3);
 		bool isSolid(dvec4);
-		double calculateDensityChange(int);
+		void calculateDensityAdv(int);
 		void correctDensityError();
 		void calculateDensityAndAlpha();	
 		void correctDivergenceError();

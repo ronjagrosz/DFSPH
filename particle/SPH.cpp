@@ -70,13 +70,6 @@ SPH::SPH()
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();		
 
-	restDensity = 0.0;
-	for (int i = 0; i < particleCount; ++i) 
-		restDensity += water->at(i)->getDensity();
-	restDensity /= particleCount;
-
-	cout << "restDensity: " << restDensity << "\n";
-
 	createVAO();
 }
 
@@ -112,8 +105,12 @@ void SPH::loadJson(string fileName) {
     // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     //particleMass = params.get<picojson::object>()["particleMass"].get<double>();
-    particleMass = 4.0*pow(particleRadius,3)*M_PI/3.0  *  params.get<picojson::object>()["density"].get<double>() * 1000;
+    restDensity = params.get<picojson::object>()["density"].get<double>();
+    particleMass = 4.0*pow(particleRadius,3)*M_PI/3.0 * restDensity;
     H = params.get<picojson::object>()["H"].get<double>();
+    maxError = params.get<picojson::object>()["maxError"].get<double>();
+    maxErrorV = params.get<picojson::object>()["maxErrorV"].get<double>();
+    
     
     cout << "Particle radius: " << particleRadius << "m\n";
     cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
@@ -142,6 +139,7 @@ void SPH::simulate() {
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
+		cout << to_string(water->at(i)->getPosition()) << "                         \n";
         cellList->moveParticle(water->at(i), i);
 	}
 
@@ -299,19 +297,19 @@ void SPH::calculateDensityAndAlpha() {
 	}
 }
 
-double SPH::calculateDensityChange(int i) {
-	double dDensity = 0.0;
-	vector<int>::iterator check = water->at(i)->getNeighbours()->begin();
-	if (check == water->at(i)->getNeighbours()->end())
-        cout << "No neighbours" << endl;
+void SPH::calculateDensityAdv(int i) {
+	double densityAdv = 0.0;
 	for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
         it != water->at(i)->getNeighbours()->end(); ++it) {
-		dDensity += (particleMass * 
+		// if its not boundary
+		densityAdv += (particleMass * 
 			dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
 			, water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
 	}
-	water->at(i)->setdDensity(dDensity);
-	return dDensity;
+	densityAdv = water->at(i)->getDensity() + (dT * densityAdv);
+	densityAdv = std::max(densityAdv, restDensity);
+
+	water->at(i)->setDensityAdv(densityAdv);
 }
 
 // Correct density error
@@ -322,25 +320,18 @@ void SPH::correctDensityError()
 
 	// Calculate average density through euler integration
 	for (int i = 0; i < particleCount; ++i) {
-		double tmp = water->at(i)->getDensity() + dT*calculateDensityChange(i);
-		water->at(i)->setDensity(tmp);
-		avgDensity += tmp;
+		calculateDensityAdv(i);
+		avgDensity += water->at(i)->getDensityAdv();
 	}
 	avgDensity /= particleCount;
 
 	cout << "DensityError:                              \n";
 
-	// Print what we get in:
-	dvec3 avgVel = dvec3(0.0,0.0,0.0);
-	for (int i = 0; i < particleCount; ++i) {
-		avgVel += water->at(i)->getVelocity();
-	}
-	avgVel /= particleCount;
+	const double eta = maxError * 0.01 * restDensity;  // maxError is given in percent
+	
 
-	cout << "avgDensity: " << avgDensity << ", avgVel: " << to_string(avgVel)
-	<< ", Go in: " << (abs(avgDensity - restDensity) > 0.1*restDensity) << "\n";
-
-	while (abs(avgDensity - restDensity) > 0.1*restDensity || iter < 0) {
+	while ((((avgDensity - restDensity) > eta) || (iter < 2)) && (iter < 100)) {
+		cout << iter << ", " << eta << ", " << avgDensity-restDensity << "    \n";
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
@@ -361,20 +352,11 @@ void SPH::correctDensityError()
 		}
 		// Calculate average density through euler integration
 		for (int i = 0; i < particleCount; ++i) {
-			double tmp = water->at(i)->getDensity() + dT*calculateDensityChange(i);
-			water->at(i)->setDensity(tmp);
-			avgDensity += tmp;
+			calculateDensityAdv(i);
+			avgDensity += water->at(i)->getDensityAdv();
 		}
 		avgDensity /= particleCount;
-		
-		dvec3 avgVel = dvec3(0.0,0.0,0.0);
-		for (int i = 0; i < particleCount; ++i) {
-			avgVel += water->at(i)->getVelocity();
-		}
-		avgVel /= particleCount;
 
-		cout << iter << ": " << avgDensity << ", " << restDensity << ", " 
-		<< "avgVel: " << to_string(avgVel) << ", Go in: " << (abs(avgDensity - restDensity) > 0.1*restDensity) << "\n";
 		iter++;
 	}
 }
@@ -383,53 +365,59 @@ void SPH::correctDensityError()
 void SPH::correctDivergenceError() {
 	double dDensityAvg = 0.0;
 	int iter = 0;
+	double invdT = 1/dT;
+	double maxIterV = 100;
+
+	// if warm start have code here..
 
 	// Compute pressure difference in particle i (dPi), dPavg is the average difference
-	for (int i = 0; i < particleCount; ++i) {
-		dDensityAvg += calculateDensityChange(i);
+	for (int i = 0; i < particleCount; i++) {
+		calculateDensityAdv(i);
+		dDensityAvg += (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
+		water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT); // faster
 	}
 	dDensityAvg /= particleCount;
+
+	double eta = invdT * maxErrorV * 0.01 * restDensity;
 	
 	cout << "DivergenceError:                      \n";
-	// Print what we get in:
-	dvec3 avgVel = dvec3(0.0,0.0,0.0);
-	for (int i = 0; i < particleCount; ++i) {
-		avgVel += water->at(i)->getVelocity();
-	}
-	avgVel /= particleCount;
-
-	cout << "dDensityAvg: " << dDensityAvg << ", avgVel: " << to_string(avgVel)
-	<< ", Go in: " << (abs(dDensityAvg) > 0.2) << "\n";
-
-	while (abs(dDensityAvg) > 0.2 || iter < 0) {
+	
+	while (((dDensityAvg > eta) || (iter < 1)) && (iter < maxIterV)) {
 		dDensityAvg = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
 			//cout << "Alpha " << i << ": " << water->at(i)->getAlpha() << "             \n";
-			double ki = 1/dT * water->at(i)->getdDensity() * water->at(i)->getAlpha();
+			double dDi = (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
+			double ki = dDi * water->at(i)->getAlpha();
 			
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
             vector<int>::iterator check = water->at(i)->getNeighbours()->begin();
             for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
-				double kj = 1/dT * water->at(*it)->getdDensity() * water->at(*it)->getAlpha();
+            	double dDj = (water->at(*it)->getDensityAdv() - water->at(*it)->getDensity() ) / dT;
+				double kj = dDj * water->at(*it)->getAlpha();
 				sum += particleMass 
-					* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity()) 
-					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
+				* (ki/water->at(i)->getDensity() + kj/water->at(i)->getDensity())
+				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			}
 
 			dvec3 temp = water->at(i)->getVelocity() - (sum * dT);
 			water->at(i)->setVelocity(temp);
 		}
 
-		for (int i = 0; i < particleCount; ++i) {
-			dDensityAvg += calculateDensityChange(i);
+		for (int i = 0; i < particleCount; i++) {
+			calculateDensityAdv(i);
+			dDensityAvg += (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
 		}
 		dDensityAvg /= particleCount;
 
-		cout << iter << ": " << dDensityAvg << "                            \n";
 		iter++;		
+	}
+
+	// Change alpha back
+	for (int i = 0; i < particleCount; i++) {
+		water->at(i)->setAlpha(water->at(i)->getAlpha() * dT);
 	}
 }
 

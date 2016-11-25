@@ -3,15 +3,14 @@
     "fps" : 30,
     "iterations" : 500,
     "constantAcceleration" : -9.81,
-    "sceneName" : "asd",
+    "sceneName" : "sphere",
     "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 0.6 },
 
-    "particleRadius" : 0.01,
+    "particleRadius" : 0.025,
     "particleMass" : 0.1,
     "particleViscosity" : 2.034,
-    "density" : 0.99829,
-    "A" : 0,
-    "k" : 100,
-    "stiffness" : 7.065,
-    "H" : 0.3
+    "density" : 998.29,
+    "H" : 0.3,
+    "maxError" : 0.01,
+    "maxErrorV" : 0.1
 };

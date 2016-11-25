@@ -50,7 +50,7 @@ class Particle {
 		
 		// Properties
 		double 	density;
-		double  dDensity;
+		double  densityAdv;
 		double  alpha; // for kernelfunction (ai)
 
 	public:
@@ -63,7 +63,7 @@ class Particle {
 		void setVelocity(dvec3);
         void setCellIndex(ivec4 cell);
 		void setDensity(double);
-		void setdDensity(double);
+		void setDensityAdv(double);
 		void setAlpha(double);
 
 		// Getters
@@ -72,7 +72,7 @@ class Particle {
         ivec4 getCellIndex();
         vector<int>* getNeighbours();
 		double getDensity();
-		double getdDensity();
+		double getDensityAdv();
 		double getAlpha();
 		
 		void updatePosition(double elapsedTime);	// Apply the velocity to the position

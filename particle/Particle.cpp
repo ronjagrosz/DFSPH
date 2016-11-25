@@ -47,8 +47,8 @@ void Particle::setCellIndex(ivec4 cell) {
 void Particle::setDensity(double newDensity) {
 	density = newDensity;
 }
-void Particle::setdDensity(double newDensity) {
-	dDensity = newDensity;
+void Particle::setDensityAdv(double newDensity) {
+	densityAdv = newDensity;
 }
 void Particle::setAlpha(double newAlpha) {
 	alpha = newAlpha;
@@ -60,7 +60,7 @@ dvec3 Particle::getVelocity(){return velocity;}
 ivec4 Particle::getCellIndex(){return cellIndex;}
 vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
-double Particle::getdDensity(){return dDensity;}
+double Particle::getDensityAdv(){return densityAdv;}
 double Particle::getAlpha(){return alpha;}
 
 // Update position with current velocity
