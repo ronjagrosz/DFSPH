@@ -10,7 +10,7 @@
     "particleMass" : 0.1,
     "particleViscosity" : 2.034,
     "density" : 998.29,
-    "H" : 0.3,
+    "H" : 0.1,
     "maxError" : 0.01,
     "maxErrorV" : 0.1
 };

@@ -118,8 +118,7 @@ void SPH::loadJson(string fileName) {
 
 // Update positions with a small timestep
 void SPH::simulate() {
-	cout << "New simulate                         \n";
-
+	
 	// Adapt timestep according to CFL condition
 	adaptTimestep();
 
@@ -139,8 +138,7 @@ void SPH::simulate() {
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
-		cout << to_string(water->at(i)->getPosition()) << "                         \n";
-        cellList->moveParticle(water->at(i), i);
+		cellList->moveParticle(water->at(i), i);
 	}
 
 	//cout << water->at(0)->getVelocity().y << " 4\n";
@@ -158,7 +156,7 @@ void SPH::simulate() {
 	//cout << water->at(0)->getVelocity().y << " 6\n";
 	
 	// correctDivergenceError
-	correctDivergenceError();
+	//correctDivergenceError();
 }
 
 // Adapts the timestep according to the CFL condition
@@ -201,11 +199,11 @@ void SPH::predictVelocities() {
 
 dvec3 SPH::dirichletBoundary(dvec3 pos, dvec3 dPos, dvec3 vel) {
 	if(isSolid(dvec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
-		vel.x = 0.0; //-0.1*vel.x;
+		vel.x = -0.5*vel.x;
 	if(isSolid(dvec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
-		vel.y = 0.0; //-0.1*vel.y;
+		vel.y = -0.5*vel.y;
 	if(isSolid(dvec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
-		vel.z = 0.0; //-0.1*vel.z;
+		vel.z = -0.5*vel.z;
 
 	return vel;
 }
@@ -317,6 +315,9 @@ void SPH::correctDensityError()
 {
 	double avgDensity = 0.0;
 	int iter = 0;
+	double invdT = 1/dT;
+	double dT2 = dT*dT;
+	double invdT2 = 1/dT2;
 
 	// Calculate average density through euler integration
 	for (int i = 0; i < particleCount; ++i) {
@@ -325,23 +326,23 @@ void SPH::correctDensityError()
 	}
 	avgDensity /= particleCount;
 
-	cout << "DensityError:                              \n";
+	//cout << "DensityError:                              \n";
 
 	const double eta = maxError * 0.01 * restDensity;  // maxError is given in percent
 	
 
 	while ((((avgDensity - restDensity) > eta) || (iter < 2)) && (iter < 100)) {
-		cout << iter << ", " << eta << ", " << avgDensity-restDensity << "    \n";
+		//cout << iter << ", " << eta << ", " << avgDensity-restDensity << "    \n";
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
-			double ki = (water->at(i)->getDensity() - restDensity) / (dT*dT) * water->at(i)->getAlpha(); 
+			double ki = (water->at(i)->getDensityAdv() - restDensity) * invdT2 * water->at(i)->getAlpha(); 
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
 
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 				
-				double kj = (water->at(*it)->getDensity() - restDensity) / (dT*dT) * water->at(*it)->getAlpha(); 
+				double kj = (water->at(*it)->getDensityAdv() - restDensity) * invdT2 * water->at(*it)->getAlpha(); 
 				
 				sum += particleMass 
 					* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
@@ -378,9 +379,9 @@ void SPH::correctDivergenceError() {
 	}
 	dDensityAvg /= particleCount;
 
-	double eta = invdT * maxErrorV * 0.01 * restDensity;
+	double eta = invdT * 0.01 * restDensity * maxErrorV;
 	
-	cout << "DivergenceError:                      \n";
+	//cout << "DivergenceError:                      \n";
 	
 	while (((dDensityAvg > eta) || (iter < 1)) && (iter < maxIterV)) {
 		dDensityAvg = 0.0;
@@ -411,6 +412,7 @@ void SPH::correctDivergenceError() {
 			dDensityAvg += (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
 		}
 		dDensityAvg /= particleCount;
+		//cout << iter << ", " << eta << ", " << dDensityAvg << "        \n";
 
 		iter++;		
 	}
