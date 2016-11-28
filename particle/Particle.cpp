@@ -27,6 +27,7 @@ Particle::Particle() {
 
 	velocity  = dvec3(0.0, 0.0, 0.0);
 	density = 0;
+	densityAdv = 0;
 }
 
 Particle::~Particle() {
@@ -73,25 +74,27 @@ void Particle::updateNeighbours(vector<int>* neighbourList) {
 }
 // Cubic spline kernel function
 double Particle::kernel(dvec3 nPosition, double H) {
-	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
+	double q = length(position-nPosition)/H;
 
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) 
+	/*if (position - nPosition == dvec3(0.0, 0.0, 0.0)) 
 		return 1.0;
-	else if ( q >= 0 && q <= 1)
-		return (1/(H*H*H)*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q));
-	else if ( q >= 1 && q <= 2 ) 
-		return (1/(H*H*H))*(1/M_PI)*(1/4*(2-q)*(2-q)*(2-q));
+	else if ( q >= 0.0 && q <= 1.0)*/
+		return (1.0/(H*H*H*M_PI)*(1.0 - 1.5*q*q + 0.75*q*q*q));
+	/*else if ( q >= 1.0 && q <= 2.0 ) 
+		return (1.0/(H*H*H))*(1.0/M_PI)*(1.0/4.0*(2.0-q)*(2.0-q)*(2.0-q));
 	else 
-		return 0;
+		return 0;*/
 }
 // Gradient for cubic spline kernel function
 dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
-	double q = sqrt(dot(position-nPosition, position-nPosition))/H;
-
-	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
+	double q = length(position-nPosition)/H;
+	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) {
 		return dvec3(1.0, 1.0, 1.0);
-	else /* if ( q >= 0 && q <= 1)*/
-		return (position-nPosition)*(1/(H*H*H*H))*(1/length(position - nPosition))*(1/M_PI)*(- 3*q + 9/4*q*q);
+	}
+	else /* if ( q >= 0 && q <= 1)*/ {
+		//cout << to_string((1.0/(H*H*H*H*M_PI*length(position - nPosition)))*(- 3.0*q + 2.25*q*q)) << "\n";
+		return (position-nPosition)*(1.0/(H*H*H*H*M_PI*length(position - nPosition)))*(- 3.0*q + 2.25*q*q);
+	}
 	/*else if ( q >= 1 && q <= 2 )
 		return position*(1/(H*H*H*H))*(1/length(position - nPosition))*(1/M_PI)*(-3/4*(2-q)*(2-q));
 	else 
