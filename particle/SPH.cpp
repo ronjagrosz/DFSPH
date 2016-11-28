@@ -242,8 +242,8 @@ bool SPH::isSolid(dvec4 p) {
 	else if (sceneName == "paraboloid") {
 		Q[0][0] = geometry.w;
 		Q[1][1] = geometry.w; // + or -
-		Q[2][3] = -geometry.w/2;
-		Q[3][2] = -geometry.w/2;
+		Q[2][3] = -geometry.w/2.0;
+		Q[3][2] = -geometry.w/2.0;
 	}
 
 
@@ -302,7 +302,7 @@ void SPH::calculateDensityAndAlpha() {
 		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
 		alpha = std::max(sum_grad_p_k, 1.0e-6); //water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
 
-		alpha = -1 / alpha;
+		alpha = -1.0 / alpha;
 	
 
 		water->at(i)->setAlpha(alpha); 
@@ -331,9 +331,9 @@ void SPH::correctDensityError()
 {
 	double avgDensity = 0.0;
 	int iter = 0;
-	double invdT = 1/dT;
+	double invdT = 1.0/dT;
 	double dT2 = dT*dT;
-	double invdT2 = 1/dT2;
+	double invdT2 = 1.0/dT2;
 	cout << "DensityError:                              \n";
 
 	// Calculate average density through euler integration
@@ -391,7 +391,7 @@ void SPH::correctDensityError()
 void SPH::correctDivergenceError() {
 	double dDensityAvg = 0.0;
 	int iter = 0;
-	double invdT = 1/dT;
+	double invdT = 1.0/dT;
 	double maxIterV = 100;
 
 	// if warm start have code here..
