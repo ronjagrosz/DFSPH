@@ -78,9 +78,9 @@ double Particle::kernel(dvec3 nPosition, double H) {
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0)) 
 		return 1.0;
 	else if ( q >= 0 && q <= 1)
-		return (1/(H*H*H)*(1/M_PI)*(1 - 3/2*q*q + 3/4*q*q*q));
+		return (1.0/(H*H*H)*(1.0/M_PI)*(1.0 - 3.0/2.0*q*q + 3.0/4.0*q*q*q));
 	else if ( q >= 1 && q <= 2 ) 
-		return (1/(H*H*H))*(1/M_PI)*(1/4*(2-q)*(2-q)*(2-q));
+		return (1.0/(H*H*H))*(1.0/M_PI)*(1.0/4.0*(2.0-q)*(2.0-q)*(2.0-q));
 	else 
 		return 0;
 }
@@ -91,7 +91,7 @@ dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
 		return dvec3(1.0, 1.0, 1.0);
 	else /* if ( q >= 0 && q <= 1)*/
-		return (position-nPosition)*(1/(H*H*H*H))*(1/length(position - nPosition))*(1/M_PI)*(- 3*q + 9/4*q*q);
+		return (position-nPosition)*(1.0/(H*H*H*H))*(1.0/length(position - nPosition))*(1.0/M_PI)*(- 3.0*q + 9.0/4.0*q*q);
 	/*else if ( q >= 1 && q <= 2 )
 		return position*(1/(H*H*H*H))*(1/length(position - nPosition))*(1/M_PI)*(-3/4*(2-q)*(2-q));
 	else 
