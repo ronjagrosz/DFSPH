@@ -90,10 +90,12 @@ dvec3 Particle::gradientKernel(dvec3 nPosition, double H) {
 
 	if (position - nPosition == dvec3(0.0, 0.0, 0.0))
 		return dvec3(1.0, 1.0, 1.0);
-	else if ( q >= 0 && q <= 1)
-		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(- 3*q + 9/4*q*q);
-	else if ( q >= 1 && q <= 2 )
-		return position*(1/(H*H*H*H))*(1/length(position))*(1/M_PI)*(-3/4*(2-q)*(2-q));
+	else /* if ( q >= 0 && q <= 1)*/
+		return (position-nPosition)*(1/(H*H*H*H))*(1/length(position - nPosition))*(1/M_PI)*(- 3*q + 9/4*q*q);
+	/*else if ( q >= 1 && q <= 2 )
+		return position*(1/(H*H*H*H))*(1/length(position - nPosition))*(1/M_PI)*(-3/4*(2-q)*(2-q));
 	else 
-		return dvec3(0.0, 0.0, 0.0);
+		return dvec3(0.0, 0.0, 0.0);*/
+	
+
 }

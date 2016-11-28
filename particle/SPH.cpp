@@ -125,6 +125,7 @@ void SPH::simulate() {
 	//cout << water->at(0)->getVelocity().y << " 1\n";
 
 	// Predict velocities
+	cout << "predict velocities\n";
 	predictVelocities();
 
 
@@ -139,6 +140,7 @@ void SPH::simulate() {
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
 		cellList->moveParticle(water->at(i), i);
+		cout << "new pos: x " << water->at(i)->getPosition().x << " y " << water->at(i)->getPosition().y << " z " << water->at(i)->getPosition().z << endl;
 	}
 
 	//cout << water->at(0)->getVelocity().y << " 4\n";
@@ -156,7 +158,7 @@ void SPH::simulate() {
 	//cout << water->at(0)->getVelocity().y << " 6\n";
 	
 	// correctDivergenceError
-	correctDivergenceError();
+	//correctDivergenceError();
 }
 
 // Adapts the timestep according to the CFL condition
@@ -193,6 +195,7 @@ void SPH::predictVelocities() {
 		vel = dirichletBoundary(pos, dPos, vel);
 		
 		water->at(i)->setVelocity(vel);
+		//cout << "vel: x " << water->at(i)->getVelocity().x << " y " << water->at(i)->getVelocity().y << " z " << water->at(i)->getVelocity().z << endl;
 	}
 	
 }
@@ -268,7 +271,7 @@ bool SPH::isSolid(dvec4 p) {
 // Calculate density function
 void SPH::calculateDensityAndAlpha() {
 	for(int i = 0; i < particleCount; ++i) {
-		double sum2 = 0, alpha = 0;
+		double sum2 = 0, alpha = 0, sum_grad_p_k = 0.0;
 	    dvec3 sum1 = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
 		
@@ -279,33 +282,46 @@ void SPH::calculateDensityAndAlpha() {
 			water->at(i)->setDensity(water->at(i)->getDensity() + particleMass
                 * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
+			//cout << "density: " << water->at(i)->getDensity() << endl;
 			// Only need to calc within neighborhood, kernel gradient will be zero otherwise 	
-			sum1 += particleMass
+			/*sum1 += particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			
 			sum2 += dot(abs(particleMass
                 * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)),
                  abs(particleMass
-                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
+                * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));*/
+
+			dvec3 grad_p_j = - particleMass * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
+			sum_grad_p_k += dot(grad_p_j,grad_p_j); 
+			sum1 -= grad_p_j;
 
 		}
+		sum_grad_p_k += dot(sum1,sum1);
+
 		//cout << i << ": " << water->at(i)->getDensity() << "                                 \n";
-		alpha = water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+		alpha = std::max(sum_grad_p_k, 1.0e-6); //water->at(i)->getDensity()/(dot(abs(sum1),abs(sum1)) + sum2);
+
+		alpha = -1 / alpha;
+	
+
 		water->at(i)->setAlpha(alpha); 
 	}
 }
 
 void SPH::calculateDensityAdv(int i) {
 	double densityAdv = 0.0;
+	cout << "calculateDensityAdv\n";
 	for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
         it != water->at(i)->getNeighbours()->end(); ++it) {
 		// if its not boundary
 		densityAdv += (particleMass * 
-			dot((water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
+			dot(abs(water->at(i)->getVelocity() - water->at(*it)->getVelocity()) 
 			, water->at(i)->gradientKernel(water->at(*it)->getPosition(), H)));
+		cout << "vel: x " << water->at(i)->getVelocity().x << " y " << water->at(i)->getVelocity().y << " z " << water->at(i)->getVelocity().z << endl;
 	}
 	densityAdv = water->at(i)->getDensity() + (dT * densityAdv);
-	densityAdv = std::max(densityAdv, restDensity);
+	//densityAdv = std::max(densityAdv, restDensity);
 
 	water->at(i)->setDensityAdv(densityAdv);
 }
@@ -318,6 +334,7 @@ void SPH::correctDensityError()
 	double invdT = 1/dT;
 	double dT2 = dT*dT;
 	double invdT2 = 1/dT2;
+	cout << "DensityError:                              \n";
 
 	// Calculate average density through euler integration
 	for (int i = 0; i < particleCount; ++i) {
@@ -326,18 +343,20 @@ void SPH::correctDensityError()
 	}
 	avgDensity /= particleCount;
 
-	//cout << "DensityError:                              \n";
+	
 
 	const double eta = maxError * 0.01 * restDensity;  // maxError is given in percent
 	
 
-	while ((((avgDensity - restDensity) > eta) || (iter < 2)) && (iter < 100)) {
+	while (((avgDensity > eta) || (iter < 2)) && (iter < 100)) {
 		//cout << iter << ", " << eta << ", " << avgDensity-restDensity << "    \n";
 		avgDensity = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
+			dvec3 tempV = water->at(i)->getVelocity();
 			double ki = (water->at(i)->getDensityAdv() - restDensity) * invdT2 * water->at(i)->getAlpha(); 
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
+			//cout << "DensityAdv: " << i << ": " << water->at(i)->getDensityAdv() << endl;
 
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
@@ -345,11 +364,17 @@ void SPH::correctDensityError()
 				double kj = (water->at(*it)->getDensityAdv() - restDensity) * invdT2 * water->at(*it)->getAlpha(); 
 				
 				sum += particleMass 
-					* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
+					* (ki/*/water->at(i)->getDensity()*/ + kj/*/water->at(*it)->getDensity()*/)
 					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
+				
+				cout << "ki: " << ki << " kj " << kj << " gradW: " 
+					<< water->at(i)->gradientKernel(water->at(*it)->getPosition(), H).x << " " <<
+					water->at(i)->gradientKernel(water->at(*it)->getPosition(), H).y << " " <<
+					water->at(i)->gradientKernel(water->at(*it)->getPosition(), H).z << endl;
 			}
-			dvec3 temp = water->at(i)->getVelocity() - (sum * dT);
-			water->at(i)->setVelocity(temp);
+			tempV = water->at(i)->getVelocity() - dT * sum;
+			cout << "new vel: x " << tempV.x << " y " << tempV.y << " z " << tempV.z << endl;
+			water->at(i)->setVelocity(tempV);
 		}
 		// Calculate average density through euler integration
 		for (int i = 0; i < particleCount; ++i) {
@@ -388,7 +413,7 @@ void SPH::correctDivergenceError() {
 		dDensityAvg = 0.0;
 
 		for (int i = 0; i < particleCount; ++i) {
-			//cout << "Alpha " << i << ": " << water->at(i)->getAlpha() << "             \n";
+			cout << "DensityAdv: " << i << ": " << water->at(i)->getDensityAdv() << "             \n";
 			double dDi = (water->at(i)->getDensityAdv() - water->at(i)->getDensity() ) / dT;
 			double ki = dDi * water->at(i)->getAlpha() * invdT;
 			
@@ -398,8 +423,10 @@ void SPH::correctDivergenceError() {
 
             	double dDj = (water->at(*it)->getDensityAdv() - water->at(*it)->getDensity() ) / dT;
 				double kj = dDj * water->at(*it)->getAlpha() * invdT;
+
+				//cout << "ki: " << ki << " kj: " << kj << " dDi: " << dDi << " dDj: " << dDj << endl;
 				sum += particleMass 
-				* (ki/water->at(i)->getDensity() + kj/water->at(i)->getDensity())
+				* (ki/water->at(i)->getDensity() + kj/water->at(*it)->getDensity())
 				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			}
 
