@@ -35,6 +35,8 @@ class SPH
 		int				particleCount;	
 		double			dT;
 		double 			restDensity;
+		double			avgDensityAdv;
+		double 			avgDerivedDensity;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
         CellList* cellList;
@@ -60,7 +62,7 @@ class SPH
 		void predictVelocities();
 		dvec3 dirichletBoundary(dvec3, dvec3, dvec3);
 		bool isSolid(dvec4);
-		void calculateDensityAdv(int);
+		void calculateDensityChange();
 		void correctDensityError();
 		void calculateDensityAndAlpha();	
 		void correctDivergenceError();

@@ -51,6 +51,9 @@ void Particle::setDensity(double newDensity) {
 void Particle::setDensityAdv(double newDensity) {
 	densityAdv = newDensity;
 }
+void Particle::setDerivedDensity(double newDensity) {
+	derivedDensity = newDensity;
+}
 void Particle::setAlpha(double newAlpha) {
 	alpha = newAlpha;
 }
@@ -62,6 +65,7 @@ ivec4 Particle::getCellIndex(){return cellIndex;}
 vector<int>* Particle::getNeighbours(){return neighbours;}
 double Particle::getDensity(){return density;}
 double Particle::getDensityAdv(){return densityAdv;}
+double Particle::getDerivedDensity(){return derivedDensity;}
 double Particle::getAlpha(){return alpha;}
 
 // Update position with current velocity
