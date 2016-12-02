@@ -182,11 +182,11 @@ void SPH::predictVelocities() {
 		dPos = vel * dT;
 
 		// Dirichlet Boundary Condition
-		if(isSolid(dvec4(pos.x+dPos.x, pos.y, pos.z, 1.0))) // X
+		if(isSolid(dvec4(pos.x+dPos.x, pos.y, pos.z, 1.0), 0)) // X
 			vel.x = -0.1*vel.x; //0.0;
-		if(isSolid(dvec4(pos.x, pos.y+dPos.y, pos.z, 1.0))) // Y
+		if(isSolid(dvec4(pos.x, pos.y+dPos.y, pos.z, 1.0), 1)) // Y
 			vel.y = -0.1*vel.y; //0.0;
-		if(isSolid(dvec4(pos.x, pos.y, pos.z+dPos.z, 1.0))) // Z
+		if(isSolid(dvec4(pos.x, pos.y, pos.z+dPos.z, 1.0), 2)) // Z
 			vel.z = -0.1*vel.z; //0.0;
 		
 		water->at(i)->setVelocity(vel);
@@ -202,7 +202,7 @@ dvec3 SPH::dirichletBoundary(dvec3 pos, dvec3 dPos, dvec3 vel) {
 }
 
 // Check if (x,y,z) is inside an implicit geometry
-bool SPH::isSolid(dvec4 p) {
+bool SPH::isSolid(dvec4 p, int i) {
 	dmat4 Q = dmat4(0.0);
 
 	// Cylinder
@@ -245,6 +245,22 @@ bool SPH::isSolid(dvec4 p) {
 		Q[3][3] = -geometry.w; // + or -
 	}
 
+
+	switch (i) {
+		case 0: 
+			return (abs(p.x) > 1.0);
+			break;
+		case 1:
+			return (p.y < -1.0);
+			break;
+		case 2:
+			return (abs(p.z) > 1.0);
+			break;
+		default:
+			return false;
+			break;
+	}
+	/*
 	if (max(abs(p.x),abs(p.y),abs(p.z)) > 1.0)
 		return true;
 	// Cube
@@ -255,7 +271,8 @@ bool SPH::isSolid(dvec4 p) {
 			return true;
 	}
 	else
-		return false; //return (dot(p,(Q * p)) < 0.1);
+		return false; //(dot(p,(Q * p)) < 0.1);
+	*/
 }
 
 // Calculate density function

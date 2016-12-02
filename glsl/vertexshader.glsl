@@ -28,6 +28,6 @@ void main () {
 
 	// Convert position to clip coordinates and pass along to fragment shader
 	gl_Position =  P * MV * vec4(inPosition, 1.0);
-	gl_PointSize = 4.0;
+	gl_PointSize = 8.0;
 
 }

@@ -61,7 +61,7 @@ class SPH
 		void adaptTimestep();
 		void predictVelocities();
 		dvec3 dirichletBoundary(dvec3, dvec3, dvec3);
-		bool isSolid(dvec4);
+		bool isSolid(dvec4, int);
 		void calculateDensityChange();
 		void correctDensityError();
 		void calculateDensityAndAlpha();	

@@ -34,7 +34,7 @@ std::string ZeroPadNumber(int num) {
 
 Viewport::Viewport() {
 	phi = 0.0f;
-	theta = M_PI / 4.0f;
+	theta = M_PI / 8.0f;
 	rad = 4.0f;
 	zoomFactor = M_PI;
 	recordTime = deltaTime = currTime = 0.0f;	
