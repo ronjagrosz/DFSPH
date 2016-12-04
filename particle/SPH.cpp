@@ -19,8 +19,6 @@ SPH is responsible for orginization of a group of smooth particles.
 #include "../json/picojson.h"
 #include "../particle/SPH.h"
 
-#define EPSILON 0.001f
-
 using namespace glm;
 
 SPH::SPH()
@@ -107,9 +105,10 @@ void SPH::loadJson(string fileName) {
     maxError = params.get<picojson::object>()["maxError"].get<double>();
     maxErrorV = params.get<picojson::object>()["maxErrorV"].get<double>();
     
+    frameError = params.get<picojson::object>()["frameError"].get<double>();
     
     cout << "Particle radius: " << particleRadius << "m\n";
-    cout << "Particle mass calculated from radius: " << particleMass*1000.0 << "g\n";
+    cout << "Particle mass: " << particleMass*1000.0 << "g\n";
 }
 
 // Update positions with a small timestep
@@ -121,9 +120,6 @@ void SPH::simulate() {
 
 	// correctDensityError
 	correctDensityError();
-
-	// dirichlet and geometry boundaries
-	boundaryCondition();
 
 	// Update particles position and cell
 	for (int i = 0; i < particleCount; ++i) {
@@ -167,39 +163,36 @@ void SPH::adaptTimestep() {
 
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
 void SPH::predictVelocities() {
-	
 	gravity *= dT;
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setVelocity(water->at(i)->getVelocity() + gravity);
 	}
 	gravity /= dT;
-	
 }
 
-void SPH::boundaryCondition() {
-	for (int i = 0; i < particleCount; ++i) {
-		dvec3 vel = water->at(i)->getVelocity();
-		dvec3 pos = water->at(i)->getPosition();
-		dvec3 dPos = vel * dT;
-		dvec3 gradP = alongBoundary(dvec4(pos+dPos, 1.0));
+// Dirichlet and geometry boundary conditions. Making sure we don't move particles into solids
+void SPH::boundaryCondition(int i) {
+	dvec3 vel = water->at(i)->getVelocity();
+	dvec3 pos = water->at(i)->getPosition();
+	dvec3 dPos = vel * dT;
+	dvec3 gradP = alongBoundary(dvec4(pos+dPos, 1.0));
 
-		// dirichlet
-		if(pos.x+dPos.x < -1.2 || pos.x+dPos.x > 1.2) // X
-			vel.x = 0.0;
-		if(pos.y+dPos.y < -1.0) // Y
-			vel.y = 0.0;
-		if(pos.z+dPos.z < -1.2 || pos.z+dPos.z > 1.2) // Z
-			vel.z = 0.0;
+	// Dirichlet
+	if(pos.x+dPos.x < -1.2 || pos.x+dPos.x > 1.2) // X
+		vel.x = 0.0;
+	if(pos.y+dPos.y < -1.0) // Y
+		vel.y = 0.0;
+	if(pos.z+dPos.z < -1.2 || pos.z+dPos.z > 1.2) // Z
+		vel.z = 0.0;
 
-		// Boundary of geometry
-		if (gradP != dvec3(0.0, 0.0, 0.0))
-			vel = gradP + gravity*dT;
+	// Boundary of geometry
+	if (gradP != dvec3(0.0, 0.0, 0.0))
+		vel = gradP + gravity*dT;
 
-		water->at(i)->setVelocity(vel);
-	}
+	water->at(i)->setVelocity(vel);
 }
 
-// Check if (x,y,z) is inside an implicit geometry
+// Check if (x,y,z) is inside an implicit geometry, if so return the gradient in that p
 dvec3 SPH::alongBoundary(dvec4 p) {
 	dmat4 Q = dmat4(0.0);
 	dvec4 gradP = dvec4(0.0, 0.0, 0.0, 0.0);
@@ -256,7 +249,6 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 		gradP = 2 * Q * p;
 	}
 	return dvec3(gradP);
-	
 }
 
 // Calculate density function
@@ -273,15 +265,13 @@ void SPH::calculateDensityAndAlpha() {
 			water->at(i)->setDensity(water->at(i)->getDensity() + particleMass
                 * water->at(i)->kernel(water->at(*it)->getPosition(), H));
 
-
 			// Alpha sum denominator
 			dvec3 gradPj = particleMass * water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			sumGradPk += dot(gradPj,gradPj); 
 			gradPi += gradPj;
-
 		}
 		sumGradPk += dot(gradPi, gradPi);
-		alpha = std::max(sumGradPk, 1.0e-6); // doesnt really do anything
+		alpha = std::max(sumGradPk, 1.0e-6); // doesnt really do anything?
 		alpha = 1.0/alpha;
 		water->at(i)->setAlpha(alpha); 
 
@@ -291,6 +281,7 @@ void SPH::calculateDensityAndAlpha() {
 void SPH::calculateDensityChange() {
 	double densityAdv = 0.0;
 	avgDensityAdv = avgDerivedDensity = 0.0;
+
 	for (int i = 0; i < particleCount; ++i) {
 		double dDensity = 0.0;
 		for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
@@ -304,7 +295,6 @@ void SPH::calculateDensityChange() {
 
 		water->at(i)->setDerivedDensity(dDensity);
 		water->at(i)->setDensityAdv(densityAdv);
-
 		avgDerivedDensity += dDensity;
 		avgDensityAdv += densityAdv;
 	}
@@ -313,8 +303,7 @@ void SPH::calculateDensityChange() {
 }
 
 // Correct density error
-void SPH::correctDensityError()
-{
+void SPH::correctDensityError() {
 	int iter = 0;
 	double invdT2 = 1.0/(dT*dT);
 
@@ -329,7 +318,6 @@ void SPH::correctDensityError()
 	}
 
 	const double eta = maxError * 0.01 * restDensity;  // maxError is given in percent
-	
 	while ((abs(avgDensityAdv - restDensity) > eta || (iter < 2)) && (iter < 100)) {
 		for (int i = 0; i < particleCount; ++i) {
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
@@ -343,12 +331,12 @@ void SPH::correctDensityError()
 			}
 
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
+			// Last velocity change before updatePosition, make sure we don't go into boundaries
+			boundaryCondition(i);
 		}
-		// Calculate average density through euler integration
 		calculateDensityChange();
 		iter++;
 	}
-
 }
 
 // Maintains the pressure difference = 0 in each simulation loop
@@ -368,8 +356,7 @@ void SPH::correctDivergenceError() {
 		kappa->at(i) = k;
 	}
 
-	double etaV = 10;//invdT * 0.01 * restDensity * maxErrorV;
-	
+	const double etaV = 10;//invdT * 0.01 * restDensity * maxErrorV;
 	while ((abs(avgDerivedDensity) > etaV || (iter < 1)) && (iter < 100)) {
 		for (int i = 0; i < particleCount; ++i) {
 			
@@ -383,9 +370,7 @@ void SPH::correctDivergenceError() {
 			}
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
 		}
-
 		calculateDensityChange();
-		//cout << iter <<  ", eta: " << etaV << ", avgDerivedDensity: " << avgDerivedDensity << "\n";
 		iter++;		
 	}
 }
@@ -408,7 +393,7 @@ void SPH::display(float phiW, float thetaW)	{
 		if (t + dT < maxTimestep) {
 			simulate();
 		}
-		else if (maxTimestep - t > EPSILON) {
+		else if (maxTimestep - t > frameError) {
 			dT = maxTimestep - t;
 			simulate();
 		}

@@ -12,5 +12,6 @@
     "density" : 998.29,
     "H" : 0.1,
     "maxError" : 0.01,
-    "maxErrorV" : 0.1
+    "maxErrorV" : 0.1,
+    "frameError" : 0.0005
 };

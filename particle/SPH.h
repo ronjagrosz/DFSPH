@@ -52,6 +52,7 @@ class SPH
 		double  constantAcceleration;
 		double  maxError;
 		double  maxErrorV;
+		double  frameError;
 		double  maxVelocity;
 
 		dvec3 	gravity;
@@ -64,7 +65,7 @@ class SPH
 
 		void adaptTimestep();
 		void predictVelocities();
-		void boundaryCondition();
+		void boundaryCondition(int);
 		dvec3 alongBoundary(dvec4);
 		void calculateDensityChange();
 		void correctDensityError();
