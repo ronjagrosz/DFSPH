@@ -39,6 +39,7 @@ class SPH
 		double 			avgDerivedDensity;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
+        vector <double> *kappa;
         CellList* cellList;
 		GLuint vao, vbo[2];		// handles to vao and abo
 		
@@ -51,6 +52,9 @@ class SPH
 		double  constantAcceleration;
 		double  maxError;
 		double  maxErrorV;
+		double  maxVelocity;
+
+		dvec3 	gravity;
 
 		std::string sceneName;
 		vec4 geometry;
@@ -60,8 +64,8 @@ class SPH
 
 		void adaptTimestep();
 		void predictVelocities();
-		dvec3 dirichletBoundary(dvec3, dvec3, dvec3);
-		bool isSolid(dvec4, int);
+		void boundaryCondition();
+		dvec3 alongBoundary(dvec4);
 		void calculateDensityChange();
 		void correctDensityError();
 		void calculateDensityAndAlpha();	
@@ -74,7 +78,7 @@ class SPH
 		SPH();
 		~SPH();
 
-		void display();
+		void display(float, float);
 
 };
 
