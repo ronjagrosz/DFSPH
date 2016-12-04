@@ -13,7 +13,6 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 #include <iostream>
 #include <vector>
 #include <math.h>
-#include "boost/timer.hpp"
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
@@ -32,7 +31,6 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 class SPH;
 
 using namespace std;
-using namespace boost;
 
 struct rect {
 	float width;
@@ -58,6 +56,9 @@ class Viewport {
 		float theta;
 		float rad;
 
+		float phiW;
+		float thetaW;
+
 		float zoomFactor;
 
 		double deltaTime;
@@ -68,7 +69,6 @@ class Viewport {
 		int frameCount;
 
 		SPH 		*hydro;
-		timer		*timeSinceStart;
 		//CAVIGenerator mov;
 		//BYTE* bm
 
