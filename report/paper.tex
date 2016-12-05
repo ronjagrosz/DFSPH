@@ -31,6 +31,37 @@
 \usepackage{balance}
 \usepackage[nooneline,hang,it,IT]{subfigure}
 
+% Our packages
+\usepackage{listings} % To write code in latex
+\usepackage{color}
+ 
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    literate={\ \ }{{\ }}1
+}
+
+\lstset{style=mystyle}
+
 %% We encourage the use of mathptmx for consistent usage of times font
 %% throughout the proceedings. However, if you encounter conflicts
 %% with other math-related packages, you may want to disable it.
@@ -131,6 +162,31 @@
 %other possible way
 %Clear enough that you could hand the report to another student and they could reproduce the work!
 %Probably no need to mention programming language etc
+
+\begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
+function performSimulation
+    for all particles $i$ do //Init neighbourhoods
+        find neighbourhoods $N_i(0)$
+    for all particles $i$ do //Init $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$
+        compute densities $\rho_i(0)$
+        compute factors $\alpha_i(0)$
+    while (t < $t_{max}$) do //Start simulation loop
+        adapt time step $\Delta{t}$ 
+        for all particles $i$ do //Predict velocities $\color{codegreen}\mathbf{v}_i^*$
+            $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_i^{adv}/m_i$
+        correctDensityError($\alpha, \mathbf{v}_i$) //Fulfill $\color{codegreen}\rho^* - \rho_0 = 0$
+        for all particles $i$ do //Update positions
+            $x_i(t + \Delta{t}) = x_i(t) + \Delta{t}\mathbf{v}_i^*$
+        for all particles $i$ do //Update neighbourhoods
+            find neighbourhoods $N_i(t + \Delta{t})$
+        for all particles $i$ do //Update $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$ 
+            compute densities $\rho_i(0)$
+            compute factors $\alpha_i(0)$
+        correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
+
+
+\end{lstlisting}
+
 \subsection{Neighbourhood search}
     Since SPH only considers a finite amount of neighbouring particles, it is important to keep track of every particles neighbours.
     Searching through all particles for neighbours within the cutoff distance $H$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
