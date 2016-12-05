@@ -25,6 +25,8 @@
 %% typefaces, ``graphicx'' for inclusion of EPS figures. and ``times''
 %% for proper handling of the times font family.
 
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{mathptmx}
 \usepackage{graphicx}
 \usepackage{times}
@@ -147,17 +149,35 @@
 
     The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates for the cells and the fourth dimension is for storing the particles belonging to the cell.
     The amount of cells are decided by dividing the scene into cells of length $H$.
-    The particles are then assigned to a cell according to equation~ref{eq:assignCell}.
+    The particles are then assigned to a cell according to Equation ~\ref{eq:assignCell}.
     If the particle moves out of its cell it is then assigned to the new cell.
 
     \begin{equation} \label{eq:assignCell}
         sjdfkljsf
     \end{equation}
 
+% Should be mentioned early since it is used in mostly of the algorithms
+\subsection{Kernel}
+    A kernel function is used to simulate how particle-particle interactions decrease with the distance between the current particle and its neighbours. In SPH simulations this is an approximation of the Gaussian kernel function. Different kernels have been tested in previous works i.e. the poly6 kernel, the spiky kernel and the cubic spline kernel. According to Bender et. al.~\cite{bender} the cubic spline kernel presented by Monaghan~\cite{monaghan} was used. The kernel is described by Equation~\ref{eq:kernel}, where $q(x)=\frac{\left \| x \right \|}{h}$, $x$ is the distance between the current particle and a neighbour particle and $h$ is the support radius for the kernel. Particles further away than the support radius will not affect the current particle.   
+
+    \begin{equation} \label{eq:kernel}
+        W_h(q(x)) =  \frac{1}{\pi h^3} \left\{\begin{matrix}
+        1 - \frac{3}{2}q^2 + \frac{3}{4}q^3 & 0 \leqslant q < 1 \\ 
+        \\
+        \frac{1}{4}(2-q)^3 & 1 \leqslant q < 2\\ 
+        \\
+        0 & q \geqslant 2
+      \end{matrix}\right.
+    \end{equation}
+
+    The algorithm does also require the kernel gradient.
+
+    It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other. 
+
 
 \subsection{Divergence solver}
 \subsection{Density solver}
-\subsection{Kernel}
+
 \subsection{Navier-stokes}
 % Write about non pressure forces, velocity osv..?
 \subsection{Adapted time step}
