@@ -232,7 +232,7 @@ int Viewport::start(int argc, char** argv) {
     locationMV = glGetUniformLocation(phongShader.programID, "MV");
 	locationP = glGetUniformLocation(phongShader.programID, "P");
 	//locationLight = glGetUniformLocation(phongShader.programID, "lightPos");
-	//locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
+	locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -258,11 +258,11 @@ int Viewport::start(int argc, char** argv) {
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        /*        
+                
         // send in light and camera location to glsl (not done in shaders yet)
-        glUniform3fv(locationL, 1, glm::value_ptr(light));
-        glUniform3fv(locationCa, 1, glm::value_ptr(cam));
-        */
+        //glUniform3fv(locationL, 1, glm::value_ptr(light));
+        glUniform3fv(locationCamera, 1, glm::value_ptr(cameraPosition));
+        
         
 		hydro->display(phiW, thetaW);
 		

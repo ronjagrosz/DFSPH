@@ -9,9 +9,12 @@
 
 precision highp float;
 
-out vec4 FragColor;
 
+uniform mat4 MV;
+
+out vec4 FragColor;
 in vec3 outColor;
+in vec3 position;
 //out vec4 gl_FragColor;
 
 /*in vec3 Position;
@@ -66,6 +69,32 @@ void main () {
 	FragColor = vec4(resultLight, 1.0f);*/
 
 	//FragColor = vec4(outColor,1.0);
+
+	// calculate normal from texture coordinates
+    vec3 n;
+    vec2 texCoord = normalize(vec2(0.33, 0.33));
+    n.xy = texCoord*vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+    //This is a more compatible version which works on ATI and Nvidia hardware
+    //However, This does not work on Apple computers. :/
+    //n.xy = gl_PointCoord.st*vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+
+    float mag = dot(n.xy, n.xy);
+    if (mag > 1.0) discard;   // kill pixels outside circle
+    n.z = sqrt(1.0-mag);
+
+	float pointRadius = 3.0;
+	float near = 0.0;
+	float far = 3.0;
+
+    // point on surface of sphere in eye space
+    vec4 spherePosEye =vec4(position + n * pointRadius,1.0);
+
+    vec4 clipSpacePos = MV * spherePosEye;
+    float normDepth = clipSpacePos.z/clipSpacePos.w;
+
+    // Transform into window coordinates coordinates
+    gl_FragDepth = (((far-near)/2.)*normDepth)+((far+near)/2.);
+    
 	FragColor = vec4(outColor,1.0);
 	
 }

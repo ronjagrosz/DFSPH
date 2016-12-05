@@ -245,7 +245,7 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 	}*/
 	if (dot(p,(Q * p)) < 0.0) {
 		dmat3x4 Qsub = Q;
-		gradP = 2 * Q * p;
+		gradP = 2 * Qsub * p;
 	}
 	return dvec3(gradP);
 }
@@ -474,7 +474,7 @@ void SPH::display(float phiW, float thetaW)	{
 
 	glEnable(GL_PROGRAM_POINT_SIZE); // Enable gl_PointSize in vertex shader
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+	glPolygonMode(GL_BACK, GL_POINT);
 
 	glDrawArrays(GL_POINTS, 0, particleCount);
 

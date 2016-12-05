@@ -11,11 +11,10 @@ layout(location = 1) in vec3 inColor;
 //out vec3 Position;
 out vec3 outColor;
 
-//out vec3 Normal;
-//out vec2 UV;
-
 uniform mat4 MV;
 uniform mat4 P;
+
+out vec3 position;
 
 //uniform mat3 NormalMatrix;
 //uniform mat4 OMV;
@@ -25,9 +24,13 @@ void main () {
 	//Normal = normalize(mat3(MV) * VertexNormal);
 	//UV = vertexUV;
 	outColor = inColor; // past to the fragment shader
+	float pointRadius = 8.0;
+	float pointScale = 2.0;
+	position = vec3(MV * vec4(inPosition, 1.0));
+    float dist = length(position);
+    gl_PointSize = pointRadius * (pointScale / dist);
 
-	// Convert position to clip coordinates and pass along to fragment shader
-	gl_Position =  P * MV * vec4(inPosition, 1.0);
-	gl_PointSize = 8.0;
-
+    position = inPosition;
+    
+    gl_Position = P * MV * vec4(inPosition, 1.0);
 }
