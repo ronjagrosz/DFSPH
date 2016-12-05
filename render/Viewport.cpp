@@ -85,11 +85,12 @@ void Viewport::init(void) {
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CW);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); // with?
+
+	glGenVertexArrays(1, &vao); //maybe move to init()
+	glBindVertexArray(vao);
 }
 
 void Viewport::initWorld() {
-	glGenVertexArrays(1, &vao); //maybe move to init()
-	glBindVertexArray(vao);
 
 	Viewport::hydro = new SPH();	//this is the object that will manage all of the particles
 }
@@ -280,8 +281,7 @@ int Viewport::start(int argc, char** argv) {
 			// Free resources
 			FreeImage_Unload(image);
 			delete [] pixels;
-		}
-		
+		}	
 		
 		glfwSwapBuffers(window);			//swap the buffer
     }

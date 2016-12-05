@@ -281,7 +281,6 @@ void SPH::calculateDensityAndAlpha() {
 		alpha = std::max(sumGradPk, 1.0e-6); // doesnt really do anything?
 		alpha = 1.0/alpha;
 		water->at(i)->setAlpha(alpha); 
-
 	}
 }
 
@@ -428,29 +427,11 @@ void SPH::display(float phiW, float thetaW, GLuint vao)	{
 		vertices[i][0] = water->at(i)->getPosition().x;
 		vertices[i][1] = water->at(i)->getPosition().y;
 		vertices[i][2] = water->at(i)->getPosition().z;
-		
 
 		colors[i][0] = 0.7 - water->at(i)->getPosition().x;
 		colors[i][1] = 0.7 - water->at(i)->getPosition().y;
 		colors[i][2] = 0.7 - water->at(i)->getPosition().z;
-		
-		/*
-		colors[i][0] = 0.9;
-		colors[i][1] = 0.9;
-		colors[i][2] = 0.9;
-		
-		dvec3 vel = water->at(i)->getVelocity();
-		double mag = dot(vel, vel) / maxVelocity;
-
-		if (mag > 0.5) {
-			colors[i][0] = mag;
-			colors[i][1] = 0.1;
-			colors[i][2] = 0.1;
-		}
-		*/
-
 	}
-
 
 	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
