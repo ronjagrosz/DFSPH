@@ -32,8 +32,7 @@ SPH::SPH()
 
 	water = new vector<Particle*>(particleCount);
     cellList = new CellList(dvec3(-1.0, 0.0, -1.0), dvec3(1.0, 3.0, 1.0), H);
-    kappa = new vector<double>(particleCount);
-
+    
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
 
@@ -312,21 +311,22 @@ void SPH::correctDensityError() {
 	
 	// Lower calculations of ki/kj by adding scaling directly
 	for (int i = 0; i < particleCount; ++i) {
-		double k = std::max((water->at(i)->getDensityAdv() - restDensity) 
-			* water->at(i)->getAlpha() * invdT2, 0.5); 
-		kappa->at(i) = k;
+		water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT2);
 	}
 
 	const double eta = maxError * 0.01 * restDensity;  // maxError is given in percent
 	while ((abs(avgDensityAdv - restDensity) > eta || (iter < 2)) && (iter < 100)) {
 		for (int i = 0; i < particleCount; ++i) {
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
+			double ki = std::max((water->at(i)->getDensityAdv() - restDensity) 
+			* water->at(i)->getAlpha(), 0.5); 
 
 			for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
-				
-				sum += particleMass 
-					* (kappa->at(i) + kappa->at(*it))
+
+				double kj = std::max((water->at(i)->getDensityAdv() - restDensity) 
+				* water->at(i)->getAlpha(), 0.5); 
+				sum += particleMass * (ki + kj)
 					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
 			}
 
@@ -336,6 +336,10 @@ void SPH::correctDensityError() {
 		}
 		calculateDensityChange();
 		iter++;
+	}
+	// Change alpha back
+	for (int i = 0; i < particleCount; ++i) {
+		water->at(i)->setAlpha(water->at(i)->getAlpha() * dT*dT);
 	}
 }
 
@@ -349,29 +353,31 @@ void SPH::correctDivergenceError() {
 
 	// Lower calculations of ki/kj by adding scaling directly
 	for (int i = 0; i < particleCount; ++i) {
-		double k = water->at(i)->getDerivedDensity() 
-			* water->at(i)->getAlpha() * invdT; 
-		k /= water->at(i)->getDensity();
-		//k = 0.5*std::max(k, 0.5);
-		kappa->at(i) = k;
+		water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT / water->at(i)->getDensity());
 	}
 
-	const double etaV = 10;//invdT * 0.01 * restDensity * maxErrorV;
+	const double etaV = maxErrorV;
 	while ((abs(avgDerivedDensity) > etaV || (iter < 1)) && (iter < 100)) {
 		for (int i = 0; i < particleCount; ++i) {
-			
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
+			double ki = water->at(i)->getDerivedDensity() * water->at(i)->getAlpha(); 
+
             for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
                 it != water->at(i)->getNeighbours()->end(); ++it) {
 
-            	sum += particleMass 
-            	* (kappa->at(i) + kappa->at(*it))
+            	double kj = water->at(i)->getDerivedDensity() * water->at(i)->getAlpha(); 
+
+            	sum += particleMass * (ki + kj)
 				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			}
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
 		}
 		calculateDensityChange();
 		iter++;		
+	}
+	// Change alpha back
+	for (int i = 0; i < particleCount; ++i) {
+		water->at(i)->setAlpha(water->at(i)->getAlpha() * dT * water->at(i)->getDensity());
 	}
 }
 

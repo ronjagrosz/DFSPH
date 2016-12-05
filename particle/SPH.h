@@ -39,7 +39,6 @@ class SPH
 		double 			avgDerivedDensity;
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
-        vector <double> *kappa;
         CellList* cellList;
 		GLuint vao, vbo[2];		// handles to vao and abo
 		
