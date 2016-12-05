@@ -147,7 +147,7 @@
 
     The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates for the cells and the fourth dimension is for storing the particles belonging to the cell.
     The amount of cells are decided by dividing the scene into cells of length $H$.
-    The particles are then assigned to a cell.
+    The particles are then assigned to a cell according to equation~ref{eq:assignCell}.
     If the particle moves out of its cell it is then assigned to the new cell.
 
     \begin{equation} \label{eq:assignCell}
