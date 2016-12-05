@@ -12,7 +12,7 @@ BoundingBox::BoundingBox(){}
 
 BoundingBox::~BoundingBox() {}
 
-void BoundingBox::draw(GLuint vao, double scale) {
+void BoundingBox::draw(GLuint vao, float scale) {
 	GLfloat vertices[72] = {-scale, scale, scale, 	// 1
 							-scale, scale, -scale, // 2
 

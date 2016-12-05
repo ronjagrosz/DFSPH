@@ -187,7 +187,7 @@ void SPH::boundaryCondition(int i) {
 
 	// Boundary of geometry
 	if (gradP != dvec3(0.0, 0.0, 0.0))
-		vel = gradP + gravity*dT;
+		vel = gradP;// + gravity*dT;
 
 	water->at(i)->setVelocity(vel);
 }
@@ -253,7 +253,7 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 			Qsub[3][i] = 0;
 			Qsub[3][i] = 0;
 		}
-		gradP = 2.0 * Qsub * p;
+		gradP = 2.0 * Q * p;
 	}
 	return dvec3(gradP);
 }
