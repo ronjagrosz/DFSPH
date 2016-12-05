@@ -40,7 +40,7 @@ class SPH
 
 		vector <Particle*> 	*water;	//this is my vector full of particles
         CellList* cellList;
-		GLuint vao, vbo[2];		// handles to vao and abo
+		GLuint vbo[2];		// handles to vao and abo
 		
 		// particle properties
 		double 	particleRadius;
@@ -56,7 +56,6 @@ class SPH
 		vec4 geometry;
 
 		void loadJson(std::string);
-		void createVAO();
 
 		void adaptTimestep();
 		void predictVelocities();
@@ -66,16 +65,13 @@ class SPH
 		void correctDensityError();
 		void calculateDensityAndAlpha();	
 		void correctDivergenceError();
-		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...
-		
-		
+		void simulate();	//gets neighboring particels and calls their getForceAtPoint, applyForce...	
 		
 	public:
 		SPH();
 		~SPH();
 
-		void display();
-
+		void display(GLuint vao);
 };
 
 #endif

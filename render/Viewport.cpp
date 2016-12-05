@@ -87,6 +87,9 @@ void Viewport::init(void) {
 }
 
 void Viewport::initWorld() {
+	glGenVertexArrays(1, &vao); //maybe move to init()
+	glBindVertexArray(vao);
+
 	Viewport::hydro = new SPH();	//this is the object that will manage all of the particles
 }
 
@@ -238,9 +241,9 @@ int Viewport::start(int argc, char** argv) {
         glUniform3fv(locationCa, 1, glm::value_ptr(cam));
         */
 
-		hydro->display();
-		
-
+        hydro->display(vao);
+        boundingBox.draw(vao, 1.2);
+        
 		// Save the frame
 		if (record) {
 			frameCount++;

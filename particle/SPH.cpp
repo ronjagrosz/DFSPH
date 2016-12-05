@@ -70,7 +70,8 @@ SPH::SPH()
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();	
 
-	createVAO();
+	// Generate (one) new Vertex Buffer Object and get the associated id
+	glGenBuffers(2, vbo);
 }
 
 
@@ -491,7 +492,7 @@ void SPH::correctDivergenceError() {
 	}*/
 }
 
-void SPH::display()	{	
+void SPH::display(GLuint vao)	{	
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
@@ -547,7 +548,6 @@ void SPH::display()	{
     glEnableVertexAttribArray(1);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Make background black
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vao);
 
@@ -558,18 +558,4 @@ void SPH::display()	{
 	glDrawArrays(GL_POINTS, 0, particleCount);
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
-}
-
-void SPH::createVAO () {
-	// A VAO (Vertex Array Object) stores information of a complete rendered object.
-	// It contains all VBOs (Vertex Buffer Objects)
-	// A VBO stores information about the vertices. 
-	// Now we're using two VBOs, one for coordinates and one for colors
-
-	// Allocate and bind Vertex Array Object to the handle vao
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// Generate (one) new Vertex Buffer Object and get the associated id
-	glGenBuffers(2, vbo);
 }
