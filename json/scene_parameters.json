@@ -1,9 +1,9 @@
 {
-    "particlesCount" : 4000,
+    "particlesCount" : 5000,
     "fps" : 200,
-    "iterations" : 500,
+    "iterations" : 100,
     "constantAcceleration" : -9.81,
-    "sceneName" : "",
+    "sceneName" : "cylinder",
     "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 0.6 },
 
     "particleRadius" : 0.025,
@@ -12,5 +12,6 @@
     "density" : 998.29,
     "H" : 0.1,
     "maxError" : 0.01,
-    "maxErrorV" : 0.1
+    "maxErrorV" : 10.0,
+    "frameError" : 0.0005
 };

@@ -43,7 +43,8 @@ Viewport::Viewport() {
 	frameCount = 0;
 	timeSinceAction = glfwGetTime();
 
-	timeSinceStart = new timer();
+	phiW = 0.0;
+	thetaW = 0.0;
 }
 
 Viewport::~Viewport() {}
@@ -109,6 +110,7 @@ void Viewport::interaction(GLFWwindow *window) {
 	deltaTime = (glfwGetTime() - currTime) / 10;
 	currTime = glfwGetTime();
 
+	// Zoom
 	if (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) || glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
 		if (glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W)) {
 			if (rad > 0.0f)
@@ -118,6 +120,7 @@ void Viewport::interaction(GLFWwindow *window) {
 			rad += deltaTime*zoomFactor;
 		}
 	}
+	// Up/Down
 	else {
 		if (glfwGetKey(window, GLFW_KEY_UP) || glfwGetKey(window, GLFW_KEY_W)) {
 			theta += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
@@ -129,6 +132,7 @@ void Viewport::interaction(GLFWwindow *window) {
 		}
 	}
 
+	// Left/Right
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) || glfwGetKey(window, GLFW_KEY_D)) {
 		phi -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, M_PI*2.0); // Wrap around at 360 degrees (2*pi)
@@ -138,15 +142,37 @@ void Viewport::interaction(GLFWwindow *window) {
 		phi += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
 		phi = fmod(phi, M_PI*2.0);
 	}
+
+	// Record
 	if (glfwGetKey(window, GLFW_KEY_R) && recordTime > 0.5) {
         record = !record;
         if (record)
             std::cout << "Starting to record..                                 " << std::endl;
         else
             std::cout << "Recorded " << recordTime << " seconds (" 
-        << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB\n";
+        << frameCount/recordTime << "fps) Approximately " << ((double)width*height*3/10000000)*frameCount << " MB                  \n";
         timeSinceAction = glfwGetTime();
     }
+
+    // Rotate cube - up/down
+    if (glfwGetKey(window, GLFW_KEY_I)) {
+			thetaW += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
+			if (thetaW >= M_PI / 2.0) thetaW = M_PI / 2.0; // Clamp at 90
+	}
+	else if (glfwGetKey(window, GLFW_KEY_K)) {
+		thetaW -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second
+		if (thetaW < -M_PI / 2.0) thetaW = -M_PI / 2.0f;      // Clamp at -90
+	}
+	// Rotate cube - left/right
+	if (glfwGetKey(window, GLFW_KEY_L)) {
+		phiW -= deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
+		phiW = fmod(phiW, M_PI*2.0); // Wrap around at 360 degrees (2*pi)
+		if (phiW < 0.0) phiW += M_PI*2.0; // If phi<0, then fmod(phi,2*pi)<0
+	}
+	else if (glfwGetKey(window, GLFW_KEY_J)) {
+		phiW += deltaTime*M_PI / 2.0; // Rotate 90 degrees per second (pi/2)
+		phiW = fmod(phiW, M_PI*2.0);
+	}
 }
 // Initialize glut and set all of tAe call backs
 int Viewport::start(int argc, char** argv) {   
@@ -235,13 +261,7 @@ int Viewport::start(int argc, char** argv) {
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        /*        
-        // send in light and camera location to glsl (not done in shaders yet)
-        glUniform3fv(locationL, 1, glm::value_ptr(light));
-        glUniform3fv(locationCa, 1, glm::value_ptr(cam));
-        */
-
-        hydro->display(vao);
+        hydro->display(phiW, thetaW, vao);
         boundingBox.draw(vao, 1.2);
         
 		// Save the frame
