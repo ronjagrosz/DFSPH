@@ -16,6 +16,6 @@ class BoundingBox {
 		BoundingBox();
 		~BoundingBox();
 
-		void draw(GLuint vao, double scale);
+		void draw(GLuint vao, float scale);
 		
 };
