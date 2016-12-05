@@ -263,7 +263,7 @@ int Viewport::start(int argc, char** argv) {
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
         hydro->display(phiW, thetaW, vao);
-        boundingBox.draw(vao, 1.2);
+        boundingBox.draw(vao, 1.2f);
         
 		// Save the frame
 		if (record) {
