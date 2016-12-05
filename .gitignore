@@ -92,6 +92,7 @@ Temporary Items
 .nfs*
 
 # Report files
+*.pdf
 *.aux
 *.bbl
 *.blg
