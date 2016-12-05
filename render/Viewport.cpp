@@ -88,6 +88,9 @@ void Viewport::init(void) {
 }
 
 void Viewport::initWorld() {
+	glGenVertexArrays(1, &vao); //maybe move to init()
+	glBindVertexArray(vao);
+
 	Viewport::hydro = new SPH();	//this is the object that will manage all of the particles
 }
 
@@ -258,15 +261,9 @@ int Viewport::start(int argc, char** argv) {
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        /*        
-        // send in light and camera location to glsl (not done in shaders yet)
-        glUniform3fv(locationL, 1, glm::value_ptr(light));
-        glUniform3fv(locationCa, 1, glm::value_ptr(cam));
-        */
+        hydro->display(phiW, thetaW, vao);
+        boundingBox.draw(vao, 1.2);
         
-		hydro->display(phiW, thetaW);
-		
-
 		// Save the frame
 		if (record) {
 			frameCount++;
