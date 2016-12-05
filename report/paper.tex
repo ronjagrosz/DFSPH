@@ -170,7 +170,18 @@
       \end{matrix}\right.
     \end{equation}
 
-    The algorithm does also require the kernel gradient.
+    The algorithm does also require the kernel gradient. To reduce the computational effort and memory requirements Bender et. al.~\cite{bender} introduce a scalar function $g(q) = \frac{\partial W_h}{\partial q} \cdot \frac{1}{h \left \| x \right \|}$. The gradient kernel is then calculated by $\partial W_h(q(x)) = x \cdot g(x)$. The gradient kernel is described by Equation ~\ref{eq:gradKernel}. 
+
+    \begin{equation} \label{eq:gradKernel}
+        \partial W_h(q(x)) =  x \cdot \frac{1}{h \left \| x \right \|} \cdot \frac{1}{\pi h^3} \left\{\begin{matrix}
+        - 3q + \frac{9}{4}q^2 & 0 \leqslant q < 1 \\ 
+        \\
+        - \frac{3}{4}(2-q)^2 & 1 \leqslant q < 2\\ 
+        \\
+        0 & q \geqslant 2
+      \end{matrix}\right.
+    \end{equation}
+    % maybe specify x here as well 
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other. 
 
