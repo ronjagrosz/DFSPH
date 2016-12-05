@@ -63,7 +63,8 @@ SPH::SPH()
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();	
 
-	createVAO();
+	// Generate (one) new Vertex Buffer Object and get the associated id
+	glGenBuffers(2, vbo);
 }
 
 
@@ -179,7 +180,7 @@ void SPH::boundaryCondition(int i) {
 	// Dirichlet
 	if(pos.x+dPos.x < -1.2 || pos.x+dPos.x > 1.2) // X
 		vel.x = 0.0;
-	if(pos.y+dPos.y < -1.0) // Y
+	if(pos.y+dPos.y < -1.2) // Y
 		vel.y = 0.0;
 	if(pos.z+dPos.z < -1.2 || pos.z+dPos.z > 1.2) // Z
 		vel.z = 0.0;
@@ -244,8 +245,15 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 			return true;
 	}*/
 	if (dot(p,(Q * p)) < 0.0) {
-		dmat3x4 Qsub = Q;
-		gradP = 2 * Qsub * p;
+		dmat4 Qsub = Q;// = dmat3x4(dvec3(Q[0]), dvec3(Q[1]), dvec3(Q[2], dvec3(Q[3])));
+
+		for (int i = 0; i < 4; ++i) {
+			Qsub[3][i] = 0;
+			Qsub[3][i] = 0;
+			Qsub[3][i] = 0;
+			Qsub[3][i] = 0;
+		}
+		gradP = 2.0 * Qsub * p; // doesnt work with plane
 	}
 	return dvec3(gradP);
 }
@@ -273,7 +281,6 @@ void SPH::calculateDensityAndAlpha() {
 		alpha = std::max(sumGradPk, 1.0e-6); // doesnt really do anything?
 		alpha = 1.0/alpha;
 		water->at(i)->setAlpha(alpha); 
-
 	}
 }
 
@@ -381,7 +388,8 @@ void SPH::correctDivergenceError() {
 	}
 }
 
-void SPH::display(float phiW, float thetaW)	{	
+
+void SPH::display(float phiW, float thetaW, GLuint vao)	{	
 	GLfloat vertices[particleCount][3];
 	GLfloat colors[particleCount][3];
 
@@ -419,29 +427,11 @@ void SPH::display(float phiW, float thetaW)	{
 		vertices[i][0] = water->at(i)->getPosition().x;
 		vertices[i][1] = water->at(i)->getPosition().y;
 		vertices[i][2] = water->at(i)->getPosition().z;
-		
 
 		colors[i][0] = 0.7 - water->at(i)->getPosition().x;
 		colors[i][1] = 0.7 - water->at(i)->getPosition().y;
 		colors[i][2] = 0.7 - water->at(i)->getPosition().z;
-		
-		/*
-		colors[i][0] = 0.9;
-		colors[i][1] = 0.9;
-		colors[i][2] = 0.9;
-		
-		dvec3 vel = water->at(i)->getVelocity();
-		double mag = dot(vel, vel) / maxVelocity;
-
-		if (mag > 0.5) {
-			colors[i][0] = mag;
-			colors[i][1] = 0.1;
-			colors[i][2] = 0.1;
-		}
-		*/
-
 	}
-
 
 	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
@@ -468,7 +458,6 @@ void SPH::display(float phiW, float thetaW)	{
     glEnableVertexAttribArray(1);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Make background black
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vao);
 
@@ -479,18 +468,4 @@ void SPH::display(float phiW, float thetaW)	{
 	glDrawArrays(GL_POINTS, 0, particleCount);
 
 	glDisable(GL_PROGRAM_POINT_SIZE);
-}
-
-void SPH::createVAO () {
-	// A VAO (Vertex Array Object) stores information of a complete rendered object.
-	// It contains all VBOs (Vertex Buffer Objects)
-	// A VBO stores information about the vertices. 
-	// Now we're using two VBOs, one for coordinates and one for colors
-
-	// Allocate and bind Vertex Array Object to the handle vao
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	// Generate (one) new Vertex Buffer Object and get the associated id
-	glGenBuffers(2, vbo);
 }

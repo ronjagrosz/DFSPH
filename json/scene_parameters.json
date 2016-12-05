@@ -3,7 +3,7 @@
     "fps" : 200,
     "iterations" : 100,
     "constantAcceleration" : -9.81,
-    "sceneName" : "plane",
+    "sceneName" : "cylinder",
     "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 0.6 },
 
     "particleRadius" : 0.025,

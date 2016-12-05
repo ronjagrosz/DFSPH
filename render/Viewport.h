@@ -14,6 +14,9 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 #include <vector>
 #include <math.h>
 
+#include "boost/timer.hpp"
+#include "../render/BoundingBox.h"
+
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
 #include "../glm/glm/gtc/matrix_transform.hpp"
@@ -45,6 +48,8 @@ class Viewport {
 		~Viewport();
 		virtual int start(int argc, char** argv);			//This functions is called to start the program.
 
+		GLuint vao;
+
 	private:
 		// void detectCollisions(stellarBody*,stellarBody*);	//I chose to implement a collision detection algorithm
 		int width;
@@ -69,8 +74,8 @@ class Viewport {
 		int frameCount;
 
 		SPH 		*hydro;
-		//CAVIGenerator mov;
-		//BYTE* bm
+		BoundingBox	boundingBox;
+		boost::timer		*timeSinceStart;
 
 		void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
 		void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback

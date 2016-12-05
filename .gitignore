@@ -92,8 +92,13 @@ Temporary Items
 .nfs*
 
 # Report files
+*.pdf
 *.aux
 *.bbl
 *.blg
 *.log
 *.out
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+

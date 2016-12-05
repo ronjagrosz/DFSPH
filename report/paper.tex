@@ -97,15 +97,31 @@
 
 \firstsection{Introduction}
 \maketitle 
-%explain the context of the work:
+    %explain the context of the work:
 	%What exactly is the problem?
 	%What have you created?
+    Smoothed particle hydrodynamics, \textit{SPH}, is a method that was first implemented in 1977 for astrophysical simulations by Gingold et al.~\cite{firstSPH}.
+    Since then SPH has become a popular method for complex water simulations.
+    SPH is a mesh-free Lagrangian method where the particles move in space and change physical properties as time progresses.
+    % More about Lagrangian and maybe navier stokes?
+    
+    % We used this article
+    In this paper we are going to introduce the results from reproducing the divergence-free smoothed particle hydrodynamics method introduced by Bender et al.~\cite{bender}.
+    It is a method which corrects the divergence error, aiming for a divergence-free velocity field which is needed for an incompressible fluid.
+    For the solution to be divergence-free the density has to be constant over time.
+    
+    % Write about other solutions? Why is this solution the BEST!!?
 
 \section{Background and Related Work}
-%What have people done before?
+    %What have people done before?
 	%When addressing this problem, when addressing similar problems
-%What have you done that makes you approach different?
-Based on~\cite{bender}
+    %What have you done that makes you approach different?
+
+    % Bridson
+    ~\cite{bridson}.
+
+    % Write about Benders article
+
 
 \section{Method}
 %What have you done?
@@ -116,6 +132,29 @@ Based on~\cite{bender}
 %Clear enough that you could hand the report to another student and they could reproduce the work!
 %Probably no need to mention programming language etc
 \subsection{Neighbourhood search}
+    Since SPH only considers a finite amount of neighbouring particles, it is important to keep track of every particles neighbours.
+    Searching through all particles for neighbours within the cutoff distance $H$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
+    The cutoff distance $H$ is the kernel smoothing radius.
+    To fasten this up a cell list was implemented.
+    A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $H$.
+    When finding the neighbour of particle $i$, only the neighbouring cells have to be searched for particles within the cutoff distance, see figure~\ref{fig:cellList}.
+    
+    \begin{figure}
+    \includegraphics[width=\linewidth]{img/CellLists2.png}
+    \caption{Finding the neighbours for the filled in particle $i$ by looking through all neighbouring cells, including its own cell, for particles within the cutoff distance $H$}
+    \label{fig:cellList}
+    \end{figure}
+
+    The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates for the cells and the fourth dimension is for storing the particles belonging to the cell.
+    The amount of cells are decided by dividing the scene into cells of length $H$.
+    The particles are then assigned to a cell according to equation~ref{eq:assignCell}.
+    If the particle moves out of its cell it is then assigned to the new cell.
+
+    \begin{equation} \label{eq:assignCell}
+        sjdfkljsf
+    \end{equation}
+
+
 \subsection{Divergence solver}
 \subsection{Density solver}
 \subsection{Kernel}
@@ -123,6 +162,7 @@ Based on~\cite{bender}
 % Write about non pressure forces, velocity osv..?
 \subsection{Adapted time step}
 \subsection{Density and alpha factors}
+\subsection{Screen space fluid rendering}
 
 \section{Implementation}
 %Details of how it was done
@@ -152,7 +192,8 @@ Based on~\cite{bender}
 
 % Use ghost-SPH or similar
 
-\bibliographystyle{abbrv}
+%\bibliographystyle{abbrv}
+\bibliographystyle{ieeetr}
 \bibliography{./refs}
 
 \end{document}
