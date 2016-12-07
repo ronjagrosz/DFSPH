@@ -249,9 +249,6 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 
 		for (int i = 0; i < 4; ++i) {
 			Qsub[3][i] = 0;
-			Qsub[3][i] = 0;
-			Qsub[3][i] = 0;
-			Qsub[3][i] = 0;
 		}
 		gradP = 2.0 * Q * p;
 	}
