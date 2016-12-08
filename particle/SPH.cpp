@@ -27,7 +27,7 @@ SPH::SPH()
 	loadJson("json/scene_parameters.json");
 
 	GLfloat randX, randY, randZ;
-	
+	maxVelocity = constantAcceleration * maxTimestep;	
 	srand(time(0));
 
 	water = new vector<Particle*>(particleCount);
@@ -178,11 +178,11 @@ void SPH::boundaryCondition(int i) {
 	dvec3 gradP = alongBoundary(dvec4(pos+dPos, 1.0));
 
 	// Dirichlet
-	if(pos.x+dPos.x < -1.2 || pos.x+dPos.x > 1.2) // X
+	if(pos.x+dPos.x < -1.0 || pos.x+dPos.x > 1.0) // X
 		vel.x = 0.0;
-	if(pos.y+dPos.y < -1.2) // Y
+	if(pos.y+dPos.y < -1.0) // Y
 		vel.y = 0.0;
-	if(pos.z+dPos.z < -1.2 || pos.z+dPos.z > 1.2) // Z
+	if(pos.z+dPos.z < -1.0 || pos.z+dPos.z > 1.0) // Z
 		vel.z = 0.0;
 
 	// Boundary of geometry
@@ -245,15 +245,17 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 			return true;
 	}*/
 	if (dot(p,(Q * p)) < 0.0) {
-		dmat4 Qsub = Q;// = dmat3x4(dvec3(Q[0]), dvec3(Q[1]), dvec3(Q[2], dvec3(Q[3])));
-
+		dmat4 Qsub = Q;
 		for (int i = 0; i < 4; ++i) {
 			Qsub[3][i] = 0;
 			Qsub[3][i] = 0;
 			Qsub[3][i] = 0;
 			Qsub[3][i] = 0;
 		}
-		gradP = 2.0 * Qsub * p; // doesnt work with plane
+		if (sceneName == "plane")
+			gradP = 2.0 * Q * p;
+		else 
+			gradP = 2.0 * Qsub * p;
 	}
 	return dvec3(gradP);
 }
@@ -391,7 +393,7 @@ void SPH::correctDivergenceError() {
 
 void SPH::display(float phiW, float thetaW, GLuint vao)	{	
 	GLfloat vertices[particleCount][3];
-	GLfloat colors[particleCount][3];
+	GLfloat velocities[particleCount][3];
 
 	mat4 viewMatrix = mat4(1.0);
 	viewMatrix = viewMatrix * glm::rotate(thetaW, vec3(1.0f, 0.0f, 0.0f))
@@ -428,9 +430,9 @@ void SPH::display(float phiW, float thetaW, GLuint vao)	{
 		vertices[i][1] = water->at(i)->getPosition().y;
 		vertices[i][2] = water->at(i)->getPosition().z;
 
-		colors[i][0] = 0.7 - water->at(i)->getPosition().x;
-		colors[i][1] = 0.7 - water->at(i)->getPosition().y;
-		colors[i][2] = 0.7 - water->at(i)->getPosition().z;
+		velocities[i][0] = water->at(i)->getVelocity().x;
+		velocities[i][1] = water->at(i)->getVelocity().y;
+		velocities[i][2] = water->at(i)->getVelocity().z;
 	}
 
 	// Bind the first VBO as being the active buffer and storing vertex attributes (coordinates)
@@ -449,7 +451,7 @@ void SPH::display(float phiW, float thetaW, GLuint vao)	{
     // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
-    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), colors, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3 * particleCount * sizeof(GLfloat), velocities, GL_STATIC_DRAW);
 
     // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -463,7 +465,7 @@ void SPH::display(float phiW, float thetaW, GLuint vao)	{
 
 	glEnable(GL_PROGRAM_POINT_SIZE); // Enable gl_PointSize in vertex shader
 
-	glPolygonMode(GL_BACK, GL_POINT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 
 	glDrawArrays(GL_POINTS, 0, particleCount);
 

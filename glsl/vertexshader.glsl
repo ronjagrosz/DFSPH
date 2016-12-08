@@ -5,32 +5,25 @@
 
 #version 330
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
-
-
-//out vec3 Position;
-out vec3 outColor;
+layout(location = 1) in vec3 inVelocity;
 
 uniform mat4 MV;
 uniform mat4 P;
 
-out vec3 position;
-
-//uniform mat3 NormalMatrix;
-//uniform mat4 OMV;
+out vec3 outVelocity;
+out vec3 mvPosition;
+out vec3 normal;
+out float pointRadius;
 
 void main () {	
-	//Position =  vec3(MV * */vec4(inPosition, 0.0, 1.0));
-	//Normal = normalize(mat3(MV) * VertexNormal);
-	//UV = vertexUV;
-	outColor = inColor; // past to the fragment shader
-	float pointRadius = 8.0;
-	float pointScale = 2.0;
-	position = vec3(MV * vec4(inPosition, 1.0));
-    float dist = length(position);
-    gl_PointSize = pointRadius * (pointScale / dist);
+	outVelocity = inVelocity; // past to the fragment shader
+	pointRadius = 0.05;
+	vec4 mvPos = MV * vec4(inPosition, 1.0);
+	normal = vec3(MV * vec4(inVelocity, 1.0));
 
-    position = inPosition;
-    
-    gl_Position = P * MV * vec4(inPosition, 1.0);
+	vec4 proj = P * vec4(pointRadius, 0.0, mvPos.z, mvPos.w);
+    gl_PointSize = 640 * proj.x / proj.w; // not on if we want smooth 
+    mvPosition = vec3(mvPos);
+
+    gl_Position = P * mvPos;
 }

@@ -187,7 +187,7 @@ int Viewport::start(int argc, char** argv) {
 					  0.0f, 0.0f, -0.2f, 0.0f };
 	GLint locationP;
 	GLint locationMV;
-	GLint locationLight;
+	GLint locationVel;
 	GLint locationCamera;
 
 	glm::mat4 viewMatrix;
@@ -235,7 +235,7 @@ int Viewport::start(int argc, char** argv) {
     //link variables to shader
     locationMV = glGetUniformLocation(phongShader.programID, "MV");
 	locationP = glGetUniformLocation(phongShader.programID, "P");
-	//locationLight = glGetUniformLocation(phongShader.programID, "lightPos");
+	locationVel = glGetUniformLocation(phongShader.programID, "maxVelocity");
 	locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
 
     // Let's get started!
@@ -262,10 +262,13 @@ int Viewport::start(int argc, char** argv) {
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
-        glUniform3fv(locationCamera, 1, glm::value_ptr(cameraPosition));
-        
+        //glUniform3fv(locationCamera, 1, glm::value_ptr(cameraPosition));
+        float maxVel = (float) hydro->maxVelocity;
+        float* maxVelP = &maxVel;
+        glUniform1fv(locationVel, 1, maxVelP);
+
         hydro->display(phiW, thetaW, vao);
-        boundingBox.draw(vao, 1.2f);
+        boundingBox.draw(vao, 1.0f);
         
 		// Save the frame
 		if (record) {
@@ -277,7 +280,7 @@ int Viewport::start(int argc, char** argv) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 			// Convert to FreeImage format & save to file
-			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0x0000FF, 0xFF0000, 0x00FF00, false);
+			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
 			FreeImage_Save(FIF_PNG, image, fileName.c_str(), 0);
 
 			// Free resources
