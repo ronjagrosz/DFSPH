@@ -95,7 +95,7 @@ void SPH::loadJson(string fileName) {
 	    params.get<picojson::object>()["geometry"]
     		.get<picojson::object>()["r"].get<double>());
 
-
+    boundaryDimension = params.get<picojson::object>()["boundaryDimension"].get<double>();
     // Load particle properties
     particleRadius = params.get<picojson::object>()["particleRadius"].get<double>();
     particleMass = params.get<picojson::object>()["particleMass"].get<double>();
@@ -166,6 +166,7 @@ void SPH::predictVelocities() {
 	gravity *= dT;
 	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setVelocity(water->at(i)->getVelocity() + gravity);
+		boundaryCondition(i);
 	}
 	gravity /= dT;
 }
@@ -178,11 +179,11 @@ void SPH::boundaryCondition(int i) {
 	dvec3 gradP = alongBoundary(dvec4(pos+dPos, 1.0));
 
 	// Dirichlet
-	if(pos.x+dPos.x < -1.0 || pos.x+dPos.x > 1.0) // X
+	if(pos.x+dPos.x < -boundaryDimension || pos.x+dPos.x > boundaryDimension) // X
 		vel.x = 0.0;
-	if(pos.y+dPos.y < -1.0) // Y
+	if(pos.y+dPos.y < -boundaryDimension) // Y
 		vel.y = 0.0;
-	if(pos.z+dPos.z < -1.0 || pos.z+dPos.z > 1.0) // Z
+	if(pos.z+dPos.z < -boundaryDimension || pos.z+dPos.z > boundaryDimension) // Z
 		vel.z = 0.0;
 
 	// Boundary of geometry
@@ -339,9 +340,22 @@ void SPH::correctDensityError() {
 					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
 			}
 
+			//neumann
+			dvec3 vel = water->at(i)->getVelocity() - (sum * dT);
+			dvec3 pos = water->at(i)->getPosition();
+			dvec3 dPos = vel * dT;
+
+			if(pos.x+dPos.x < -boundaryDimension || pos.x+dPos.x > boundaryDimension) // X
+				sum.x = 0.0;
+			if(pos.y+dPos.y < -boundaryDimension) // Y
+				sum.y = 0.0;
+			if(pos.z+dPos.z < -boundaryDimension || pos.z+dPos.z > boundaryDimension) // Z
+				sum.z = 0.0;
+
+
 			water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
 			// Last velocity change before updatePosition, make sure we don't go into boundaries
-			boundaryCondition(i);
+			
 		}
 		calculateDensityChange();
 		iter++;

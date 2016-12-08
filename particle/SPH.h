@@ -55,6 +55,7 @@ class SPH
 		double  maxError;
 		double  maxErrorV;
 		double  frameError;
+		double  boundaryDimension;
 		
 
 		dvec3 	gravity;

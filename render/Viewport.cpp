@@ -15,6 +15,7 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 
 #include "../particle/SPH.h"
+#include "../json/picojson.h"
 #include "../render/Viewport.h"
 #include "Shader.h"
 
@@ -238,6 +239,12 @@ int Viewport::start(int argc, char** argv) {
 	locationVel = glGetUniformLocation(phongShader.programID, "maxVelocity");
 	locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
 
+	picojson::value param;
+	ifstream paramStream ("json/scene_parameters.json");
+	paramStream >> param;
+	float boundaryDimension = (float)(param.get<picojson::object>()["boundaryDimension"].get<double>());
+
+
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
     	glfwPollEvents();
@@ -249,7 +256,7 @@ int Viewport::start(int argc, char** argv) {
 
 		setupPerspective(window, P);
 		interaction(window);
-		cameraPosition = glm::vec3(0.0f, 0.0f, rad);
+		cameraPosition = glm::vec3(0.0f, -0.5f, rad);
 
 
 		// I is the normal Identity matrix
@@ -268,7 +275,9 @@ int Viewport::start(int argc, char** argv) {
         glUniform1fv(locationVel, 1, maxVelP);
 
         hydro->display(phiW, thetaW, vao);
-        boundingBox.draw(vao, 1.0f);
+
+        
+        boundingBox.draw(vao, boundaryDimension);
         
 		// Save the frame
 		if (record) {
