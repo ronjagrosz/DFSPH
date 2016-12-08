@@ -15,6 +15,7 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 
 #include "../particle/SPH.h"
+#include "../json/picojson.h"
 #include "../render/Viewport.h"
 #include "Shader.h"
 
@@ -187,7 +188,7 @@ int Viewport::start(int argc, char** argv) {
 					  0.0f, 0.0f, -0.2f, 0.0f };
 	GLint locationP;
 	GLint locationMV;
-	GLint locationLight;
+	GLint locationVel;
 	GLint locationCamera;
 
 	glm::mat4 viewMatrix;
@@ -235,8 +236,14 @@ int Viewport::start(int argc, char** argv) {
     //link variables to shader
     locationMV = glGetUniformLocation(phongShader.programID, "MV");
 	locationP = glGetUniformLocation(phongShader.programID, "P");
-	//locationLight = glGetUniformLocation(phongShader.programID, "lightPos");
-	//locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
+	locationVel = glGetUniformLocation(phongShader.programID, "maxVelocity");
+	locationCamera = glGetUniformLocation(phongShader.programID, "camPos");
+
+	picojson::value param;
+	ifstream paramStream ("json/scene_parameters.json");
+	paramStream >> param;
+	float boundaryDimension = (float)(param.get<picojson::object>()["boundaryDimension"].get<double>());
+
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -249,7 +256,7 @@ int Viewport::start(int argc, char** argv) {
 
 		setupPerspective(window, P);
 		interaction(window);
-		cameraPosition = glm::vec3(0.0f, 0.0f, rad);
+		cameraPosition = glm::vec3(0.0f, -0.5f, rad);
 
 
 		// I is the normal Identity matrix
@@ -262,8 +269,15 @@ int Viewport::start(int argc, char** argv) {
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
+        //glUniform3fv(locationCamera, 1, glm::value_ptr(cameraPosition));
+        float maxVel = (float) hydro->maxVelocity;
+        float* maxVelP = &maxVel;
+        glUniform1fv(locationVel, 1, maxVelP);
+
         hydro->display(phiW, thetaW, vao);
-        boundingBox.draw(vao, 1.2f);
+
+        
+        boundingBox.draw(vao, boundaryDimension);
         
 		// Save the frame
 		if (record) {
@@ -275,7 +289,7 @@ int Viewport::start(int argc, char** argv) {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 			// Convert to FreeImage format & save to file
-			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0x0000FF, 0xFF0000, 0x00FF00, false);
+			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
 			FreeImage_Save(FIF_PNG, image, fileName.c_str(), 0);
 
 			// Free resources

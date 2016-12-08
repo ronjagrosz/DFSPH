@@ -31,6 +31,9 @@ using namespace boost;
 
 class SPH
 {
+	public:
+		double  maxVelocity;
+
 	protected:
 		int				particleCount;	
 		double			dT;
@@ -52,7 +55,8 @@ class SPH
 		double  maxError;
 		double  maxErrorV;
 		double  frameError;
-		double  maxVelocity;
+		double  boundaryDimension;
+		
 
 		dvec3 	gravity;
 
