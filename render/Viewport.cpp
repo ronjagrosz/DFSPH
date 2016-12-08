@@ -287,9 +287,9 @@ int Viewport::start(int argc, char** argv) {
 			// Make the BYTE array, factor of 3 because it's RBG.
 			BYTE* pixels = new BYTE[ 3 * width * height];
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+			glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, pixels);
 			// Convert to FreeImage format & save to file
-			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
+			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0x0000FF, 0x00FF00, 0xFF0000, false);
 			FreeImage_Save(FIF_PNG, image, fileName.c_str(), 0);
 
 			// Free resources

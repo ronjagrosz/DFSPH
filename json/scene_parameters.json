@@ -3,7 +3,7 @@
     "fps" : 200,
     "iterations" : 100,
     "constantAcceleration" : -9.81,
-    "sceneName" : "paraboloid",
+    "sceneName" : "sphere",
     "geometry" : { "a": 1.0, "b": 1.0, "c": 1.0, "r": 0.4 },
     "boundaryDimension" : 1.2,
 
