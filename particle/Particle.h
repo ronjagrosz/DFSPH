@@ -54,7 +54,10 @@ class Particle {
 		double	derivedDensity;
 		double  alpha; // for kernelfunction (ai)
 
+
 	public:
+		int     id;
+		
 		Particle();
 		//Particle(const Particle&);
 		~Particle();

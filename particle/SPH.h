@@ -35,7 +35,8 @@ class SPH
 		double  maxVelocity;
 
 	protected:
-		int				particleCount;	
+		int				particleCount;
+		int 			idx;	
 		double			dT;
 		double 			restDensity;
 		double			avgDensityAdv;
@@ -56,7 +57,6 @@ class SPH
 		double  maxErrorV;
 		double  frameError;
 		double  boundaryDimension;
-		
 
 		dvec3 	gravity;
 
