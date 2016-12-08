@@ -229,7 +229,6 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 		Q[3][2] = -geometry.w/2.0;
 	}
 
-
 	// Hyperboloid
 	else if (sceneName == "hyperboloid") {
 		Q[0][0] = geometry.w;
@@ -238,13 +237,6 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 		Q[3][3] = -geometry.w; // + or -
 	}
 		
-	// Cube
-	/*if (sceneName == "cube") {
-		if (max(abs(p.x),abs(p.y+1.0),abs(p.z)) > geometry.w)
-			return false;
-		else
-			return true;
-	}*/
 	if (dot(p,(Q * p)) < 0.0) {
 		dmat4 Qsub = Q;
 		for (int i = 0; i < 4; ++i) {

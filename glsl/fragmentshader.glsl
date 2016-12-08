@@ -8,7 +8,6 @@ precision highp float;
 
 in vec3 outVelocity;
 in vec3 mvPosition;
-in vec3 normal;
 in float pointRadius;
 
 uniform mat4 MV;
@@ -69,38 +68,6 @@ void main () {
     outColor += 0.7 * diffuse * fluidColor;
     outColor += 0.05 * spec * vec3(1.0);
 	outColor = clamp(outColor, 0.0, 1.0);
-	
-	/*
-	vec3 fsNormal = normalize(normal);
-    if (!gl_FrontFacing)
-    {
-        fsNormal = -normalize(normal);
-    }
-	
-    const vec3 ambient = vec3(0.6, 0.6, 0.6);
-    const vec3 diffuse = vec3(1.0, 1.0, 1.0);
-    const vec3 specular = vec3(1.0, 1.0, 1.0);
-    const float shininess = 4.0;
-    const float specular_factor = 0.3;
-	
-	vec3 eye_n = normalize(fsNormal);
-	vec3 eye_v = normalize(-mvPosition);
-    const vec3 eye_l = vec3(0.0, 0.0, 1.0);	
-    float cos_ln = max(dot(eye_l, eye_n), 0.0);    
-    vec3 h = normalize(eye_l + eye_v);
-    float cos_nh = max(dot(eye_n, h), 0.0);   
-    
-	vec3 color = vec3(0.3, 0.3, 1.0) * (ambient + diffuse * cos_ln + specular_factor * specular * pow(cos_nh, shininess));
-    
-	vec3 hsv = rgb2hsv(color);
-	float v = length(outVelocity);
-	v = min((1.0/maxVelocity)*v*v, 1.0);
-	vec3 fluidColor = hsv2rgb(vec3(hsv.x, max(1.0 - v, 0.0), 1.0));
-	
-	// compute final color
-	vec3 outColor = fluidColor;
-	*/
 
 	FragColor = vec4(outColor,1.0);
-	
 }
