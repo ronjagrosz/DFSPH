@@ -263,8 +263,8 @@ int Viewport::start(int argc, char** argv) {
 		viewMatrix = glm::make_mat4(I);
         // Translate a bit down and backwards
 		viewMatrix = viewMatrix * glm::translate(-cameraPosition)
-        * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f))
-        * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
+            * glm::rotate(theta, glm::vec3(1.0f, 0.0f, 0.0f))
+            * glm::rotate(phi, glm::vec3(0.0f, 1.0f, 0.0f));
 
         //convert viewMatrix to float
         glUniformMatrix4fv(locationMV, 1, GL_FALSE, glm::value_ptr(viewMatrix));
