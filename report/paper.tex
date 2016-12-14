@@ -62,12 +62,12 @@
 	%What exactly is the problem?
 	%What have you created?
     Smoothed particle hydrodynamics, \textit{SPH}, is a method that was first implemented in 1977 for astrophysical simulations by Gingold et al.~\cite{firstSPH}.
-    Since then SPH has become a popular method for complex water simulations.
-    SPH is a mesh-free Lagrangian method where the particles move in space and change physical properties as time progresses.
+    Since then SPH has become a popular method for complex fluid simulations.
+    SPH is a mesh-free Lagrangian method where the fluid is split into discrete sets defined as particles, which move in space and change physical properties as time progresses.
     % More about Lagrangian and maybe navier stokes?
     
     % We used this article
-    In this paper we are going to introduce the results from reproducing the divergence-free smoothed particle hydrodynamics method introduced by Bender et al.~\cite{bender}.
+    In this paper we are going to introduce the results from reproducing the divergence-free smoothed particle hydrodynamics method presented by Bender et al.~\cite{bender}.
     It is a method which corrects the divergence error, aiming for a divergence-free velocity field which is needed for an incompressible fluid.
     For the solution to be divergence-free the density has to be constant over time.
     
@@ -174,6 +174,10 @@ function performSimulation
 \subsection{Navier-stokes}
 % Write about non pressure forces, velocity osv..?
 \subsection{Adapted time step}
+
+% CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
+In order to assure a stable simulation is it necessary to adapt the time step depending on the motion. The quicker the particles move the smaller time steps are taken such that the numerical error of the explicit time integration is negligible.
+
 \subsection{Density and alpha factors}
 \subsection{Screen space fluid rendering}
 
