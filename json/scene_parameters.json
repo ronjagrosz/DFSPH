@@ -8,8 +8,7 @@
     "boundaryDimension" : 1.2,
 
     "particleRadius" : 0.025,
-    "particleMass" : 0.01,
-    "particleViscosity" : 2.034,
+    "particleMass" : 0.02,
     "density" : 998.29,
     "H" : 0.1,
     "maxError" : 0.01,
