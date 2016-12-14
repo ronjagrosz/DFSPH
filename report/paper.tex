@@ -17,6 +17,9 @@
 \usepackage{abstract}   % Onecolabstract, saythanks
 \usepackage[margin=1.2in]{geometry}
 
+\usepackage{bm}
+\newcommand{\vect}[1]{\bm{#1}} % bold vector
+
 \setlength{\columnsep}{20px} % Length between twocolumn
  
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -63,12 +66,12 @@
 	%What exactly is the problem?
 	%What have you created?
     Smoothed particle hydrodynamics, \textit{SPH}, is a method that was first implemented in 1977 for astrophysical simulations by Gingold et al.~\cite{firstSPH}.
-    Since then SPH has become a popular method for complex water simulations.
-    SPH is a mesh-free Lagrangian method where the particles move in space and change physical properties as time progresses.
+    Since then SPH has become a popular method for complex fluid simulations.
+    SPH is a mesh-free Lagrangian method where the fluid is split into discrete sets defined as particles, which move in space and change physical properties as time progresses.
     % More about Lagrangian and maybe navier stokes?
     
     % We used this article
-    In this paper we are going to introduce the results from reproducing the divergence-free smoothed particle hydrodynamics method introduced by Bender et al.~\cite{bender}.
+    In this paper we are going to introduce the results from reproducing the divergence-free smoothed particle hydrodynamics method presented by Bender et al.~\cite{bender}.
     It is a method which corrects the divergence error, aiming for a divergence-free velocity field which is needed for an incompressible fluid.
     For the solution to be divergence-free the density has to be constant over time.
     
@@ -179,6 +182,18 @@ function performFluidSimulation
 \subsection{Navier-stokes}
 % Write about non pressure forces, velocity osv..?
 \subsection{Adapted time step}
+
+% CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
+In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
+The quicker the particles move the smaller time steps are taken such that the numerical 
+error of the explicit time integration is negligible. For this is a condition proposed by Courant–Friedrichs–Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by the maximum velocity $\vect{V_{max}}$ in the scene.
+
+\begin{equation}\label{eq:cfl}
+\Delta t \leq \frac{0.4 \cdot d}{\vect{V_{max}}}
+\end{equation}
+
+Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. This is decided from the user side as a desired fps parameter. This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
+
 \subsection{Density and alpha factors}
 \subsection{Screen space fluid rendering}
 
