@@ -139,11 +139,11 @@ function performFluidSimulation
 
     The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates and the fourth dimension is for storing the particles belonging to the cell.
     The amount of cells are decided by dividing the scene into cells of length $H$.
-    The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $vect{x}$ is the position of the particle and $vect{s}_min$ is the lowest position in the scene space.
+    The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $\vect{x}$ is the position of the particle and $\vect{s}_min$ is the lowest position of the scene space.
     If the particle moves out of its cell it is reassigned to the new cell it is inside.
 
     \begin{equation} \label{eq:assignCell}
-        \frac{\lceil{pos - s_{min}}\rceil}{H}
+        \frac{\lceil{\vect{x} - \vect{s}_{min}}\rceil}{H}
     \end{equation}
 
 % Should be mentioned early since it is used in mostly of the algorithms
