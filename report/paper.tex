@@ -95,7 +95,7 @@
 %Probably no need to mention programming language etc
 
 \begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
-function performSimulation
+function performFluidSimulation
     for all particles $i$ do //Init neighbourhoods
         find neighbourhoods $N_i(0)$
     for all particles $i$ do //Init $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$
@@ -104,7 +104,7 @@ function performSimulation
     while (t < $t_{max}$) do //Start simulation loop
         adapt time step $\Delta{t}$ 
         for all particles $i$ do //Predict velocities $\color{codegreen}\mathbf{v}_i^*$
-            $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_i^{adv}/m_i$
+            $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_g/m_i$
         correctDensityError($\alpha, \mathbf{v}_i$) //Fulfill $\color{codegreen}\rho^* - \rho_0 = 0$
         for all particles $i$ do //Update positions
             $x_i(t + \Delta{t}) = x_i(t) + \Delta{t}\mathbf{v}_i^*$
@@ -117,26 +117,30 @@ function performSimulation
 \end{lstlisting}
 
 \subsection{Neighbourhood search}
-    Since SPH only considers a finite amount of neighbouring particles, it is important to keep track of every particles neighbours.
+    Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles neighbours.
     Searching through all particles for neighbours within the cutoff distance $H$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
-    The cutoff distance $H$ is the kernel smoothing radius.
-    To fasten this up a cell list was implemented.
+    The cutoff distance $H$ is the kernels smoothing radius.
+    To make this faster a cell list was implemented.
     A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $H$.
+    Each cell spans on a surface in space.
+    A particle belongs to a cell if it is inside the space the cell occupy.
     When finding the neighbour of particle $i$, only the neighbouring cells have to be searched for particles within the cutoff distance, see figure~\ref{fig:cellList}.
     
-    \begin{figure}
-    \includegraphics[width=\linewidth]{img/CellLists2.png}
+    \begin{figure}[h!]\centering
+    \begin{centering}
+    \includegraphics[width=0.7\linewidth]{img/CellList.png}
     \caption{Finding the neighbours for the filled in particle $i$ by looking through all neighbouring cells, including its own cell, for particles within the cutoff distance $H$}
     \label{fig:cellList}
+    \end{centering}
     \end{figure}
 
-    The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates for the cells and the fourth dimension is for storing the particles belonging to the cell.
+    The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates and the fourth dimension is for storing the particles belonging to the cell.
     The amount of cells are decided by dividing the scene into cells of length $H$.
-    The particles are then assigned to a cell according to Equation ~\ref{eq:assignCell}.
-    If the particle moves out of its cell it is then assigned to the new cell.
+    The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $vect{x}$ is the position of the particle and $vect{s}_min$ is the lowest position in the scene space.
+    If the particle moves out of its cell it is reassigned to the new cell it is inside.
 
     \begin{equation} \label{eq:assignCell}
-        sjdfkljsf
+        \frac{\lceil{pos - s_{min}}\rceil}{H}
     \end{equation}
 
 % Should be mentioned early since it is used in mostly of the algorithms
@@ -166,7 +170,7 @@ function performSimulation
     \end{equation}
     % maybe specify x here as well 
 
-    It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other. 
+    It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
 
 
 \subsection{Divergence solver}
