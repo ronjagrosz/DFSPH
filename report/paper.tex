@@ -114,7 +114,11 @@
 %Clear enough that you could hand the report to another student and they could reproduce the work!
 %Probably no need to mention programming language etc
 
-\begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
+Listing \ref{lst:simulation} drafts the produced simulation after following Bender et al.~\cite{bender} proposed method in detail. Upon starting the application will the particle neighbourhood $N_i$ be determined with a cell list solution explained in section \ref{section:neighbour}. For each particle will the alpha $\alpha_i$ and density $\rho_i$ parameters computed, both of which are commonly reused variables and thus worth storing to reduce computation cost. This is done before entering the simulation loop as initial values are required. During the loop will all these parameters be updated as the simulation progresses.
+
+Once in the simulation at line $7$ will first the time step be determined through the CFL condition explained in section \ref{section:timestep}. The new velocities for each particle is then predicted through the included external forces which are propagated with ordinary euler integration.
+
+\begin{lstlisting}[caption={Simulation algorithm},label={lst:simulation}, language=C++, mathescape=true, escapeinside={(*}{*)}] 
 function performFluidSimulation
     for all particles $i$ do //Init neighbourhoods
         find neighbourhoods $N_i(0)$
@@ -136,7 +140,44 @@ function performFluidSimulation
         correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
 \end{lstlisting}
 
-\subsection{Neighbourhood search}
+The density solver uses the precomputed parameter $\alpha_i$ together with this prediction to compute the pressure forces in each neighbourhood such that it can correct the density error $\rho_i^* - \rho_i = 0$. This is further explained in \ref{densitySolver}. 
+
+After the particle position $\vect{x_i}$ has been updated are the neighbourhoods and the $\alpha_i$ and $\rho_i$ factors recalculated to reflect the new positions. Lastly, in line $19$ the divergence solver, much like the density solver, calculates the pressure forces to eliminate its error. In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal to $0$.
+
+\subsection{Navier-Stokes}
+    Navier-Stokes equations describes incompressible fluids and is therefore suitable for SPH simulations. The equations expressed in Lagrangian coordinates can be found in Equation~\ref{eq:nsDensity} and~\ref{eq:nsVelocity}.
+
+    \begin{equation} \label{eq:nsDensity}
+        \frac{D\rho}{Dt} = 0 \Leftrightarrow \bigtriangledown \cdot \textbf{v} = 0 
+    \end{equation}
+
+    \begin{equation} \label{eq:nsVelocity}
+        \frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p + v \bigtriangledown ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
+    \end{equation}
+
+    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}. Bridson~\cite{bridson} uses splitting on Equation~\ref{eq:nsVelocity} which induce $\frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p$ which will be used further on in the simulation. Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
+
+
+\subsection{Adapted time step} \label{section:timestep}
+
+% CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
+In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
+The quicker the particles move the smaller time steps are taken such that the numerical 
+error of the explicit time integration is negligible. For this is a condition proposed by 
+Courant$-$Friedrichs$-$Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. 
+The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by 
+the maximum velocity $\vect{V_{max}}$ in the scene.
+
+\begin{equation}\label{eq:cfl}
+\Delta t \leq \frac{0.4 \cdot d}{\vect{V_{max}}}
+\end{equation}
+
+Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. 
+This is decided from the user side as a desired fps parameter. 
+This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
+
+
+\subsection{Neighbourhood search} \label{section:neighbour}
     Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles neighbours.
     Searching through all particles for neighbours within the cutoff distance $h$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
     The cutoff distance $h$ is the kernels smoothing radius.
@@ -164,7 +205,7 @@ function performFluidSimulation
     \end{equation}
 
 % Should be mentioned early since it is used in mostly of the algorithms
-\subsection{Kernel}
+\subsection{Kernel} \label{kernel}
     A kernel function is used to simulate how particle-particle interactions decrease with the distance between the current particle and its neighbours. In SPH simulations this is an approximation of the Gaussian kernel function. Different kernels have been tested in previous works i.e. the poly6 kernel, the spiky kernel and the cubic spline kernel. According to Bender et. al.~\cite{bender} the cubic spline kernel presented by Monaghan~\cite{monaghan} was used. The kernel is described by Equation~\ref{eq:kernel}, where $q(x)=\frac{\left \| x \right \|}{h}$, $x$ is the distance between the current particle and a neighbour particle and $h$ is the support radius for the kernel. Particles further away than the support radius will not affect the current particle.   
 
     \begin{equation} \label{eq:kernel}
@@ -181,6 +222,7 @@ function performFluidSimulation
 
     The algorithm does also require the kernel gradient. To reduce the computational effort and memory requirements Bender et. al.~\cite{bender} introduce a scalar function $g(q) = \frac{\partial W_h}{\partial q} \cdot \frac{1}{h \left \| x \right \|}$. The gradient kernel is then calculated by $\partial W_h(q(x)) = x \cdot g(x)$. The gradient kernel is described by Equation ~\ref{eq:gradKernel}. 
 
+
     \begin{equation} \label{eq:gradKernel}
         \resizebox{0.88\linewidth}{!}{$
         \partial W_h(q(x)) =  x \frac{1}{h \left \| x \right \|} \frac{1}{\pi h^3} \left\{\begin{matrix}
@@ -196,26 +238,99 @@ function performFluidSimulation
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
 
+\subsection{Density and alpha factors} \label{section:alpha}
+    The density in a region of the fluid with a particle $x_i$ in the center is calculated through Equation~\ref{eq:density} where $\rho_i$ is the density with the current particle $x_i$ in center, $\rho_j$ is the density with a neighbouring particle $x_j$ in center, $m_j$ is the mass for a neighbour particle and $W_{ij}$ is the kernel function described in Section~\ref{kernel}. This implies that neighbouring particles closer to the current particle $x_i$ will have a greater affect on the density.    
 
-\subsection{Divergence solver}
-\subsection{Density solver}
+    \begin{equation}\label{eq:density}
+        \rho_i = \sum_j \frac{m_j}{\rho_j} \rho_j W_{ij} = \sum_j m_j W_{ij}
+    \end{equation} 
 
-\subsection{Navier-stokes}
+\subsection{Density solver} \label{densitySolver}
+    This solver aims to minimize the density error caused by the numerical integration in the divergence solver. The density error is determined by comparing the actual density to the rest density, $\rho - \rho_0$. There are several density solvers presented in previous works, but the solver used in this project was presented by Bender et. al.~\cite{bender} which uses the fact that $\alpha_i$ has been calculated before the solver which reduces the computations in the solver. The solver will be active while the average of the predicted densities for every particle differs from the rest density with an error greater than a constant \textit{maxError}. For every particle a predicted density $\rho_i^*$ is calculated through an Euler integration step by Equation~\ref{eq:predDensity}. 
+
+    \begin{equation} \label{eq:predDensity}
+        \resizebox{0.88\linewidth}{!}{$
+        \begin{matrix}
+        \rho_i^* = \rho_i + \Delta t \frac{D\rho_i}{Dt} \\ 
+        \\
+        \Leftrightarrow \\ 
+        \\
+        \rho_i^* = \rho_i + \Delta t + \sum_j m_j 
+        (\textbf{v}_i^* - \textbf{v}_j^*) \bigtriangledown W_{ij}
+        \end{matrix}
+        $}
+    \end{equation}
+
+    Since the stiffness parameter $\kappa_i$ is derived from the pressure forces, updating the stiffness parameter will correct the density error. The stiffness parameter is determined by Equation~\ref{stiffnessDensity}.
+
+    \begin{equation} \label{stiffnessDensity}
+    \kappa_i = \frac{1}{\Delta t^2}(\rho_i^*-\rho_0)\alpha_i
+    \end{equation}
+
+    The velocity is updated according to the the divergence solver. %Det här behöver kanske utvecklas, väntar med det tills stycket om divergence solvern är klar, innehåller samma ekvationer delvis
+
 % Write about non pressure forces, velocity osv..?
-\subsection{Adapted time step}
 
-% CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
-In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
-The quicker the particles move the smaller time steps are taken such that the numerical 
-error of the explicit time integration is negligible. For this is a condition proposed by Courant–Friedrichs–Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by the maximum velocity $\vect{V_{max}}$ in the scene.
 
-\begin{equation}\label{eq:cfl}
-\Delta t \leq \frac{0.4 \cdot d}{\vect{V_{max}}}
+\subsection{Divergence solver} \label{divergenceSolver}
+
+\iffalse
+\begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
+function correctDivergenceError
+    for all particles $i$ do
+        calculateDensityChange $\frac{Dp}{Dt}_i$
+    for all particles $i$ do //Scale $\color{codegreen}a_i$
+        $a_i = \frac{a_i}{\Delta t}$
+    while (t < $t_{max}$) do //Start simulation loop
+        adapt time step $\Delta{t}$ 
+        for all particles $i$ do //Predict velocities $\color{codegreen}\mathbf{v}_i^*$
+            $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_i^{adv}/m_i$
+        correctDensityError($\alpha, \mathbf{v}_i$) //Fulfill $\color{codegreen}\rho^* - \rho_0 = 0$
+        for all particles $i$ do //Update positions
+            $x_i(t + \Delta{t}) = x_i(t) + \Delta{t}\mathbf{v}_i^*$
+        for all particles $i$ do //Update neighbourhoods
+            find neighbourhoods $N_i(t + \Delta{t})$
+        for all particles $i$ do //Update $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$ 
+            compute densities $\rho_i(0)$
+            compute factors $\alpha_i(0)$
+        correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
+\end{lstlisting}
+\fi
+
+The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in equation \ref{eq:nsDensity}.
+
+The solver will ensure that the divergence error is smaller than an acceptable level defined by the user. The divergence error is suppressed by a combined symmetric pressure force $\vect{F_{j\leftarrow i}^p} $ over all particle $i$'s neighbours $j$, that is applied to the predicted velocity of particle $i$. The pressure force is determined by 
+
+\begin{equation} \label{eq:pressure}
+\vect{F_i^p} = -\frac{m_i}{\rho_i}\nabla \vect{p_i},
 \end{equation}
 
-Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. This is decided from the user side as a desired fps parameter. This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
+where the pressure gradient can be solved using the SPH formulation proposed by Ihmsen et al.~\cite{ihmsen}.
 
-\subsection{Density and alpha factors}
+\begin{equation} \label{eq:dpdt}
+\frac{D\rho_i}{Dt} = \sum_j m_j (\vect{v_i} - \vect{v_j})\nabla \vect{W_{ij}}
+\end{equation}
+
+\begin{equation} \label{eq:kappa}
+\nabla \vect{p_i} = \kappa_i^v \nabla \rho_i = \kappa_i^v \sum_j m_j \nabla \vect{W_{ij}}
+\end{equation}
+
+Equation \ref{eq:dpdt} defines how the density change is computed and \ref{eq:kappa} computes the pressure gradient with the help of the stiffness parameter $\kappa_i^v$, where 
+
+\begin{equation}
+\kappa_i^v = \frac{D\rho}{Dt} \cdot \frac{\rho_i}{\Delta t \cdot \alpha_i}
+\end{equation}
+
+and $\alpha_i$ is the scaling factor only dependant on the position explained in section \ref{section:alpha}. The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other.
+The velocity of particle $i$ is thus changed to:
+
+\begin{equation} \label{eq:pressuretotal}
+\vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} \cdot \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+\end{equation}
+
+After the symmetric pressure force has been applied to the new velocity should the density change in equation \ref{eq:dpdt} be equal or close to zero. If the error is too large will the process be iterated until desired result have been achieved.
+
+
 \subsection{Screen space fluid rendering}
 
 \section{Implementation}
