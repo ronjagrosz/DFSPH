@@ -82,11 +82,28 @@
 	%When addressing this problem, when addressing similar problems
     %What have you done that makes you approach different?
 
-    % Bridson
-    ~\cite{bridson}.
+    % Write about divergence free 
+    In the field of computer graphics a variety of methods for simulating incompressible fluids exist.
+    This section will give a brief overview of related approaches.
 
-    % Write about Benders article
+    Bender et al.~\cite{bender} proposed a method for a stable implicit SPH solution.
+    The method uses a combination of two pressure solvers which enforce a low volume compression below 0.01$\%$ and a divergence-free velocity field.
+    It can be seen as enforcing incompressibility on both position and velocity level.
+    The low compression is important for realistic physical behavior and a divergence-free state increases the stability of the simulation which reduces the number of solver iterations.
 
+    Another incompressible SPH method was proposed by Hu et al.~\cite{hu} for multiphase flows where the time integration step to obtain velocities is divided into two half steps.
+    This is done to enforce both zero density variaton condition and the velocity divergence-free condition at each full time step.
+    During the first half step density fluctuations are eliminated by altering the intermediate particle position.
+    During the second half step errors in velocity divergence are resolved by altering the intermediate particle velocity.
+
+    Ihmsen et al.~\cite{ihmsen2014implicit} proposed an implicit incompressible SPH method with a pressure poisson equation made by the combination of a symmetric SPH pressure force and a SPH discretization of the continuity equation.
+    The pressure poisson equation is used to compute the pressure so that the pressure forces correct the intermediate velocities to a divergence-free state.
+    
+    A predictive corrective incompressible SPH method was proposed by Solenthaler et al.~\cite{solenthaler} based on the Lagrangian SPH model.
+    Incompressibility was enforced using a prediction correction scheme to determine the particle pressures.
+    To achieve this the information about the density fluctuation was actively propagated through the fluid and the pressure values where updated until the targeted density was satisfied.
+
+    %A ghost fluid approach for free surface and solid boundary conditions for a SPH fluid simulation what proposed by Schechter et al.~\cite{ghost}.
 
 \section{Method}
 %What have you done?
