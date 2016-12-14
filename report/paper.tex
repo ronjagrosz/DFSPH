@@ -17,6 +17,9 @@
 \usepackage{abstract}   % Onecolabstract, saythanks
 \usepackage[margin=1.2in]{geometry}
 
+\usepackage{bm}
+\newcommand{\vect}[1]{\bm{#1}} % bold vector
+
 \setlength{\columnsep}{20px} % Length between twocolumn
  
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -177,7 +180,15 @@ function performSimulation
 \subsection{Adapted time step}
 
 % CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
-In order to assure a stable simulation is it necessary to adapt the time step depending on the motion. The quicker the particles move the smaller time steps are taken such that the numerical error of the explicit time integration is negligible.
+In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
+The quicker the particles move the smaller time steps are taken such that the numerical 
+error of the explicit time integration is negligible. For this is a condition proposed by Courant–Friedrichs–Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by the maximum velocity $\vect{V_{max}}$ in the scene.
+
+\begin{equation}\label{eq:cfl}
+\Delta t \leq \frac{0.4 \cdot d}{\vect{V_{max}}}
+\end{equation}
+
+Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. This is decided from the user side as a desired fps parameter. This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
 \subsection{Density and alpha factors}
 \subsection{Screen space fluid rendering}
