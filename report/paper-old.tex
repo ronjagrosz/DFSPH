@@ -1,23 +1,41 @@
-\title{\vspace{-2cm} \LARGE Divergence-Free Smoothed Particle Hydrodynamics \\ \large Advanced Simulation and Visualization of Fluids in Computer Graphics}
+\documentclass[journal]{vgtc}                % final (journal style)
+%\documentclass[review,journal]{vgtc}         % review (journal style)
+%\documentclass[widereview]{vgtc}             % wide-spaced review
+%\documentclass[preprint,journal]{vgtc}       % preprint (journal style)
+%\documentclass[electronic,journal]{vgtc}     % electronic version, journal
 
-\author{\begin{tabular}{ccc}
-    Isabell Jansson\thanks{isaja187@student.liu.se} & Ronja Grosz\thanks{rongr946@student.liu.se}  & Jonathan Bosson\thanks{jonbo665@student.liu.se}
-\end{tabular}}
+%% Uncomment one of the lines above depending on where your paper is
+%% in the conference process. ``review'' and ``widereview'' are for review
+%% submission, ``preprint'' is for pre-publication, and the final version
+%% doesn't use a specific qualifier. Further, ``electronic'' includes
+%% hyperreferences for more convenient online viewing.
 
-\date{\today}
+%% Please use one of the ``review'' options in combination with the
+%% assigned online id (see below) ONLY if your paper uses a double blind
+%% review process. Some conferences, like IEEE Vis and InfoVis, have NOT
+%% in the past.
 
-\documentclass[11pt, twocolumn]{article}
+%% Please note that the use of figures other than the optional teaser is not permitted on the first page
+%% of the journal version.  Figures should begin on the second page and be
+%% in CMYK or Grey scale format, otherwise, colour shifting may occur
+%% during the printing process.  Papers submitted with figures other than the optional teaser on the
+%% first page will be refused.
+
+%% These three lines bring in essential packages: ``mathptmx'' for Type 1
+%% typefaces, ``graphicx'' for inclusion of EPS figures. and ``times''
+%% for proper handling of the times font family.
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathptmx}
+\usepackage{graphicx}
+\usepackage{times}
+\usepackage{balance}
+\usepackage[nooneline,hang,it,IT]{subfigure}
 
 % Our packages
-\usepackage{graphicx}   % Images
-\usepackage{amsmath}    % Math
-\usepackage{amssymb}    % Math
-\usepackage{listings}   % To write code in latex
-\usepackage{color}      % Custom colors
-\usepackage{abstract}   % Onecolabstract, saythanks
-\usepackage[margin=1.2in]{geometry}
-
-\setlength{\columnsep}{20px} % Length between twocolumn
+\usepackage{listings} % To write code in latex
+\usepackage{color}
  
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -45,20 +63,73 @@
 }
 
 \lstset{style=mystyle}
-% END our packages
+
+%% We encourage the use of mathptmx for consistent usage of times font
+%% throughout the proceedings. However, if you encounter conflicts
+%% with other math-related packages, you may want to disable it.
+
+%% This turns references into clickable hyperlinks.
+\usepackage[bookmarks,backref=true,linkcolor=black]{hyperref} %,colorlinks
+\hypersetup{
+  pdfauthor = {},
+  pdftitle = {},
+  pdfsubject = {},
+  pdfkeywords = {},
+  colorlinks=true,
+  linkcolor= black,
+  citecolor= black,
+  pageanchor=true,
+  urlcolor = black,
+  plainpages = false,
+  linktocpage
+}
+
+%% If you are submitting a paper to a conference for review with a double
+%% blind reviewing process, please replace the value ``0'' below with your
+%% OnlineID. Otherwise, you may safely leave it at ``0''.
+\onlineid{0}
+
+%% declare the category of your paper, only shown in review mode
+\vgtccategory{Research}
+
+%% allow for this line if you want the electronic option to work properly
+\vgtcinsertpkg
+
+%% In preprint mode you may define your own headline.
+%\preprinttext{To appear in an IEEE VGTC sponsored conference.}
+
+%% Paper title.
+
+\title{\LARGE TN1008 \\ Advanced Simulation and Visualization of Fluids in Computer Graphics \\ \Large Divergence-Free Smoothed Particle Hydrodynamics}
+
+%% This is how authors are specified in the journal style
+
+%% indicate IEEE Member or Student Member in form indicated below
+\author{Ronja Grosz, rongr946\\ Isabell Jansson, isaja187\\ Jonathan Bosson, jonbo665}
+\date{\today}
+%\authorfooter{
+%% insert punctuation at end of each item
+%\item
+ %Ronja Grosz is a student at Link\"oping University, Sweden, e-mail: rongr946@student.liu.se.
+%}
+
+%% Abstract section.
+\abstract{ 
+}
+%% Keywords that describe your work. Will show as 'Index Terms' in journal
+%% please capitalize first letter and insert punctuation after last keyword
+\keywords{Divergence-free, SPH, divergence correction, density correction.}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% START OF THE PAPER %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
-\twocolumn[
-\maketitle
 
-\begin{onecolabstract}
-    \noindent This is the paper's abstract \ldots
-    \vspace{1em}\\{\bf Index Terms:} Divergence-free, SPH, divergence correction, density correction.\vspace{1em}
-\end{onecolabstract}
-]
-\saythanks
-
-\section{Introduction}
+\firstsection{Introduction}
+\maketitle 
     %explain the context of the work:
 	%What exactly is the problem?
 	%What have you created?
@@ -114,6 +185,8 @@ function performSimulation
             compute densities $\rho_i(0)$
             compute factors $\alpha_i(0)$
         correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
+
+
 \end{lstlisting}
 
 \subsection{Neighbourhood search}
@@ -206,7 +279,9 @@ function performSimulation
 
 % Use ghost-SPH or similar
 
+%\bibliographystyle{abbrv}
 \bibliographystyle{ieeetr}
 \bibliography{./refs}
 
 \end{document}
+\grid
