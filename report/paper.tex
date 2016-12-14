@@ -97,7 +97,11 @@
 %Clear enough that you could hand the report to another student and they could reproduce the work!
 %Probably no need to mention programming language etc
 
-\begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
+Listing \ref{lst:simulation} drafts the produced simulation after following Bender et al.~\cite{bender} proposed method in detail. Upon starting the application will the particle neighbourhood $N_i$ be determined with a cell list solution explained in section \ref{section:neighbour}. For each particle will the alpha $\alpha_i$ and density $\rho_i$ parameters computed, both of which are commonly reused variables and thus worth storing to reduce computation cost. This is done before entering the simulation loop as initial values are required. During the loop will all these parameters be updated as the simulation progresses.
+
+Once in the simulation at line $7$ will first the time step be determined through the CFL condition explained in section \ref{section:timestep}. The new velocities for each particle is then predicted through the included external forces which are propagated with ordinary euler integration.
+
+\begin{lstlisting}[caption={Simulation algorithm},label={lst:simulation}, language=C++, mathescape=true, escapeinside={(*}{*)}] 
 function performFluidSimulation
     for all particles $i$ do //Init neighbourhoods
         find neighbourhoods $N_i(0)$
@@ -119,6 +123,10 @@ function performFluidSimulation
         correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
 \end{lstlisting}
 
+The density solver uses the precomputed parameter $\alpha_i$ together with this prediction to compute the pressure forces in each neighbourhood such that it can correct the density error $\rho_i^* - \rho_i = 0$. This is further explained in \ref{densitySolver}. 
+
+After the particle position $\vect{x_i}$ has been updated are the neighbourhoods and the $\alpha_i$ and $\rho_i$ factors recalculated to reflect the new positions. Lastly, in line $19$ the divergence solver, much like the density solver, calculates the pressure forces to eliminate its error. In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal to $0$.
+
 \subsection{Navier-Stokes}
     Navier-Stokes equations describes incompressible fluids and is therefore suitable for SPH simulations. The equations expressed in Lagrangian coordinates can be found in Equation~\ref{eq:nsDensity} and~\ref{eq:nsVelocity}.
 
@@ -133,7 +141,7 @@ function performFluidSimulation
     In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}. Bridson~\cite{bridson} uses splitting on Equation~\ref{eq:nsVelocity} which induce $\frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p$ which will be used further on in the simulation. Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
 
 
-\subsection{Adapted time step}
+\subsection{Adapted time step} \label{section:timestep}
 
 % CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
 In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
@@ -151,15 +159,8 @@ Each rendered frame however have a constant time step in order to ensure no spee
 This is decided from the user side as a desired fps parameter. 
 This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
-\subsection{Density and alpha factors} \label{section:alpha}
-    The density in a region of the fluid with a particle $x_i$ in the center is calculated through Equation~\ref{eq:density} where $\rho_i$ is the density with the current particle $x_i$ in center, $\rho_j$ is the density with a neighbouring particle $x_j$ in center, $m_j$ is the mass for a neighbour particle and $W_{ij}$ is the kernel function described in Section~\ref{kernel}. This implies that neighbouring particles closer to the current particle $x_i$ will have a greater affect on the density.    
 
-    \begin{equation}\label{eq:density}
-        \rho_i = \sum_j \frac{m_j}{\rho_j} \rho_j W_{ij} = \sum_j m_j W_{ij}
-    \end{equation} 
-
-
-\subsection{Neighbourhood search}
+\subsection{Neighbourhood search} \label{section:neighbour}
     Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles neighbours.
     Searching through all particles for neighbours within the cutoff distance $h$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
     The cutoff distance $h$ is the kernels smoothing radius.
@@ -219,6 +220,13 @@ This means that the simulation loop can iterate multiple times within each frame
     % maybe specify x here as well 
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
+
+\subsection{Density and alpha factors} \label{section:alpha}
+    The density in a region of the fluid with a particle $x_i$ in the center is calculated through Equation~\ref{eq:density} where $\rho_i$ is the density with the current particle $x_i$ in center, $\rho_j$ is the density with a neighbouring particle $x_j$ in center, $m_j$ is the mass for a neighbour particle and $W_{ij}$ is the kernel function described in Section~\ref{kernel}. This implies that neighbouring particles closer to the current particle $x_i$ will have a greater affect on the density.    
+
+    \begin{equation}\label{eq:density}
+        \rho_i = \sum_j \frac{m_j}{\rho_j} \rho_j W_{ij} = \sum_j m_j W_{ij}
+    \end{equation} 
 
 \subsection{Density solver} \label{densitySolver}
     This solver aims to minimize the density error caused by the numerical integration in the divergence solver. The density error is determined by comparing the actual density to the rest density, $\rho - \rho_0$. There are several density solvers presented in previous works, but the solver used in this project was presented by Bender et. al.~\cite{bender} which uses the fact that $\alpha_i$ has been calculated before the solver which reduces the computations in the solver. The solver will be active while the average of the predicted densities for every particle differs from the rest density with an error greater than a constant \textit{maxError}. For every particle a predicted density $\rho_i^*$ is calculated through an Euler integration step by Equation~\ref{eq:predDensity}.
