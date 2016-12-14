@@ -179,7 +179,7 @@ function performFluidSimulation
 \subsection{Divergence-Free solver}
 
 
-\begin{comment}
+\iffalse
 \begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
 function correctDivergenceError
     for all particles $i$ do
@@ -200,10 +200,40 @@ function correctDivergenceError
             compute factors $\alpha_i(0)$
         correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
 \end{lstlisting}
-\end{comment}
+\fi
 
-The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{Dp}{Dt} = 0$, which is equivalent to navier-stokes divergence free condition given in equation %\ref{eq:navier}
+The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in equation %\ref{eq:navier}.
 
+The solver will ensure that the divergence error is of an acceptable level defined by the user. The divergence error is suppressed by a combined symmetric pressure force $\vect{F_{j\leftarrow i}^p} $ over all particle $i$'s neighbours $j$, that is applied to the predicted velocity of particle $i$. The pressure force is determined by 
+
+\begin{equation} \label{eq:pressure}
+\vect{F_i^p} = -\frac{m_i}{\rho_i}\nabla \vect{p_i},
+\end{equation}
+
+where the pressure gradient can be solved using the SPH formulation proposed by Ihmsen et al.~\cite{ihmsen}.
+
+\begin{equation} \label{eq:dpdt}
+\frac{D\rho_i}{Dt} = \sum_j m_j (\vect{v_i} - \vect{v_j})\nabla \vect{W_{ij}}
+\end{equation}
+
+\begin{equation} \label{eq:kappa}
+\nabla \vect{p_i} = \kappa_i^v \nabla \rho_i = \kappa_i^v \sum_j m_j \nabla \vect{W_{ij}}
+\end{equation}
+
+Equation \ref{eq:dpdt} defines how the density change is computed and \ref{eq:kappa} computes the pressure gradient with the help of the stiffness parameter $\kappa_i^v$, where 
+
+\begin{equation}
+\kappa_i^v = \frac{D\rho}{Dt} \cdot \frac{\rho_i}{\Delta t \cdot \alpha_i}
+\end{equation}
+
+and $\alpha_i$ is the scaling factor only dependant on the position explained in section \ref{section:alpha}. The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other.
+The velocity of particle $i$ is thus changed to:
+
+\begin{equation} \label{eq:pressuretotal}
+\vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} \cdot \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+\end{equation}
+
+After the symmetric pressure force has been applied to the new velocity should the density change in equation \ref{eq:dpdt} be equal or close to zero. If the error is too large will the process be iterated until desired result have been achieved.
 
 \subsection{Density solver}
 
@@ -215,7 +245,7 @@ The divergence-free solver ensures the fluid to be free of density change over t
 In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
 The quicker the particles move the smaller time steps are taken such that the numerical 
 error of the explicit time integration is negligible. For this is a condition proposed by 
-Courant–Friedrichs–Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. 
+Courant$-$Friedrichs$-$Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. 
 The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by 
 the maximum velocity $\vect{V_{max}}$ in the scene.
 
@@ -227,7 +257,7 @@ Each rendered frame however have a constant time step in order to ensure no spee
 This is decided from the user side as a desired fps parameter. 
 This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
-\subsection{Density and alpha factors}
+\subsection{Density and alpha factors} \label{section:alpha}
 \subsection{Screen space fluid rendering}
 
 \section{Implementation}
