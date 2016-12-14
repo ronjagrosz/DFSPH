@@ -172,7 +172,35 @@ function performSimulation
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other. 
 
 
-\subsection{Divergence solver}
+\subsection{Divergence-Free solver}
+
+
+\begin{comment}
+\begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
+function correctDivergenceError
+    for all particles $i$ do
+        calculateDensityChange $\frac{Dp}{Dt}_i$
+    for all particles $i$ do //Scale $\color{codegreen}a_i$
+        $a_i = \frac{a_i}{\Delta t}$
+    while (t < $t_{max}$) do //Start simulation loop
+        adapt time step $\Delta{t}$ 
+        for all particles $i$ do //Predict velocities $\color{codegreen}\mathbf{v}_i^*$
+            $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_i^{adv}/m_i$
+        correctDensityError($\alpha, \mathbf{v}_i$) //Fulfill $\color{codegreen}\rho^* - \rho_0 = 0$
+        for all particles $i$ do //Update positions
+            $x_i(t + \Delta{t}) = x_i(t) + \Delta{t}\mathbf{v}_i^*$
+        for all particles $i$ do //Update neighbourhoods
+            find neighbourhoods $N_i(t + \Delta{t})$
+        for all particles $i$ do //Update $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$ 
+            compute densities $\rho_i(0)$
+            compute factors $\alpha_i(0)$
+        correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
+\end{lstlisting}
+\end{comment}
+
+The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{Dp}{Dt} = 0$, which is equivalent to navier-stokes divergence free condition given in equation %\ref{eq:navier}
+
+
 \subsection{Density solver}
 
 \subsection{Navier-stokes}
@@ -182,13 +210,18 @@ function performSimulation
 % CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
 In order to assure a stable simulation it is necessary to adapt the time step depending on the motion. 
 The quicker the particles move the smaller time steps are taken such that the numerical 
-error of the explicit time integration is negligible. For this is a condition proposed by Courant–Friedrichs–Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by the maximum velocity $\vect{V_{max}}$ in the scene.
+error of the explicit time integration is negligible. For this is a condition proposed by 
+Courant–Friedrichs–Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}. 
+The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by 
+the maximum velocity $\vect{V_{max}}$ in the scene.
 
 \begin{equation}\label{eq:cfl}
 \Delta t \leq \frac{0.4 \cdot d}{\vect{V_{max}}}
 \end{equation}
 
-Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. This is decided from the user side as a desired fps parameter. This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
+Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. 
+This is decided from the user side as a desired fps parameter. 
+This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
 \subsection{Density and alpha factors}
 \subsection{Screen space fluid rendering}
