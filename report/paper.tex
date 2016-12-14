@@ -155,24 +155,36 @@ function performSimulation
 
     The algorithm does also require the kernel gradient. To reduce the computational effort and memory requirements Bender et. al.~\cite{bender} introduce a scalar function $g(q) = \frac{\partial W_h}{\partial q} \cdot \frac{1}{h \left \| x \right \|}$. The gradient kernel is then calculated by $\partial W_h(q(x)) = x \cdot g(x)$. The gradient kernel is described by Equation ~\ref{eq:gradKernel}. 
 
-    \begin{equation} \label{eq:gradKernel}
-        \partial W_h(q(x)) =  x \cdot \frac{1}{h \left \| x \right \|} \cdot \frac{1}{\pi h^3} \left\{\begin{matrix}
+    \begin{multline} \label{eq:gradKernel}
+        \partial W_h(q(x)) = \\ x \cdot \frac{1}{h \left \| x \right \|} \cdot \frac{1}{\pi h^3} \left\{\begin{matrix}
         - 3q + \frac{9}{4}q^2 & 0 \leqslant q < 1 \\ 
         \\
         - \frac{3}{4}(2-q)^2 & 1 \leqslant q < 2\\ 
         \\
         0 & q \geqslant 2
       \end{matrix}\right.
-    \end{equation}
+    \end{multline}
     % maybe specify x here as well 
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other. 
 
+\subsection{Navier-Stokes}
+    Navier-Stokes equations describes incompressible fluids and is therefore suitable for SPH simulations. The equations expressed in Lagrangian coordinates can be found in Equation~\ref{eq:nsDensity} and~\ref{eq:nsVelocity}.
+
+    \begin{equation} \label{eq:nsDensity}
+        \frac{D\rho}{Dt} = 0 \Leftrightarrow \bigtriangledown \cdot \textbf{v} = 0 
+    \end{equation}
+
+    \begin{equation} \label{eq:nsVelocity}
+        \frac{D\textbf{v}}{Dt} = \frac{1}{\rho} \bigtriangledown p + v \bigtriangledown ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
+    \end{equation}
+
+    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. Due to the incompressibility, the partial derivate of the density with respect to the time is zero which implies the equivalence of the equations in~\ref{eq:nsDensity} where the second part $\bigtriangledown \cdot \textbf{v} = 0$ induce that the field is free from divergence.  
 
 \subsection{Divergence solver}
 \subsection{Density solver}
 
-\subsection{Navier-stokes}
+
 % Write about non pressure forces, velocity osv..?
 \subsection{Adapted time step}
 \subsection{Density and alpha factors}
