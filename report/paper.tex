@@ -121,10 +121,10 @@ function performFluidSimulation
 
 \subsection{Neighbourhood search}
     Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles neighbours.
-    Searching through all particles for neighbours within the cutoff distance $H$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
-    The cutoff distance $H$ is the kernels smoothing radius.
+    Searching through all particles for neighbours within the cutoff distance $h$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
+    The cutoff distance $h$ is the kernels smoothing radius.
     To make this faster a cell list was implemented.
-    A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $H$.
+    A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $h$.
     Each cell spans on a surface in space.
     A particle belongs to a cell if it is inside the space the cell occupy.
     When finding the neighbour of particle $i$, only the neighbouring cells have to be searched for particles within the cutoff distance, see figure~\ref{fig:cellList}.
@@ -132,18 +132,18 @@ function performFluidSimulation
     \begin{figure}[h!]\centering
     \begin{centering}
     \includegraphics[width=0.7\linewidth]{img/CellList.png}
-    \caption{Finding the neighbours for the filled in particle $i$ by looking through all neighbouring cells, including its own cell, for particles within the cutoff distance $H$}
+    \caption{Finding the neighbours for the filled in particle $i$ by looking through all neighbouring cells, including its own cell, for particles within the cutoff distance $h$}
     \label{fig:cellList}
     \end{centering}
     \end{figure}
 
     The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates and the fourth dimension is for storing the particles belonging to the cell.
-    The amount of cells are decided by dividing the scene into cells of length $H$.
+    The amount of cells are decided by dividing the scene into cells of length $h$.
     The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $\vect{x}$ is the position of the particle and $\vect{s}_min$ is the lowest position of the scene space.
     If the particle moves out of its cell it is reassigned to the new cell it is inside.
 
     \begin{equation} \label{eq:assignCell}
-        \frac{\lceil{\vect{x} - \vect{s}_{min}}\rceil}{H}
+        \frac{\lceil{\vect{x} - \vect{s}_{min}}\rceil}{h}
     \end{equation}
 
 % Should be mentioned early since it is used in mostly of the algorithms
@@ -151,26 +151,31 @@ function performFluidSimulation
     A kernel function is used to simulate how particle-particle interactions decrease with the distance between the current particle and its neighbours. In SPH simulations this is an approximation of the Gaussian kernel function. Different kernels have been tested in previous works i.e. the poly6 kernel, the spiky kernel and the cubic spline kernel. According to Bender et. al.~\cite{bender} the cubic spline kernel presented by Monaghan~\cite{monaghan} was used. The kernel is described by Equation~\ref{eq:kernel}, where $q(x)=\frac{\left \| x \right \|}{h}$, $x$ is the distance between the current particle and a neighbour particle and $h$ is the support radius for the kernel. Particles further away than the support radius will not affect the current particle.   
 
     \begin{equation} \label{eq:kernel}
+        \resizebox{0.88\linewidth}{!}{$
         W_h(q(x)) =  \frac{1}{\pi h^3} \left\{\begin{matrix}
         1 - \frac{3}{2}q^2 + \frac{3}{4}q^3 & 0 \leqslant q < 1 \\ 
         \\
         \frac{1}{4}(2-q)^3 & 1 \leqslant q < 2\\ 
         \\
         0 & q \geqslant 2
-      \end{matrix}\right.
+        \end{matrix}\right.
+        $}
     \end{equation}
 
     The algorithm does also require the kernel gradient. To reduce the computational effort and memory requirements Bender et. al.~\cite{bender} introduce a scalar function $g(q) = \frac{\partial W_h}{\partial q} \cdot \frac{1}{h \left \| x \right \|}$. The gradient kernel is then calculated by $\partial W_h(q(x)) = x \cdot g(x)$. The gradient kernel is described by Equation ~\ref{eq:gradKernel}. 
 
-    \begin{multline} \label{eq:gradKernel}
-        \partial W_h(q(x)) = \\ x \cdot \frac{1}{h \left \| x \right \|} \cdot \frac{1}{\pi h^3} \left\{\begin{matrix}
+
+    \begin{equation} \label{eq:gradKernel}
+        \resizebox{0.88\linewidth}{!}{$
+        \partial W_h(q(x)) =  x \frac{1}{h \left \| x \right \|} \frac{1}{\pi h^3} \left\{\begin{matrix}
         - 3q + \frac{9}{4}q^2 & 0 \leqslant q < 1 \\ 
         \\
         - \frac{3}{4}(2-q)^2 & 1 \leqslant q < 2\\ 
         \\
         0 & q \geqslant 2
-      \end{matrix}\right.
-    \end{multline}
+        \end{matrix}\right.
+        $}
+    \end{equation}
     % maybe specify x here as well 
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
