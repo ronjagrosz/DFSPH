@@ -103,7 +103,10 @@
     Incompressibility was enforced using a prediction correction scheme to determine the particle pressures.
     To achieve this the information about the density fluctuation was actively propagated through the fluid and the pressure values where updated until the targeted density was satisfied.
 
-    %A ghost fluid approach for free surface and solid boundary conditions for a SPH fluid simulation what proposed by Schechter et al.~\cite{ghost}.
+    A ghost fluid approach for free surface and solid boundary conditions for a SPH fluid simulation what proposed by Schechter et al.~\cite{ghost}.
+    The ghost particles are placed on free surfaces and at solid boundary conditions.
+    The approach solves problems like spurious numerical surface tension artifacts and errors in the mass conservation constraints.
+
 
 \section{Method}
 %What have you done?
