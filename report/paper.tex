@@ -221,7 +221,7 @@ This means that the simulation loop can iterate multiple times within each frame
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
 
 \subsection{Density solver} \label{densitySolver}
-    This solver aims to minimize the density error caused by the numerical integration in the divergence solver. The density error is determined by comparing the actual density to the rest density, $\rho - \rho_0$. There are several density solvers presented in previous works, but the solver used in this project was presented by Bender et. al.~\cite{bender} which uses the fact that $\alpha_i$ has been calculated before the solver which reduces the computations in the solver. The solver will be active while the average of the predicted densities for every particle differs from the rest density with an error greater than a constant \textit{maxError}. For every particle a predicted density $\rho_i^*$ is calculated through an Euler integration step by Equation~\ref{eq:predDensity}. 
+    This solver aims to minimize the density error caused by the numerical integration in the divergence solver. The density error is determined by comparing the actual density to the rest density, $\rho - \rho_0$. There are several density solvers presented in previous works, but the solver used in this project was presented by Bender et. al.~\cite{bender} which uses the fact that $\alpha_i$ has been calculated before the solver which reduces the computations in the solver. The solver will be active while the average of the predicted densities for every particle differs from the rest density with an error greater than a constant \textit{maxError}. For every particle a predicted density $\rho_i^*$ is calculated through an Euler integration step by Equation~\ref{eq:predDensity}.
 
     \begin{equation} \label{eq:predDensity}
         \resizebox{0.88\linewidth}{!}{$
@@ -231,79 +231,100 @@ This means that the simulation loop can iterate multiple times within each frame
         \Leftrightarrow \\ 
         \\
         \rho_i^* = \rho_i + \Delta t + \sum_j m_j 
-        (\textbf{v}_i^* - \textbf{v}_j^*) \bigtriangledown W_{ij}
+        (\textbf{v}_i^* - \textbf{v}_j^*) \nabla W_{ij}
         \end{matrix}
         $}
     \end{equation}
 
-    Since the stiffness parameter $\kappa_i$ is derived from the pressure forces, updating the stiffness parameter will correct the density error. The stiffness parameter is determined by Equation~\ref{stiffnessDensity}.
+    The pressure force of a particle is determined by 
+
+    \begin{equation} \label{eq:pressure}
+        \vect{F_i^p} = -\frac{m_i}{\rho_i}\nabla \vect{p_i}
+    \end{equation}
+
+    where the pressure gradient can be solved using the SPH formulation proposed by Ihmsen et al.~\cite{ihmsen}, Equation~\ref{eq:pressureGrad}.
+
+    \begin{equation} \label{eq:pressureGrad}
+        \nabla \vect{p_i} = \kappa_i^v \nabla \rho_i = \kappa_i^v \sum_j m_j \nabla \vect{W_{ij}}
+    \end{equation}
+
+    Furter on, the pressure forces $\vect{F_{j\leftarrow i}^p} $ that act from particle $i$ on all its neighbours $j$ is calculated through
+
+    \begin{equation} \label{eq:pressure2}
+        \vect{F_{j\leftarrow i}^p} = -\frac{m_i}{\rho_i} \kappa_i^v m_j \nabla W_{ij}
+    \end{equation}
+
+    where the stiffness parameter $\kappa_i$ is determined by Equation~\ref{stiffnessDensity}.
 
     \begin{equation} \label{stiffnessDensity}
     \kappa_i = \frac{1}{\Delta t^2}(\rho_i^*-\rho_0)\alpha_i
     \end{equation}
 
-    The velocity is updated according to the the divergence solver. %Det här behöver kanske utvecklas, väntar med det tills stycket om divergence solvern är klar, innehåller samma ekvationer delvis
+    To conserve momentum it is required that all inner pressure forces sum up to zero such that $\vect{F_i^p} + \vect{F_{j\leftarrow i}^p} = 0$. A proposed by Bender et. al~\cite{bender} the solver computes the total force $\vect{F_{i,total}^p}$ as
+
+    \begin{equation} \label{eq:pressureTotal}
+        \resizebox{0.88\linewidth}{!}{$
+        \begin{matrix}
+            \vect{F_{i,total}^p} = \vect{F_i^p} + \sum_j \vect{F_{i\leftarrow j}^p} \\
+            \\
+            \Leftrightarrow \\ 
+            \\
+            \vect{F_{i,total}^p} = -m_i \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+        \end{matrix}
+        $}
+    \end{equation}
+
+    Newton's second law $F = ma = m\frac{dv}{dt}$ implies that 
+
+    \begin{equation} \label{dvdt}
+        \frac{dv}{dt} = \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+    \end{equation}
+
+    The velocity of particle $i$ is thus changed to:
+
+    \begin{equation} \label{eq:velocity}
+        \vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+    \end{equation}
 
 % Write about non pressure forces, velocity osv..?
 
 
 \subsection{Divergence solver} \label{divergenceSolver}
 
-\iffalse
-\begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
-function correctDivergenceError
-    for all particles $i$ do
-        calculateDensityChange $\frac{Dp}{Dt}_i$
-    for all particles $i$ do //Scale $\color{codegreen}a_i$
-        $a_i = \frac{a_i}{\Delta t}$
-    while (t < $t_{max}$) do //Start simulation loop
-        adapt time step $\Delta{t}$ 
-        for all particles $i$ do //Predict velocities $\color{codegreen}\mathbf{v}_i^*$
-            $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_i^{adv}/m_i$
-        correctDensityError($\alpha, \mathbf{v}_i$) //Fulfill $\color{codegreen}\rho^* - \rho_0 = 0$
-        for all particles $i$ do //Update positions
-            $x_i(t + \Delta{t}) = x_i(t) + \Delta{t}\mathbf{v}_i^*$
-        for all particles $i$ do //Update neighbourhoods
-            find neighbourhoods $N_i(t + \Delta{t})$
-        for all particles $i$ do //Update $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$ 
-            compute densities $\rho_i(0)$
-            compute factors $\alpha_i(0)$
-        correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
-\end{lstlisting}
-\fi
+    \iffalse
+    \begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
+        function correctDivergenceError
+            for all particles $i$ do
+                calculateDensityChange $\frac{Dp}{Dt}_i$
+            for all particles $i$ do //Scale $\color{codegreen}a_i$
+                $a_i = \frac{a_i}{\Delta t}$
+            while (t < $t_{max}$) do //Start simulation loop
+                adapt time step $\Delta{t}$ 
+                for all particles $i$ do //Predict velocities $\color{codegreen}\mathbf{v}_i^*$
+                    $\mathbf{v}_i = \mathbf{v}_i + \Delta{t}\mathbf{F}_i^{adv}/m_i$
+                correctDensityError($\alpha, \mathbf{v}_i$) //Fulfill $\color{codegreen}\rho^* - \rho_0 = 0$
+                for all particles $i$ do //Update positions
+                    $x_i(t + \Delta{t}) = x_i(t) + \Delta{t}\mathbf{v}_i^*$
+                for all particles $i$ do //Update neighbourhoods
+                    find neighbourhoods $N_i(t + \Delta{t})$
+                for all particles $i$ do //Update $\color{codegreen}\rho_i$ and $\color{codegreen}\alpha_i$ 
+                    compute densities $\rho_i(0)$
+                    compute factors $\alpha_i(0)$
+                correctDivergenceError($\alpha, \mathbf{v}^*$) //Fulfill $\color{codegreen}\frac{D\rho}{Dt} = 0$
+        \end{lstlisting}
+    \fi
 
-The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in equation \ref{eq:nsDensity}.
+    The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in Equation \ref{eq:nsDensity}. \\ \\ Equation \ref{eq:dpdt} defines how the density change is computed. As in the density solver, the total pressure forces acting on a particle $i$ are computed. The stiffness parameter is calculated through~\ref{eq:kappaDivergence}.
 
-The solver will ensure that the divergence error is smaller than an acceptable level defined by the user. The divergence error is suppressed by a combined symmetric pressure force $\vect{F_{j\leftarrow i}^p} $ over all particle $i$'s neighbours $j$, that is applied to the predicted velocity of particle $i$. The pressure force is determined by 
+    \begin{equation} \label{eq:dpdt}
+        \frac{D\rho_i}{Dt} = \sum_j m_j (\vect{v_i} - \vect{v_j})\nabla \vect{W_{ij}}
+    \end{equation}
 
-\begin{equation} \label{eq:pressure}
-\vect{F_i^p} = -\frac{m_i}{\rho_i}\nabla \vect{p_i},
-\end{equation}
+    \begin{equation}\label{eq:kappaDivergence}
+        \kappa_i^v = \frac{D\rho}{Dt} \cdot \frac{\rho_i}{\Delta t \cdot \alpha_i}
+    \end{equation}
 
-where the pressure gradient can be solved using the SPH formulation proposed by Ihmsen et al.~\cite{ihmsen}.
-
-\begin{equation} \label{eq:dpdt}
-\frac{D\rho_i}{Dt} = \sum_j m_j (\vect{v_i} - \vect{v_j})\nabla \vect{W_{ij}}
-\end{equation}
-
-\begin{equation} \label{eq:kappa}
-\nabla \vect{p_i} = \kappa_i^v \nabla \rho_i = \kappa_i^v \sum_j m_j \nabla \vect{W_{ij}}
-\end{equation}
-
-Equation \ref{eq:dpdt} defines how the density change is computed and \ref{eq:kappa} computes the pressure gradient with the help of the stiffness parameter $\kappa_i^v$, where 
-
-\begin{equation}
-\kappa_i^v = \frac{D\rho}{Dt} \cdot \frac{\rho_i}{\Delta t \cdot \alpha_i}
-\end{equation}
-
-and $\alpha_i$ is the scaling factor only dependant on the position explained in section \ref{section:alpha}. The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other.
-The velocity of particle $i$ is thus changed to:
-
-\begin{equation} \label{eq:pressuretotal}
-\vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} \cdot \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
-\end{equation}
-
-After the symmetric pressure force has been applied to the new velocity should the density change in equation \ref{eq:dpdt} be equal or close to zero. If the error is too large will the process be iterated until desired result have been achieved.
+    The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other. After the symmetric pressure force has been applied to the new velocity should the density change in Equation \ref{eq:dpdt} be equal or close to zero. If the error is too large the process will be iterated until desired result have been achieved.
 
 
 \subsection{Screen space fluid rendering}
