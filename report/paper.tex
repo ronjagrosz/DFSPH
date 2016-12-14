@@ -186,7 +186,9 @@ function performFluidSimulation
         \frac{D\textbf{v}}{Dt} = \frac{1}{\rho} \bigtriangledown p + v \bigtriangledown ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
     \end{equation}
 
-    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. Due to the incompressibility, the partial derivate of the density with respect to the time is zero which implies the equivalence of the equations in~\ref{eq:nsDensity} where the second part $\bigtriangledown \cdot \textbf{v} = 0$ induce that the field is free from divergence.  
+    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}.  
+
+
 
 \subsection{Divergence solver}
 \subsection{Density solver}
