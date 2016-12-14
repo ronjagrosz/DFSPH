@@ -121,10 +121,10 @@ function performFluidSimulation
 
 \subsection{Neighbourhood search}
     Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles neighbours.
-    Searching through all particles for neighbours within the cutoff distance $H$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
-    The cutoff distance $H$ is the kernels smoothing radius.
+    Searching through all particles for neighbours within the cutoff distance $h$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
+    The cutoff distance $h$ is the kernels smoothing radius.
     To make this faster a cell list was implemented.
-    A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $H$.
+    A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $h$.
     Each cell spans on a surface in space.
     A particle belongs to a cell if it is inside the space the cell occupy.
     When finding the neighbour of particle $i$, only the neighbouring cells have to be searched for particles within the cutoff distance, see figure~\ref{fig:cellList}.
@@ -132,52 +132,70 @@ function performFluidSimulation
     \begin{figure}[h!]\centering
     \begin{centering}
     \includegraphics[width=0.7\linewidth]{img/CellList.png}
-    \caption{Finding the neighbours for the filled in particle $i$ by looking through all neighbouring cells, including its own cell, for particles within the cutoff distance $H$}
+    \caption{Finding the neighbours for the filled in particle $i$ by looking through all neighbouring cells, including its own cell, for particles within the cutoff distance $h$}
     \label{fig:cellList}
     \end{centering}
     \end{figure}
 
     The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates and the fourth dimension is for storing the particles belonging to the cell.
-    The amount of cells are decided by dividing the scene into cells of length $H$.
+    The amount of cells are decided by dividing the scene into cells of length $h$.
     The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $\vect{x}$ is the position of the particle and $\vect{s}_min$ is the lowest position of the scene space.
     If the particle moves out of its cell it is reassigned to the new cell it is inside.
 
     \begin{equation} \label{eq:assignCell}
-        \frac{\lceil{\vect{x} - \vect{s}_{min}}\rceil}{H}
+        \frac{\lceil{\vect{x} - \vect{s}_{min}}\rceil}{h}
     \end{equation}
 
 % Should be mentioned early since it is used in mostly of the algorithms
-\subsection{Kernel}
+\subsection{Kernel} \label{kernel}
     A kernel function is used to simulate how particle-particle interactions decrease with the distance between the current particle and its neighbours. In SPH simulations this is an approximation of the Gaussian kernel function. Different kernels have been tested in previous works i.e. the poly6 kernel, the spiky kernel and the cubic spline kernel. According to Bender et. al.~\cite{bender} the cubic spline kernel presented by Monaghan~\cite{monaghan} was used. The kernel is described by Equation~\ref{eq:kernel}, where $q(x)=\frac{\left \| x \right \|}{h}$, $x$ is the distance between the current particle and a neighbour particle and $h$ is the support radius for the kernel. Particles further away than the support radius will not affect the current particle.   
 
     \begin{equation} \label{eq:kernel}
+        \resizebox{0.88\linewidth}{!}{$
         W_h(q(x)) =  \frac{1}{\pi h^3} \left\{\begin{matrix}
         1 - \frac{3}{2}q^2 + \frac{3}{4}q^3 & 0 \leqslant q < 1 \\ 
         \\
         \frac{1}{4}(2-q)^3 & 1 \leqslant q < 2\\ 
         \\
         0 & q \geqslant 2
-      \end{matrix}\right.
+        \end{matrix}\right.
+        $}
     \end{equation}
 
     The algorithm does also require the kernel gradient. To reduce the computational effort and memory requirements Bender et. al.~\cite{bender} introduce a scalar function $g(q) = \frac{\partial W_h}{\partial q} \cdot \frac{1}{h \left \| x \right \|}$. The gradient kernel is then calculated by $\partial W_h(q(x)) = x \cdot g(x)$. The gradient kernel is described by Equation ~\ref{eq:gradKernel}. 
 
+
     \begin{equation} \label{eq:gradKernel}
-        \partial W_h(q(x)) =  x \cdot \frac{1}{h \left \| x \right \|} \cdot \frac{1}{\pi h^3} \left\{\begin{matrix}
+        \resizebox{0.88\linewidth}{!}{$
+        \partial W_h(q(x)) =  x \frac{1}{h \left \| x \right \|} \frac{1}{\pi h^3} \left\{\begin{matrix}
         - 3q + \frac{9}{4}q^2 & 0 \leqslant q < 1 \\ 
         \\
         - \frac{3}{4}(2-q)^2 & 1 \leqslant q < 2\\ 
         \\
         0 & q \geqslant 2
-      \end{matrix}\right.
+        \end{matrix}\right.
+        $}
     \end{equation}
     % maybe specify x here as well 
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
 
+\subsection{Navier-Stokes}
+    Navier-Stokes equations describes incompressible fluids and is therefore suitable for SPH simulations. The equations expressed in Lagrangian coordinates can be found in Equation~\ref{eq:nsDensity} and~\ref{eq:nsVelocity}.
 
-\subsection{Divergence-Free solver}
+    \begin{equation} \label{eq:nsDensity}
+        \frac{D\rho}{Dt} = 0 \Leftrightarrow \bigtriangledown \cdot \textbf{v} = 0 
+    \end{equation}
 
+    \begin{equation} \label{eq:nsVelocity}
+        \frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p + v \bigtriangledown ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
+    \end{equation}
+
+    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}. Bridson~\cite{bridson} uses splitting on Equation~\ref{eq:nsVelocity} which induce $\frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p$ which will be used further on in the simulation. Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
+
+
+
+\subsection{Divergence solver} \label{divergenceSolver}
 
 \iffalse
 \begin{lstlisting}[language=C++, mathescape=true, escapeinside={(*}{*)}]
@@ -235,9 +253,30 @@ The velocity of particle $i$ is thus changed to:
 
 After the symmetric pressure force has been applied to the new velocity should the density change in equation \ref{eq:dpdt} be equal or close to zero. If the error is too large will the process be iterated until desired result have been achieved.
 
-\subsection{Density solver}
+\subsection{Density solver} \label{densitySolver}
+    This solver aims to minimize the density error caused by the numerical integration in the divergence solver. The density error is determined by comparing the actual density to the rest density, $\rho - \rho_0$. There are several density solvers presented in previous works, but the solver used in this project was presented by Bender et. al.~\cite{bender} which uses the fact that $\alpha_i$ has been calculated before the solver which reduces the computations in the solver. The solver will be active while the average of the predicted densities for every particle differs from the rest density with an error greater than a constant \textit{maxError}. For every particle a predicted density $\rho_i^*$ is calculated through an Euler integration step by Equation~\ref{eq:predDensity}. 
 
-\subsection{Navier-stokes}
+    \begin{equation} \label{eq:predDensity}
+        \resizebox{0.88\linewidth}{!}{$
+        \begin{matrix}
+        \rho_i^* = \rho_i + \Delta t \frac{D\rho_i}{Dt} \\ 
+        \\
+        \Leftrightarrow \\ 
+        \\
+        \rho_i^* = \rho_i + \Delta t + \sum_j m_j 
+        (\textbf{v}_i^* - \textbf{v}_j^*) \bigtriangledown W_{ij}
+        \end{matrix}
+        $}
+    \end{equation}
+
+    Since the stiffness parameter $\kappa_i$ is derived from the pressure forces, updating the stiffness parameter will correct the density error. The stiffness parameter is determined by Equation~\ref{stiffnessDensity}.
+
+    \begin{equation} \label{stiffnessDensity}
+    \kappa_i = \frac{1}{\Delta t^2}(\rho_i^*-\rho_0)\alpha_i
+    \end{equation}
+
+    The velocity is updated according to the the divergence solver. %Det här behöver kanske utvecklas, väntar med det tills stycket om divergence solvern är klar, innehåller samma ekvationer delvis
+
 % Write about non pressure forces, velocity osv..?
 \subsection{Adapted time step}
 
@@ -258,6 +297,12 @@ This is decided from the user side as a desired fps parameter.
 This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
 \subsection{Density and alpha factors} \label{section:alpha}
+    The density in a region of the fluid with a particle $x_i$ in the center is calculated through Equation~\ref{eq:density} where $\rho_i$ is the density with the current particle $x_i$ in center, $\rho_j$ is the density with a neighbouring particle $x_j$ in center, $m_j$ is the mass for a neighbour particle and $W_{ij}$ is the kernel function described in Section~\ref{kernel}. This implies that neighbouring particles closer to the current particle $x_i$ will have a greater affect on the density.    
+
+    \begin{equation}\label{eq:density}
+        \rho_i = \sum_j \frac{m_j}{\rho_j} \rho_j W_{ij} = \sum_j m_j W_{ij}
+    \end{equation} 
+
 \subsection{Screen space fluid rendering}
 
 \section{Implementation}
