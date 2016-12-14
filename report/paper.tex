@@ -147,7 +147,7 @@ function performFluidSimulation
     \end{equation}
 
 % Should be mentioned early since it is used in mostly of the algorithms
-\subsection{Kernel}
+\subsection{Kernel} \label{kernel}
     A kernel function is used to simulate how particle-particle interactions decrease with the distance between the current particle and its neighbours. In SPH simulations this is an approximation of the Gaussian kernel function. Different kernels have been tested in previous works i.e. the poly6 kernel, the spiky kernel and the cubic spline kernel. According to Bender et. al.~\cite{bender} the cubic spline kernel presented by Monaghan~\cite{monaghan} was used. The kernel is described by Equation~\ref{eq:kernel}, where $q(x)=\frac{\left \| x \right \|}{h}$, $x$ is the distance between the current particle and a neighbour particle and $h$ is the support radius for the kernel. Particles further away than the support radius will not affect the current particle.   
 
     \begin{equation} \label{eq:kernel}
@@ -191,12 +191,12 @@ function performFluidSimulation
         \frac{D\textbf{v}}{Dt} = \frac{1}{\rho} \bigtriangledown p + v \bigtriangledown ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
     \end{equation}
 
-    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}.  
+    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}. Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
 
 
 
-\subsection{Divergence solver}
-\subsection{Density solver}
+\subsection{Divergence solver} \label{divergenceSolver}
+\subsection{Density solver} \label{densitySolver}
 
 
 % Write about non pressure forces, velocity osv..?
@@ -214,6 +214,12 @@ error of the explicit time integration is negligible. For this is a condition pr
 Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video. This is decided from the user side as a desired fps parameter. This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
 \subsection{Density and alpha factors}
+    The density in a region of the fluid with a particle $x_i$ in the center is calculated through Equation~\ref{eq:density} where $\rho_i$ is the density with the current particle $x_i$ in center, $\rho_j$ is the density with a neighbouring particle $x_j$ in center, $m_j$ is the mass for a neighbour particle and $W_{ij}$ is the kernel function described in Section~\ref{kernel}. This implies that neighbouring particles closer to the current particle $x_i$ will have a greater affect on the density.    
+
+    \begin{equation}\label{eq:density}
+        \rho_i = \sum_j \frac{m_j}{\rho_j} \rho_j W_{ij} = \sum_j m_j W_{ij}
+    \end{equation}  
+
 \subsection{Screen space fluid rendering}
 
 \section{Implementation}
