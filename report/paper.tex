@@ -151,14 +151,14 @@ After the particle position $\vect{x_i}$ has been updated are the neighbourhoods
     Navier-Stokes equations describes incompressible fluids and is therefore suitable for SPH simulations. The equations expressed in Lagrangian coordinates can be found in Equation~\ref{eq:nsDensity} and~\ref{eq:nsVelocity}.
 
     \begin{equation} \label{eq:nsDensity}
-        \frac{D\rho}{Dt} = 0 \Leftrightarrow \bigtriangledown \cdot \textbf{v} = 0 
+        \frac{D\rho}{Dt} = 0 \Leftrightarrow \nabla \cdot \textbf{v} = 0 
     \end{equation}
 
     \begin{equation} \label{eq:nsVelocity}
-        \frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p + v \bigtriangledown ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
+        \frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \nabla p + v \nabla ^2 \textbf{v} + \frac{\textbf{f}}{\rho}
     \end{equation}
 
-    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\bigtriangledown \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \bigtriangledown \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}. Bridson~\cite{bridson} uses splitting on Equation~\ref{eq:nsVelocity} which induce $\frac{D\textbf{v}}{Dt} = -\frac{1}{\rho} \bigtriangledown p$ which will be used further on in the simulation. Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
+    In the equations $\frac{D\rho}{Dt}$ and $\frac{D\textbf{v}}{Dt}$ denotes the derivate of the density $\rho$ and the velocity $\textbf{v}$ respectively. The pressure, kinematic viscosity and body forces are denoted by $p,v$ and $\textbf{f}$ respectively. The second part of Equation~\ref{eq:nsDensity} $\nabla \cdot \textbf{v} = 0$ induce that the velocity field is free from divergence. From the continuity equation $\frac{D\rho}{Dt} = -\rho \nabla \cdot \textbf{v}$ and the divergence-free condition it follows that the partial derivate of the density with respect to the time is zero, which implies the equivalence of the equations in Equation~\ref{eq:nsDensity}. From this is follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid. In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations. The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions. To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}. Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
 
 
 \subsection{Adapted time step} \label{section:timestep}
@@ -248,6 +248,20 @@ This means that the simulation loop can iterate multiple times within each frame
         \rho_i = \sum_j \frac{m_j}{\rho_j} \rho_j W_{ij} = \sum_j m_j W_{ij}
     \end{equation} 
 
+    Both the density solver and the divergence solver uses a stiffness parameter $\kappa_i^v$ presented by Bender et. al.~\cite{bender}, Equation~\ref{eq:kappa}. 
+
+    \begin{equation}\label{eq:kappa}
+        \kappa_i^v = \frac{1}{\Delta t} \frac{D\rho_i}{Dt} \cdot \alpha_i
+    \end{equation} 
+
+    In the equation $\Delta t$ denotes a small time step and $\alpha_i$ is a precomputed factor to decrease the computations while performing the solvers. Bender et. al.~\cite{bender} defines $\alpha_i$ as
+
+    \begin{equation}\label{eq:alpha}
+        \alpha_i = \frac{\rho_i}{\left | \sum_j m_j \nabla \vect{W}_{ij}  \right |^2 + \sum_j \left | m_j \nabla \vect{W}_{ij} \right |^2}
+    \end{equation}
+
+    where $\vect{W}_{ij}$ corresponds to the kernel gradient. 
+
 \subsection{Density solver} \label{densitySolver}
     This solver aims to minimize the density error caused by the numerical integration in the divergence solver. The density error is determined by comparing the actual density to the rest density, $\rho - \rho_0$. There are several density solvers presented in previous works, but the solver used in this project was presented by Bender et. al.~\cite{bender} which uses the fact that $\alpha_i$ has been calculated before the solver which reduces the computations in the solver. The solver will be active while the average of the predicted densities for every particle differs from the rest density with an error greater than a constant \textit{maxError}. For every particle a predicted density $\rho_i^*$ is calculated through an Euler integration step by Equation~\ref{eq:predDensity}.
 
@@ -259,7 +273,7 @@ This means that the simulation loop can iterate multiple times within each frame
         \Leftrightarrow \\ 
         \\
         \rho_i^* = \rho_i + \Delta t + \sum_j m_j 
-        (\textbf{v}_i^* - \textbf{v}_j^*) \nabla W_{ij}
+        (\textbf{v}_i^* - \textbf{v}_j^*) \nabla \vect{W}_{ij}
         \end{matrix}
         $}
     \end{equation}
@@ -279,7 +293,7 @@ This means that the simulation loop can iterate multiple times within each frame
     Furter on, the pressure forces $\vect{F_{j\leftarrow i}^p} $ that act from particle $i$ on all its neighbours $j$ is calculated through
 
     \begin{equation} \label{eq:pressure2}
-        \vect{F_{j\leftarrow i}^p} = -\frac{m_i}{\rho_i} \kappa_i^v m_j \nabla W_{ij}
+        \vect{F_{j\leftarrow i}^p} = -\frac{m_i}{\rho_i} \kappa_i^v m_j \nabla \vect{W}_{ij}
     \end{equation}
 
     where the stiffness parameter $\kappa_i$ is determined by Equation~\ref{stiffnessDensity}.
@@ -297,7 +311,7 @@ This means that the simulation loop can iterate multiple times within each frame
             \\
             \Leftrightarrow \\ 
             \\
-            \vect{F_{i,total}^p} = -m_i \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+            \vect{F_{i,total}^p} = -m_i \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W}_{ij}
         \end{matrix}
         $}
     \end{equation}
@@ -305,13 +319,13 @@ This means that the simulation loop can iterate multiple times within each frame
     Newton's second law $F = ma = m\frac{dv}{dt}$ implies that 
 
     \begin{equation} \label{dvdt}
-        \frac{dv}{dt} = \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+        \frac{dv}{dt} = \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W}_{ij}
     \end{equation}
 
     The velocity of particle $i$ is thus changed to:
 
     \begin{equation} \label{eq:velocity}
-        \vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W_{ij}}
+        \vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W}_{ij}
     \end{equation}
 
 % Write about non pressure forces, velocity osv..?
@@ -345,11 +359,11 @@ This means that the simulation loop can iterate multiple times within each frame
     The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in Equation \ref{eq:nsDensity}. \\ \\ Equation \ref{eq:dpdt} defines how the density change is computed. As in the density solver, the total pressure forces acting on a particle $i$ are computed. The stiffness parameter is calculated through~\ref{eq:kappaDivergence}.
 
     \begin{equation} \label{eq:dpdt}
-        \frac{D\rho_i}{Dt} = \sum_j m_j (\vect{v_i} - \vect{v_j})\nabla \vect{W_{ij}}
+        \frac{D\rho_i}{Dt} = \sum_j m_j (\vect{v_i} - \vect{v_j})\nabla \vect{W}_{ij}
     \end{equation}
 
     \begin{equation}\label{eq:kappaDivergence}
-        \kappa_i^v = \frac{D\rho}{Dt} \cdot \frac{\rho_i}{\Delta t \cdot \alpha_i}
+        \kappa_i^v = \frac{1}{\Delta t} \frac{D\rho_i}{Dt} \cdot \alpha_i
     \end{equation}
 
     The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other. After the symmetric pressure force has been applied to the new velocity should the density change in Equation \ref{eq:dpdt} be equal or close to zero. If the error is too large the process will be iterated until desired result have been achieved.
