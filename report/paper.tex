@@ -370,7 +370,61 @@ This means that the simulation loop can iterate multiple times within each frame
 
 
 \subsection{Boundary conditions}
-Dirichlet boundary condition was implemented in order to simulate the fluid inside a bounding box. Dirichlet assumes that the pressure is zero outside the fluid which and therefore the value a quantity has to take along the boundary has to be specified, in this case the velocity was set to zero when a particle reaches the boundary, Bridson~\cite{bridson}. 
+Dirichlet boundary condition was implemented in order to simulate the fluid inside a bounding box. Dirichlet assumes that the pressure is zero outside the fluid and therefore the value a quantity has to take along the boundary has to be specified, in this case the velocity was set to zero when a particle reaches the boundary, Bridson~\cite{bridson}.
+
+An isosurface was also introduced in the middle of the scene in order to simulate collisions with arbitrary objects. This was done in an implicit representation of geometric shapes, as function $f(x,y,z)$. Given an isovalue $C = f(\vect{x})$, point $\vect{x}$ can be classified as follows:
+
+\begin{eqnarray}
+\label{eq:classifications}
+\begin{array}{ll}
+ \mbox{Inside:} & f(\mathbf{x}) < C \\
+ \mbox{Outside:} & f(\mathbf{x}) > C \\
+ \mbox{On surface:} & f(\mathbf{x}) = C \\  
+  \end{array}
+\end{eqnarray}
+
+To include all possible implicit geometries can a quadratic function be described as:
+
+\begin{eqnarray}
+\label{eqn:quadratic}
+f(x,y,z) &=& Ax^2+2Bxy+2Cxz\\
+\nonumber &+&2Dx+Ey^2+2Fyz\\
+\nonumber &+&2Gy+Hz^2+2Iz\\
+\nonumber &+&J
+\end{eqnarray}
+
+or on matrix form: 
+
+\begin{eqnarray}
+\label{eqn:quadricmatrixform}
+\mathbf{p}^T\mathbf{Q}\mathbf{p} =  \left[ \begin{array}{cccc} x & y & z & 1 \end{array} \right] \left[ \begin{array}{cccc}
+A & B & C &D\\
+B & E & F & G\\
+C & F & H & I\\
+D & G & I & J\\
+ \end{array} \right] \left[ \begin{array}{c}x \\
+y \\
+z \\
+1 \end{array} \right]
+\end{eqnarray}
+
+Considering that the geometry is placed at the origin, $f(\vect{x}) = 0$ means the particle is on the surface and $\vect{p}^T\vect{Q}\vect{p} \leq 0$ can be used to determine collisions.
+
+Since the quadric surface is known analytically can the differentiation be applied to the quadric directly to get the gradient of the shape in position $\vect{x}$. This gives an efficient and analytical expression with a coefficient matrix $Q$, which is used to determine the new velocity direction of a particle after colliding with the surface.
+
+\begin{eqnarray}
+\nabla f(x,y,z)
+\label{eqn:quadricnormal}
+\nonumber = 2 \left[ \begin{array}{cccc}
+A & B & C &D\\
+B & E & F & G\\
+C & F & H & I\\
+ \end{array} \right] \left[ \begin{array}{c}x \\
+y \\
+z \\
+1 \end{array} \right]\\
+\nonumber = 2\mathbf{Q}_{sub}\mathbf{p}
+\end{eqnarray} 
 
 \section{Implementation}
 %Details of how it was done
