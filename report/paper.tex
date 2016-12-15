@@ -55,8 +55,8 @@
 \maketitle
 
 \begin{onecolabstract}
-    \noindent This is the paper's abstract \ldots
-    \vspace{1em}\\{\bf Index Terms:} Divergence-free, SPH, divergence correction, density correction.\vspace{1em}
+    \noindent This paper discusses the technique presented by Bender et. al.~\cite{bender} for simulating incompressible fluids with an efficient and stable Divergence-Free Smoothed Particle Hydrodynamics method. The method uses two solvers to obtain a divergence-free fluid, a divergence solver and a density solver to correct the density after the divergence has been corrected. This results in a stable an fast simulation of a divergence-free fluid even though the simulation is performed on the CPU without any parallelization. 
+    \vspace{1em}\\{\bf Index Terms:} Incompressible fluids, Divergence-free, SPH, divergence correction, density correction.\vspace{1em}
 \end{onecolabstract}
 ]
 \saythanks
@@ -391,7 +391,7 @@ Dirichlet boundary condition was implemented in order to simulate the fluid insi
     PicoJSON was used to load in variables from a file making it easier to change variables quick and efficient and a makefile was used to compile the project.
 
     The simulation was developed on Mac OS and Linux.
-    The Linux computer is running on Debian and has four Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz, one NVIDIA GeForce 610M graphics card and 6.0 GiB RAM. 
+    The Linux computer is running on Debian and has four Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz, one NVIDIA GeForce 610M graphics card and 6.0 GiB RAM. One of the Mac OS computer is running on macOS Sierra and has a 1.8 GHz Intel Core i5 processor with an Intel HD Graphics 400 1536 MB graphics card. 
 
 
 \section{Results}
