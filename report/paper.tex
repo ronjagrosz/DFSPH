@@ -411,9 +411,18 @@ Dirichlet boundary condition was implemented in order to simulate the fluid insi
 %Suggest some possible ways that the work could have been done better
 %Suggest some ways that it could be extended and improved by adding more effort
 
-% Use ghost-SPH or similar
+    % Use ghost-SPH or similar
+    To increase the accuracy of the interaction with the boundary and free surfaces a method like ghost-SPH that was presented by Schechter et al.~\cite{ghost} could be implemented.
+    A method that Bender et al.~\cite{bender} used was the versatile rigid fluid coupling method for incompressible SPH presented by Akinci et al.~\cite{akinci2012versatile}.
+    It is based on static boundary particles which could also be a valid implementation to get better boundary interactions.
 
-% Parallelize 
+    % Parallelize 
+    To get the simulation to be able to handle more particles the solution could be parallelized to speed up the calculations.
+    This could be done using OpenMP and increasing the threading.
+
+    % Viscosity
+    To get the simulation more interesting viscosity can be introduced into the fluid simulation.
+    It would make simulations of thicker fluids possible.
 
 \bibliographystyle{ieeetr}
 \bibliography{./refs}
