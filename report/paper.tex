@@ -369,7 +369,8 @@ This means that the simulation loop can iterate multiple times within each frame
     The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other. After the symmetric pressure force has been applied to the new velocity should the density change in Equation \ref{eq:dpdt} be equal or close to zero. If the error is too large the process will be iterated until desired result have been achieved.
 
 
-\subsection{Screen space fluid rendering}
+\subsection{Boundary conditions}
+Dirichlet boundary condition was implemented in order to simulate the fluid inside a bounding box. Dirichlet assumes that the pressure is zero outside the fluid which and therefore the value a quantity has to take along the boundary has to be specified, in this case the velocity was set to zero when a particle reaches the boundary, Bridson~\cite{bridson}. 
 
 \section{Implementation}
 %Details of how it was done
