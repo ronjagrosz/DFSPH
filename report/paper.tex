@@ -387,8 +387,9 @@ To include all possible implicit geometries can a quadratic function be describe
 
 \begin{eqnarray}
 \label{eqn:quadratic}
-f(x,y,z) &=& Ax^2+2Bxy+2Cxz\\
-\nonumber &+&2Dx+Ey^2+2Fyz\\
+f(x,y,z) &=
+\nonumber & Ax^2+2Bxy+2Cxz\\
+ &+&2Dx+Ey^2+2Fyz\\
 \nonumber &+&2Gy+Hz^2+2Iz\\
 \nonumber &+&J
 \end{eqnarray}
@@ -410,12 +411,11 @@ z \\
 
 Considering that the geometry is placed at the origin, $f(\vect{x}) = 0$ means the particle is on the surface and $\vect{p}^T\vect{Q}\vect{p} \leq 0$ can be used to determine collisions.
 
-Since the quadric surface is known analytically can the differentiation be applied to the quadric directly to get the gradient of the shape in position $\vect{x}$. This gives an efficient and analytical expression with a coefficient matrix $Q$, which is used to determine the new velocity direction of a particle after colliding with the surface.
+Since the quadric surface is known analytically can the differentiation be applied to the quadric directly to get the gradient of the shape in position $\vect{x}$. This gives an efficient and analytical expression with a coefficient matrix $Q$, which is used to help determine the new velocity direction of a particle after colliding with the surface.
 
 \begin{eqnarray}
-\nabla f(x,y,z)
-\label{eqn:quadricnormal}
-\nonumber = 2 \left[ \begin{array}{cccc}
+\label{eq:quadricnormal}
+\nabla f(x,y,z) = 2 \left[ \begin{array}{cccc}
 A & B & C &D\\
 B & E & F & G\\
 C & F & H & I\\
