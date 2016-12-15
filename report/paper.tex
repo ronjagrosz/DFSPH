@@ -364,8 +364,20 @@ This means that the simulation loop can iterate multiple times within each frame
 %Why did you do it that way?
 %What limitations, if any, did this present?
 %*No code*!!!!!
- 
     % Talk about what we used for plugins, computers etc maybe or should this be in method?
+
+    % Libraries
+    % Computers
+    % OpenGL
+    % language
+    % Makefiles
+    The divergence-free SPH simulation was developed using OpenGL and C++ together with the OpenGL mathematics library GLM for vector calculations.
+    FreeImage was used to save frames of the simulation and FFmpeg to assembled the frames into a video.
+    PicoJSON was used to load in variables from a file making it easier to change variables quick and efficient and a makefile was used to compile the project.
+
+    The simulation was developed on Mac OS and Linux.
+    The Linux computer is running on Debian and has four Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz, one NVIDIA GeForce 610M graphics card and 6.0 GiB RAM. 
+
 
 \section{Results}
 %What is the end product:
@@ -376,6 +388,7 @@ This means that the simulation loop can iterate multiple times within each frame
 %Be self-critical and honest about it - or I will be
 
 
+    % Write about FPS when running x amount of particles
 
 \section{Conclusions and Future Work}
 %Based on the results and evaluation
@@ -384,6 +397,8 @@ This means that the simulation loop can iterate multiple times within each frame
 %Suggest some ways that it could be extended and improved by adding more effort
 
 % Use ghost-SPH or similar
+
+% Parallelize 
 
 \bibliographystyle{ieeetr}
 \bibliography{./refs}
