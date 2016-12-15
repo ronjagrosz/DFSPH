@@ -55,8 +55,8 @@
 \maketitle
 
 \begin{onecolabstract}
-    \noindent This is the paper's abstract \ldots
-    \vspace{1em}\\{\bf Index Terms:} Divergence-free, SPH, divergence correction, density correction.\vspace{1em}
+    \noindent This paper discusses the technique presented by Bender et. al.~\cite{bender} for simulating incompressible fluids with an efficient and stable Divergence-Free Smoothed Particle Hydrodynamics method. The method uses two solvers to obtain a divergence-free fluid, a divergence solver and a density solver to correct the density after the divergence has been corrected. This results in a stable an fast simulation of a divergence-free fluid even though the simulation is performed on the CPU without any parallelization. 
+    \vspace{1em}\\{\bf Index Terms:} Incompressible fluids, Divergence-free, SPH, divergence correction, density correction.\vspace{1em}
 \end{onecolabstract}
 ]
 \saythanks
@@ -445,7 +445,7 @@ z \\
     PicoJSON was used to load in variables from a file making it easier to change variables quick and efficient and a makefile was used to compile the project.
 
     The simulation was developed on Mac OS and Linux.
-    The Linux computer is running on Debian and has four Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz, one NVIDIA GeForce 610M graphics card and 6.0 GiB RAM. 
+    The Linux computer is running on Debian and has four Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz, one NVIDIA GeForce 610M graphics card and 6.0 GiB RAM. One of the Mac OS computer is running on macOS Sierra and has a 1.8 GHz Intel Core i5 processor with an Intel HD Graphics 400 1536 MB graphics card. 
 
 
 \section{Results}
@@ -465,9 +465,18 @@ z \\
 %Suggest some possible ways that the work could have been done better
 %Suggest some ways that it could be extended and improved by adding more effort
 
-% Use ghost-SPH or similar
+    % Use ghost-SPH or similar
+    To increase the accuracy of the interaction with the boundary and free surfaces a method like ghost-SPH that was presented by Schechter et al.~\cite{ghost} could be implemented.
+    A method that Bender et al.~\cite{bender} used was the versatile rigid fluid coupling method for incompressible SPH presented by Akinci et al.~\cite{akinci2012versatile}.
+    It is based on static boundary particles which could also be a valid implementation to get better boundary interactions.
 
-% Parallelize 
+    % Parallelize 
+    To get the simulation to be able to handle more particles the solution could be parallelized to speed up the calculations.
+    This could be done using OpenMP and increasing the threading.
+
+    % Viscosity
+    To get the simulation more interesting viscosity can be introduced into the fluid simulation.
+    It would make simulations of thicker fluids possible.
 
 \bibliographystyle{ieeetr}
 \bibliography{./refs}
