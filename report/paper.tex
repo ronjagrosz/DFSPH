@@ -65,8 +65,8 @@
 
 \section{Introduction}
     %explain the context of the work:
-	%What exactly is the problem?
-	%What have you created?
+    %What exactly is the problem?
+    %What have you created?
     Smoothed particle hydrodynamics, \textit{SPH}, is a method that was first implemented in 1977 for astrophysical simulations by Gingold et al.~\cite{firstSPH}.
     Since then SPH has become a popular method for complex fluid simulations.
     SPH is a mesh-free Lagrangian method where the fluid is split into discrete sets defined as particles, which move in space and change physical properties as time progresses.
@@ -81,7 +81,7 @@
 
 \section{Background and Related Work}
     %What have people done before?
-	%When addressing this problem, when addressing similar problems
+    %When addressing this problem, when addressing similar problems
     %What have you done that makes you approach different?
 
     % Write about divergence free 
@@ -268,6 +268,7 @@ This means that the simulation loop can iterate multiple times within each frame
     % maybe specify x here as well 
 
     It is important to use the same kernel function for both $W_h$ and $\nabla W_h$ to get the prediction and the correction step to be compatible to each other.
+
 
 \subsection{Density and alpha factors} \label{section:alpha}
     The density in a region of the fluid with a particle $x_i$ in the center is calculated through Equation~\ref{eq:density} where $\rho_i$ is the density with the current particle $x_i$ in center, $\rho_j$ is the density with a neighbouring particle $x_j$ in center, $m_j$ is the mass for a neighbour particle and $W_{ij}$ is the kernel function described in Section~\ref{kernel}.
@@ -498,6 +499,35 @@ z \\
 %What limitations does it have?
 %Be self-critical and honest about it - or I will be
 
+When the application starts, the water is represented as set of spheres where every sphere has the properties of a particle. The initial state is illustrated Figure~\ref{fig:res1}. The water is affected by a gravity which induce a falling motion, illustrated in Figure~\ref{fig:res2}.
+
+\begin{figure}[h!]
+    \includegraphics[width=\linewidth]{img/frame0001.png}
+    \caption{Inital state of the water when the application starts.}
+    \label{fig:res1}
+\end{figure}
+
+\begin{figure}[h!]
+    \includegraphics[width=\linewidth]{img/frame0139.png}
+    \caption{The water falls due to the gravity.}
+    \label{fig:res2}
+\end{figure}
+
+Since the water aims to be in the state of rest, the motion will decrease over time which is illustrated in Figure~\ref{fig:res3}.
+\begin{figure}[h!]
+    \includegraphics[width=\linewidth]{img/frame0500.png}
+    \caption{caption}
+    \label{fig:res3}
+\end{figure}
+
+To be able to simulate how outer forces affect the water, we implemented a feature where the user is able to change the direction of the force. The result when applying a force from right to left on the water and then letting only the gravity affect it is shown in Figure~\ref{fig:res4}.
+\begin{figure}[h!]
+    \includegraphics[width=\linewidth]{img/frame0882.png}
+    \caption{caption}
+    \label{fig:res4}
+\end{figure}
+
+    % Results from adding cylinder
 
     % Write about FPS when running x amount of particles
 
