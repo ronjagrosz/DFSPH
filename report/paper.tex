@@ -158,7 +158,7 @@ Lastly, in line $19$ the divergence solver, much like the density solver, calcul
 In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal to $0$.
 
 \subsection{Navier-Stokes}
-    Navier-Stokes equations describes incompressible fluids and is therefore suitable for SPH simulations.
+    Navier-Stokes equations describe incompressible fluids and are therefore suitable for SPH simulations.
     The equations expressed in Lagrangian coordinates can be found in Equation~\ref{eq:nsDensity} and~\ref{eq:nsVelocity}.
 
     \begin{equation} \label{eq:nsDensity}
@@ -177,7 +177,7 @@ In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal 
     In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations.
     The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions.
     To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}.
-    Section~\ref{divergenceSolver} and~\ref{densitySolver} give a deeper description of the solvers used in the project.
+    Section~\ref{densitySolver} and~\ref{divergenceSolver} give a deeper description of the solvers used in the project.
 
 
 \subsection{Adapted time step} \label{section:timestep}
@@ -186,29 +186,29 @@ In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal 
 In order to assure a stable simulation it is necessary to adapt the time step depending on the motion.
 The quicker the particles move the smaller time steps are taken such that the numerical 
 error of the explicit time integration is negligible.
-For this is a condition proposed by 
-Courant$-$Friedrichs$-$Lewy used often refered as the CFL-condition show in equation \ref{eq:cfl}.
+A condition was proposed by 
+Courant$-$Friedrichs$-$Lewy, often refered to as the CFL-condition, which is shown in Equation \ref{eq:cfl}.
 The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by 
-the maximum velocity $\vect{V_{max}}$ in the scene.
+the maximum velocity $\vect{V}_{max}$ in the scene.
 
 \begin{equation} \label{eq:cfl}
-\Delta t \leq \frac{0.4 \cdot d}{\vect{V_{max}}}
+\Delta t \leq \frac{0.4 \cdot d}{\vect{V}_{max}}
 \end{equation}
 
 Each rendered frame however have a constant time step in order to ensure no speed change in the playback of the rendered video.
-This is decided from the user side as a desired fps parameter.
+This is decided from the user side as a desired fps, \textit{frames per second}, parameter.
 This means that the simulation loop can iterate multiple times within each frame adaptively depending on the maximum velocity.
 
 
 \subsection{Neighbourhood search} \label{section:neighbour}
-    Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles neighbours.
+    Since SPH only considers a finite amount of neighbouring particles it is important to keep track of every particles' neighbours.
     Searching through all particles for neighbours within the cutoff distance $h$ for every particle is inefficient and takes $\mathcal{O}({N^2})$ time.
-    The cutoff distance $h$ is the kernels smoothing radius.
+    The cutoff distance $h$ is the kernels' smoothing radius.
     To make this faster a cell list was implemented.
     A cell list is a data structure that is divided into cells that have a length larger or equals to the cutoff distance $h$.
     Each cell spans on a surface in space.
     A particle belongs to a cell if it is inside the space the cell occupy.
-    When finding the neighbour of particle $i$, only the neighbouring cells have to be searched for particles within the cutoff distance, see figure~\ref{fig:cellList}.
+    When finding the neighbour of particle $i$, only the neighbouring cells have to be searched for particles within the cutoff distance, see Figure~\ref{fig:cellList}.
     
     \begin{figure}[h!]\centering
     \begin{centering}
@@ -218,7 +218,7 @@ This means that the simulation loop can iterate multiple times within each frame
     \end{centering}
     \end{figure}
 
-    The cell list is implemented by using a four dimensional vector where the first three dimensions are for the x, y and z coordinates and the fourth dimension is for storing the particles belonging to the cell.
+    The cell list is implemented by using a four dimensional vector where the first three dimensions are for the $x$, $y$ and $z$ coordinates and the fourth dimension is for storing the particles belonging to the cell.
     The amount of cells are decided by dividing the scene into cells of length $h$.
     The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $\vect{x}$ is the position of the particle and $\vect{s}_min$ is the lowest position of the scene space.
     If the particle moves out of its cell it is reassigned to the new cell it is inside.
@@ -306,8 +306,8 @@ This means that the simulation loop can iterate multiple times within each frame
         \\
         \Leftrightarrow \\ 
         \\
-        \rho_i^* = \rho_i + \Delta t + \sum_j m_j 
-        (\textbf{v}_i^* - \textbf{v}_j^*) \nabla \vect{W}_{ij}
+        \rho_i^* = \rho_i + \Delta t \sum_j m_j 
+        (\textbf{v}_{i}^* - \textbf{v}_j^*) \nabla \vect{W}_{ij}
         \end{matrix}
         $}
     \end{equation}
@@ -361,7 +361,7 @@ This means that the simulation loop can iterate multiple times within each frame
 
     \begin{equation} \label{eq:velocity}
         \resizebox{0.85\linewidth}{!}{$
-        \vect{v_i^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W}_{ij}
+        \vect{v_{i+1}^*}(t) = \vect{v_i^*}(t) - \Delta t \sum_j m_j (\frac{\kappa_i^v}{\rho_i} + \frac{\kappa_j^v}{\rho_i}) \nabla \vect{W}_{ij}
         $}
     \end{equation}
 
@@ -406,7 +406,7 @@ This means that the simulation loop can iterate multiple times within each frame
         \kappa_i^v = \frac{1}{\Delta t} \frac{D\rho_i}{Dt} \cdot \alpha_i
     \end{equation}
 
-    The stiffness parameters needs to be determined iteratively since neighboring particles depend on each other.
+    The stiffness parameters need to be determined iteratively since neighboring particles depend on each other.
     After the symmetric pressure force has been applied to the new velocity should the density change in Equation \ref{eq:dpdt} be equal or close to zero.
     If the error is too large the process will be iterated until desired result have been achieved.
 
@@ -416,7 +416,7 @@ Dirichlet boundary condition was implemented in order to simulate the fluid insi
 Dirichlet assumes that the pressure is zero outside the fluid and therefore the value a quantity has to take along the boundary has to be specified, in this case the velocity was set to zero when a particle reaches the boundary, Bridson~\cite{bridson}.
 
 An isosurface was also introduced in the middle of the scene in order to simulate collisions with arbitrary objects.
-This was done in an implicit representation of geometric shapes, as function $f(x,y,z)$.
+This was done as an implicit representation of geometric shapes, described as a function $f(x,y,z)$.
 Given an isovalue $C = f(\vect{x})$, point $\vect{x}$ can be classified as follows:
 
 \begin{eqnarray} \label{eq:classifications}
@@ -427,7 +427,7 @@ Given an isovalue $C = f(\vect{x})$, point $\vect{x}$ can be classified as follo
   \end{array}
 \end{eqnarray}
 
-To include all possible implicit geometries can a quadratic function be described as:
+All possible implicit geomitries can be descibed by a quadratic function, which is found in Equation~\ref{eqn:quadratic}, and in matrix form in Equation~\ref{eqn:quadricmatrixform}.
 
 \begin{eqnarray}
 \label{eqn:quadratic}
@@ -437,8 +437,6 @@ f(x,y,z) &=
 \nonumber &+&2Gy+Hz^2+2Iz\\
 \nonumber &+&J
 \end{eqnarray}
-
-or on matrix form: 
 
 \begin{eqnarray} \label{eqn:quadricmatrixform}
 \resizebox{0.9\linewidth}{!}{$
@@ -456,7 +454,7 @@ $}
 
 Considering that the geometry is placed at the origin, $f(\vect{x}) = 0$ means the particle is on the surface and $\vect{p}^T\vect{Q}\vect{p} \leq 0$ can be used to determine collisions.
 
-Since the quadric surface is known analytically can the differentiation be applied to the quadric directly to get the gradient of the shape in position $\vect{x}$.
+Since the quadric surface is known analytically the differentiation can be applied to the quadric directly to get the gradient of the shape in position $\vect{x}$.
 This gives an efficient and analytical expression with a coefficient matrix $Q$, which is used to help determine the new velocity direction of a particle after colliding with the surface.
 
 \begin{eqnarray} \label{eq:quadricnormal}
@@ -523,6 +521,9 @@ z \\
     % Viscosity
     To get the simulation more interesting viscosity can be introduced into the fluid simulation.
     It would make simulations of thicker fluids possible.
+
+    % Look up table for kernel values
+    According to Bender et al.~\cite{bender} the kernel values could easily be precomputed and used together with a look up-table in order to speed up the calculations. This will result in a 30 $\%$ faster application.  This could ether be done once when the iteration loop begins and the positions for the particles are determined. Another approach would be to compute a discrete representation of the kernel function before the iteration loop and interpolate between to kernel values in the simulation loop in order to find a kernel value for a specific particle. 
 
 \bibliographystyle{ieeetr}
 \bibliography{./refs}
