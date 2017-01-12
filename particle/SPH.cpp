@@ -31,83 +31,13 @@ SPH::SPH()
 	srand(time(0));
 	double step = 3.0 * particleRadius / boundaryDimension;
 
-	water = new vector<Particle*>(particleCount); //+(5*pow(ceil(1 + 2*boundaryDimension/step),2)));
+	water = new vector<Particle*>(particleCount);
     cellList = new CellList(
     	dvec3(-2*boundaryDimension, -2*boundaryDimension, -2*boundaryDimension), 
     	dvec3(2*boundaryDimension, 2*boundaryDimension+3.0, 2*boundaryDimension), H);
-    
-    // Create boundary particles
-    idx = 0;
-/*
-    // Bottom
-    randY = -boundaryDimension - particleRadius;
-    for (double i = -boundaryDimension-0.1; i < boundaryDimension+0.1; i+=step) {
-    	for (double j = -boundaryDimension-0.1; j < boundaryDimension+0.1; j+=step) {
-    		water->at(idx) = new Particle();
-			water->at(idx)->setPosition(i, randY, j);
-			water->at(idx)->setVelocity(dvec3(0.0, 0.0, 0.0));
-			water->at(idx)->id = 1;
-			
-			idx++;
-    	}
-    }
-
-    // Front
-    randZ = boundaryDimension + 0.1;
-    for (double i = -boundaryDimension-0.1; i < boundaryDimension+0.1; i+=step) {
-    	for (double j = -boundaryDimension-0.1; j < -boundaryDimension+0.2; j+=step) {
-    		water->at(idx) = new Particle();
-			water->at(idx)->setPosition(i, j, randZ);
-			water->at(idx)->setVelocity(dvec3(0.0, 0.0, 0.0));
-			water->at(idx)->id = 1;
-
-			idx++;
-    	}
-    }
-    // Back
-    randZ = -boundaryDimension - 0.1;
-    for (double i = -boundaryDimension-0.1; i < boundaryDimension+0.1; i+=step) {
-    	for (double j = -boundaryDimension-0.1; j < -boundaryDimension+0.2; j+=step) {
-    		water->at(idx) = new Particle();
-			water->at(idx)->setPosition(i, j, randZ);
-			water->at(idx)->setVelocity(dvec3(0.0, 0.0, 0.0));
-			water->at(idx)->id = 1;
-
-			idx++;
-    	}
-    }
-    // Left
-    randX = -boundaryDimension - 0.1;
-    for (double i = -boundaryDimension-0.1; i < -boundaryDimension+0.2; i+=step) {
-    	for (double j = -boundaryDimension-0.1; j < boundaryDimension+0.1; j+=step) {
-    		water->at(idx) = new Particle();
-			water->at(idx)->setPosition(randX, i, j);
-			water->at(idx)->setVelocity(dvec3(0.0, 0.0, 0.0));
-			water->at(idx)->id = 1;
-
-			idx++;
-    	}
-    }
-    // Right
-    randX = boundaryDimension + 0.1;
-    for (double i = -boundaryDimension-0.1; i < -boundaryDimension+0.2; i+=step) {
-    	for (double j = -boundaryDimension-0.1; j < boundaryDimension+0.1; j+=step) {
-    		water->at(idx) = new Particle();
-			water->at(idx)->setPosition(randX, i, j);
-			water->at(idx)->setVelocity(dvec3(0.0, 0.0, 0.0));
-			water->at(idx)->id = 1;
-
-			idx++;
-    	}
-    }
-*/
-    particleCount += idx;
-
-    cout << "Number of bounding particles: " << idx << "\n";
-    cout << "Total particles: " << particleCount << "\n";
 
     // Initiate particles
-	for(int i = idx; i < particleCount; ++i) {
+	for(int i = 0; i < particleCount; ++i) {
 
 		// Random position
 		randX = ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0;
@@ -135,11 +65,6 @@ SPH::SPH()
     for (int i = 0; i < particleCount; ++i) {
         water->at(i)->updateNeighbours(cellList->findNeighbours(water, i));
     }
-
-    // Density for boundaryparticles
-    for (int i = 0; i < idx; ++i) {
-		water->at(i)->setDensity(500.0); // to be able to reuse this function, maybe not a good solution
-	}
 
 	// Compute densities and alpha factors
 	calculateDensityAndAlpha();	
@@ -203,7 +128,7 @@ void SPH::simulate() {
 	correctDensityError();
 
 	// Update particles position and cell
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->updatePosition(dT);
 		cellList->moveParticle(water->at(i), i);
 	}
@@ -227,7 +152,7 @@ void SPH::adaptTimestep() {
 	maxVelocity = 0.0;
 
 	// Find max velocity
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		vel = water->at(i)->getVelocity();
 		mag = dot(vel, vel);
 
@@ -245,7 +170,7 @@ void SPH::adaptTimestep() {
 // Predicts the velocity of the particle with its non-pressure forces and dirichlet boundary condition
 void SPH::predictVelocities() {
 	gravity *= dT;
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setVelocity(water->at(i)->getVelocity() + gravity);
 		boundaryCondition(i);
 	}
@@ -333,7 +258,7 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 
 // Calculate density function
 void SPH::calculateDensityAndAlpha() {
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		double alpha = 0, sumGradPk = 0.0;
 	    dvec3 gradPi = dvec3(0,0,0);
 		water->at(i)->setDensity(0.0); // to be able to reuse this function, maybe not a good solution
@@ -361,7 +286,7 @@ void SPH::calculateDensityChange() {
 	double densityAdv = 0.0;
 	avgDensityAdv = avgDerivedDensity = 0.0;
 
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		double dDensity = 0.0;
 		for (vector<int>::iterator it = water->at(i)->getNeighbours()->begin();
 	        it != water->at(i)->getNeighbours()->end(); ++it) {
@@ -377,8 +302,8 @@ void SPH::calculateDensityChange() {
 		avgDerivedDensity += dDensity;
 		avgDensityAdv += densityAdv;
 	}
-	avgDerivedDensity /= (particleCount - idx);
-	avgDensityAdv /= (particleCount - idx);
+	avgDerivedDensity /= (particleCount - 0);
+	avgDensityAdv /= (particleCount - 0);
 }
 
 // Correct density error
@@ -390,13 +315,13 @@ void SPH::correctDensityError() {
 	calculateDensityChange();
 	
 	// Lower calculations of ki/kj by adding scaling directly
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT2);
 	}
 
 	const double eta = maxError * 0.01 * restDensity;  // maxError is given in percent
 	while ((abs(avgDensityAdv - restDensity) > eta || (iter < 2)) && (iter < 100)) {
-		for (int i = idx; i < particleCount; ++i) {
+		for (int i = 0; i < particleCount; ++i) {
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
 			double ki = std::max((water->at(i)->getDensityAdv() - restDensity) 
 			* water->at(i)->getAlpha(), 0.5); 
@@ -421,7 +346,7 @@ void SPH::correctDensityError() {
 		iter++;
 	}
 	// Change alpha back
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setAlpha(water->at(i)->getAlpha() * dT*dT);
 	}
 }
@@ -435,13 +360,13 @@ void SPH::correctDivergenceError() {
 	calculateDensityChange();
 
 	// Lower calculations of ki/kj by adding scaling directly
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setAlpha(water->at(i)->getAlpha() * invdT / water->at(i)->getDensity());
 	}
 
 	const double etaV = maxErrorV;
 	while ((abs(avgDerivedDensity) > etaV || (iter < 1)) && (iter < 100)) {
-		for (int i = idx; i < particleCount; ++i) {
+		for (int i = 0; i < particleCount; ++i) {
 			dvec3 sum = dvec3(0.0, 0.0, 0.0);
 			double ki = water->at(i)->getDerivedDensity() * water->at(i)->getAlpha(); 
 
@@ -462,7 +387,7 @@ void SPH::correctDivergenceError() {
 		iter++;		
 	}
 	// Change alpha back
-	for (int i = idx; i < particleCount; ++i) {
+	for (int i = 0; i < particleCount; ++i) {
 		water->at(i)->setAlpha(water->at(i)->getAlpha() * dT * water->at(i)->getDensity());
 	}
 }

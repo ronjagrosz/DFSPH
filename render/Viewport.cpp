@@ -243,7 +243,14 @@ int Viewport::start(int argc, char** argv) {
 	ifstream paramStream ("json/scene_parameters.json");
 	paramStream >> param;
 	float boundaryDimension = (float)(param.get<picojson::object>()["boundaryDimension"].get<double>());
+	float radius = (float)(param.get<picojson::object>()["geometry"].get<picojson::object>()["r"].get<double>());
 
+	/*
+		1 0 0 0 
+		0 1 0 0
+		0 0 0 0
+		0 0 0 r	
+	*/
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -278,7 +285,8 @@ int Viewport::start(int argc, char** argv) {
 
         
         boundingBox.draw(vao, boundaryDimension);
-        
+        cylinder.draw(vao, radius);
+
 		// Save the frame
 		if (record) {
 			frameCount++;

@@ -36,7 +36,6 @@ class SPH
 
 	protected:
 		int				particleCount;
-		int 			idx;	
 		double			dT;
 		double 			restDensity;
 		double			avgDensityAdv;

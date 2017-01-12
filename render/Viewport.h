@@ -16,6 +16,7 @@ Viewport is used as a OpenGL controller.  Viewport is responsible for managing a
 
 #include "boost/timer.hpp"
 #include "../render/BoundingBox.h"
+#include "../render/Cylinder.h"
 
 #ifdef __linux__
 #include "../glm/glm/glm.hpp"
@@ -75,6 +76,7 @@ class Viewport {
 
 		SPH 		*hydro;
 		BoundingBox	boundingBox;
+		Cylinder	cylinder;
 		boost::timer		*timeSinceStart;
 
 		void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
