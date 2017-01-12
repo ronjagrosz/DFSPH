@@ -24,3 +24,7 @@ The project is compiled with a Makefile, however as installation directories dep
 4. Install with `make` with all appropriate flags
 5. Change simulation properties through `scene_parameters.json`
 6. Run with `./out`
+
+### N.B.
+
+Note that in the latest version the graphics may not work for Linux because of gl_PointCoord in the fragment shader.
