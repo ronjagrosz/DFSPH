@@ -105,7 +105,7 @@
     Incompressibility was enforced using a prediction correction scheme to determine the particle pressures.
     To achieve this the information about the density fluctuation was actively propagated through the fluid and the pressure values where updated until the targeted density was satisfied.
 
-    A ghost fluid approach for free surface and solid boundary conditions for a SPH fluid simulation what proposed by Schechter et al.~\cite{ghost}.
+    A ghost fluid approach for free surface and solid boundary conditions for a SPH fluid simulation was proposed by Schechter et al.~\cite{ghost}.
     The ghost particles are placed on free surfaces and at solid boundary conditions.
     The approach solves problems like spurious numerical surface tension artifacts and errors in the mass conservation constraints.
 
@@ -119,14 +119,14 @@
 %Clear enough that you could hand the report to another student and they could reproduce the work!
 %Probably no need to mention programming language etc
 
-Listing \ref{lst:simulation} drafts the produced simulation after following Bender et al.~\cite{bender} proposed method in detail.
-Upon starting the application the particle neighbourhood $N_i$ will be determined with a cell list solution explained in section \ref{section:neighbour}.
+The produced simulation after following the method proposed by Bender et al.~\cite{bender} is drafted in Listing~\ref{lst:simulation}. 
+Upon starting the application the particle neighbourhood $N_i$ will be determined with a cell list solution explained in Section~\ref{section:neighbour}.
 For each particle the alpha $\alpha_i$ and density $\rho_i$ parameters will be computed, both of which are commonly reused variables and thus worth storing to reduce computation cost.
 This is done before entering the simulation loop as initial values are required.
 During the loop all these parameters will be updated as the simulation progresses.
 
-Once in the simulation at line $7$ the first time step will be determined through the CFL condition explained in section \ref{section:timestep}.
-The new velocities for each particle is then predicted through the included external forces which are propagated with ordinary euler integration.
+Once in the simulation at line $7$ the first time step will be determined through the CFL condition explained in Section~\ref{section:timestep}.
+The new velocities for each particle is then predicted through the included external forces which are propagated with ordinary Euler integration.
 
 \begin{lstlisting}[caption={Simulation algorithm},label={lst:simulation}, language=C++, mathescape=true, escapeinside={(*}{*)}] 
 function performFluidSimulation
@@ -151,10 +151,10 @@ function performFluidSimulation
 \end{lstlisting}
 
 The density solver uses the precomputed parameter $\alpha_i$ together with this prediction to compute the pressure forces in each neighbourhood such that it can correct the density error $\rho_i^* - \rho_i = 0$.
-This is further explained in \ref{densitySolver}.
+This is further explained in Section~\ref{densitySolver}.
 
 After the particle position $\vect{x_i}$ has been updated the neighbourhoods and the $\alpha_i$ and $\rho_i$ factors are recalculated to reflect the new positions.
-Lastly, in line $19$ the divergence solver, much like the density solver, calculates the pressure forces to eliminate its error.
+Lastly, in line $19$ of Listing~\ref{lst:simulation} the divergence solver, much like the density solver, calculates the pressure forces to eliminate its error.
 In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal to $0$.
 
 \subsection{Navier-Stokes}
@@ -184,10 +184,8 @@ In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal 
 
 % CFL condition, explain why its necessary and how its assured that each rendered frame has the same time step.
 In order to assure a stable simulation it is necessary to adapt the time step depending on the motion.
-The quicker the particles move the smaller time steps are taken such that the numerical 
-error of the explicit time integration is negligible.
-A condition was proposed by 
-Courant$-$Friedrichs$-$Lewy, often refered to as the CFL-condition, which is shown in Equation \ref{eq:cfl}.
+Depending on how quick the particles move, smaller time steps are taken such that the numerical error of the explicit time integration is negligible.
+A condition was proposed by Courant$-$Friedrichs$-$Lewy, often refered to as the CFL-condition, which is shown in Equation~\ref{eq:cfl}.
 The time step $\Delta t$ is equal to a fraction of the particle's diameter $d$ divided by 
 the maximum velocity $\vect{V}_{max}$ in the scene.
 
@@ -222,7 +220,7 @@ This means that the simulation loop can iterate multiple times within each frame
     The cell list is implemented by using a four dimensional vector where the first three dimensions are for the $x$, $y$ and $z$ coordinates and the fourth dimension is for storing the index of the particles that belong to the cell.
 
     The amount of cells are decided by dividing the scene into cells of length $h$.
-    The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation ~\ref{eq:assignCell}, where $\vect{x}$ is the position of the particle and $\vect{s}_{min}$ is the lowest position of the scene space.
+    The particles are then assigned to a cell by finding the cell's coordinates that it belongs to according to Equation~\ref{eq:assignCell}, where $\vect{x}$ is the position of the particle and $\vect{s}_{min}$ is the lowest position of the scene space.
     If the particle moves out of its cell it is reassigned to the new cell it is inside.
 
     \begin{equation} \label{eq:assignCell}
@@ -253,7 +251,7 @@ This means that the simulation loop can iterate multiple times within each frame
     The algorithm does also require the kernel gradient.
     To reduce the computational effort and memory requirements Bender et. al.~\cite{bender} introduce a scalar function $g(q) = \frac{\partial W_h}{\partial q} \cdot \frac{1}{h \left \| x \right \|}$.
     The gradient kernel is then calculated by $\partial W_h(q(x)) = x \cdot g(x)$.
-    The gradient kernel is described by Equation ~\ref{eq:gradKernel}.
+    The gradient kernel is described by Equation~\ref{eq:gradKernel}.
 
 
     \begin{equation} \label{eq:gradKernel}
@@ -392,8 +390,8 @@ This means that the simulation loop can iterate multiple times within each frame
         \end{lstlisting}
     \fi
 
-    The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in Equation \ref{eq:nsDensity}.
-    \\ \\ Equation \ref{eq:dpdt} defines how the density change is computed.
+    The divergence-free solver ensures the fluid to be free of density change over time by enforcing $\frac{D\rho}{Dt} = 0$, which is equivalent to the Navier-Stokes divergence free condition given in Equation~\ref{eq:nsDensity}.
+    \\ \\ Equation~\ref{eq:dpdt} defines how the density change is computed.
     As in the density solver, the total pressure forces acting on a particle $i$ are computed.
     The stiffness parameter is calculated through Equation~\ref{eq:kappaDivergence}.
 
@@ -407,7 +405,7 @@ This means that the simulation loop can iterate multiple times within each frame
 
 
     The stiffness parameters need to be determined iteratively since neighboring particles depend on each other.
-    After the symmetric pressure force has been applied to the new velocity should the density change in Equation \ref{eq:dpdt} be equal or close to zero.
+    After the symmetric pressure force has been applied to the new velocity should the density change in Equation~\ref{eq:dpdt} be equal or close to zero.
     If the error is too large the process will be iterated until desired result have been achieved.
 
 
