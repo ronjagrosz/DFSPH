@@ -194,7 +194,7 @@ void SPH::boundaryCondition(int i) {
 
 	// Boundary of geometry
 	if (gradP != dvec3(0.0, 0.0, 0.0)) {
-		if (vel.y > 0.0)
+		if (vel.y > 0.0 && pos.y < 0.0)
 			vel = dvec3(0.0, 0.0, 0.0);
 		else
 			vel = gradP + gravity*dT;
