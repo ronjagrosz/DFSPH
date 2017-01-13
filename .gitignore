@@ -2,13 +2,10 @@
 # Created by https://www.gitignore.io/api/c++,macos,linux
 
 ### Directories ###
-documents/
 results/frames/
 results/out*.mp4
 scene/
 glm/
-Screen_Grabs_and_Vid/
-Makefile
 
 
 ### C++ ###
