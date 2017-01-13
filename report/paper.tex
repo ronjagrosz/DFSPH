@@ -522,7 +522,7 @@ z \\
 		\label{fig:res3}
 	\end{figure}
 
-	To be able to simulate how outer forces affect the water, we implemented a feature where the user is able to change the direction of the force
+	To be able to simulate how outer forces affect the water, we implemented a feature where the user is able to change the direction of the force.
 	The result when applying a force from right to left on the water and then letting only the gravity affect it is shown in Figure~\ref{fig:res4}.
 
 	\begin{figure}[h!]
@@ -542,6 +542,9 @@ z \\
 %Say what you’ve done right... ...and what you’ve done wrong! - be honest!
 %Suggest some possible ways that the work could have been done better
 %Suggest some ways that it could be extended and improved by adding more effort
+
+    % Conclusion
+    We were able to implement the SPH method presented by Bender et al.~\cite{bender} which induce that the fluid is incompressible. Though, there are several possible improvements that would improve the implementation and increase the frame rate.  
 
     % Use ghost-SPH or similar
     To increase the accuracy of the interaction with the boundary and free surfaces a method like ghost-SPH that was presented by Schechter et al.~\cite{ghost} could be implemented.
