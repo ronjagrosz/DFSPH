@@ -29,17 +29,20 @@ SPH::SPH()
 	GLfloat randX, randY, randZ;
 	maxVelocity = constantAcceleration * maxTimestep;	
 	srand(time(0));
+	double step = 3.0 * particleRadius / boundaryDimension;
 
 	water = new vector<Particle*>(particleCount);
-    cellList = new CellList(dvec3(-1.0, 0.0, -1.0), dvec3(1.0, 3.0, 1.0), H);
-    
+    cellList = new CellList(
+    	dvec3(-2*boundaryDimension, -2*boundaryDimension, -2*boundaryDimension), 
+    	dvec3(2*boundaryDimension, 2*boundaryDimension+3.0, 2*boundaryDimension), H);
+
     // Initiate particles
 	for(int i = 0; i < particleCount; ++i) {
 
 		// Random position
-		randX = ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0;
-		randY = ((float)rand()/(float)RAND_MAX) * 2.0 + 0.0;
-		randZ = ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0;
+		randX = (((float)rand()/(float)RAND_MAX) * 2.0 - 1.0) * boundaryDimension;
+		randY = (((float)rand()/(float)RAND_MAX) * 2.0 - 0.0) * boundaryDimension;
+		randZ = (((float)rand()/(float)RAND_MAX) * 2.0 - 1.0) * boundaryDimension;
 
 		if (alongBoundary(dvec4(randX, randY, randZ, 1.0)) != dvec3(0,0,0)) {
 			randY += 0.5;
@@ -48,7 +51,10 @@ SPH::SPH()
 		water->at(i) = new Particle();
 		water->at(i)->setPosition(randX, randY, randZ);
 		water->at(i)->setVelocity(dvec3(0.0, 0.0, 0.0));
+		water->at(i)->id = 0;
 	}
+
+	
 
 	for(int i = 0; i < particleCount; ++i) {
 		// Divide particles into cells
@@ -187,8 +193,12 @@ void SPH::boundaryCondition(int i) {
 		vel.z = 0.0;
 
 	// Boundary of geometry
-	if (gradP != dvec3(0.0, 0.0, 0.0))
-		vel = gradP + gravity*dT;
+	if (gradP != dvec3(0.0, 0.0, 0.0)) {
+		if (vel.y > 0.0 && pos.y < 0.0)
+			vel = dvec3(0.0, 0.0, 0.0);
+		else
+			vel = gradP + gravity*dT;
+	}
 
 	water->at(i)->setVelocity(vel);
 }
@@ -296,8 +306,8 @@ void SPH::calculateDensityChange() {
 		avgDerivedDensity += dDensity;
 		avgDensityAdv += densityAdv;
 	}
-	avgDerivedDensity /= particleCount;
-	avgDensityAdv /= particleCount;
+	avgDerivedDensity /= (particleCount - 0);
+	avgDensityAdv /= (particleCount - 0);
 }
 
 // Correct density error
@@ -329,20 +339,10 @@ void SPH::correctDensityError() {
 					* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H); 
 			}
 
-			//neumann
-			dvec3 vel = water->at(i)->getVelocity() - (sum * dT);
-			dvec3 pos = water->at(i)->getPosition();
-			dvec3 dPos = vel * dT;
-
-			if(pos.x+dPos.x < -boundaryDimension || pos.x+dPos.x > boundaryDimension) // X
-				sum.x = 0.0;
-			if(pos.y+dPos.y < -boundaryDimension) // Y
-				sum.y = 0.0;
-			if(pos.z+dPos.z < -boundaryDimension || pos.z+dPos.z > boundaryDimension) // Z
-				sum.z = 0.0;
-
-
-			water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
+			if (water->at(i)->id == 0) {
+				water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
+				boundaryCondition(i);
+			}
 			// Last velocity change before updatePosition, make sure we don't go into boundaries
 			
 		}
@@ -382,7 +382,10 @@ void SPH::correctDivergenceError() {
             	sum += particleMass * (ki + kj)
 				* water->at(i)->gradientKernel(water->at(*it)->getPosition(), H);
 			}
-			water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
+			if (water->at(i)->id == 0) {
+				water->at(i)->setVelocity(water->at(i)->getVelocity() - (sum * dT));
+				boundaryCondition(i);
+			}
 		}
 		calculateDensityChange();
 		iter++;		

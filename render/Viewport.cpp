@@ -243,7 +243,15 @@ int Viewport::start(int argc, char** argv) {
 	ifstream paramStream ("json/scene_parameters.json");
 	paramStream >> param;
 	float boundaryDimension = (float)(param.get<picojson::object>()["boundaryDimension"].get<double>());
+	float radius = (float)(param.get<picojson::object>()["geometry"].get<picojson::object>()["r"].get<double>());
+	string name = param.get<picojson::object>()["sceneName"].get<std::string>();
 
+	/*
+		1 0 0 0 
+		0 1 0 0
+		0 0 0 0
+		0 0 0 r	
+	*/
 
     // Let's get started!
     while (!glfwWindowShouldClose(window)) {
@@ -278,7 +286,13 @@ int Viewport::start(int argc, char** argv) {
 
         
         boundingBox.draw(vao, boundaryDimension);
-        
+        if (name == "cylinder")
+        	cylinder.draw(vao, radius, boundaryDimension);
+
+
+
+
+
 		// Save the frame
 		if (record) {
 			frameCount++;
@@ -287,9 +301,9 @@ int Viewport::start(int argc, char** argv) {
 			// Make the BYTE array, factor of 3 because it's RBG.
 			BYTE* pixels = new BYTE[ 3 * width * height];
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+			glReadPixels(0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, pixels);
 			// Convert to FreeImage format & save to file
-			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0xFF0000, 0x00FF00, 0x0000FF, false);
+			FIBITMAP* image = FreeImage_ConvertFromRawBits(pixels, width, height, 3 * width, 24, 0x0000FF, 0x00FF00, 0xFF0000, false);
 			FreeImage_Save(FIF_PNG, image, fileName.c_str(), 0);
 
 			// Free resources
