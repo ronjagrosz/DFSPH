@@ -40,9 +40,9 @@ SPH::SPH()
 	for(int i = 0; i < particleCount; ++i) {
 
 		// Random position
-		randX = ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0;
-		randY = ((float)rand()/(float)RAND_MAX) * 2.0 - 0.0;
-		randZ = ((float)rand()/(float)RAND_MAX) * 2.0 - 1.0;
+		randX = (((float)rand()/(float)RAND_MAX) * 2.0 - 1.0) * boundaryDimension;
+		randY = (((float)rand()/(float)RAND_MAX) * 2.0 - 0.0) * boundaryDimension;
+		randZ = (((float)rand()/(float)RAND_MAX) * 2.0 - 1.0) * boundaryDimension;
 
 		if (alongBoundary(dvec4(randX, randY, randZ, 1.0)) != dvec3(0,0,0)) {
 			randY += 0.5;
@@ -193,8 +193,12 @@ void SPH::boundaryCondition(int i) {
 		vel.z = 0.0;
 
 	// Boundary of geometry
-	if (gradP != dvec3(0.0, 0.0, 0.0))
-		vel = gradP + gravity*dT;
+	if (gradP != dvec3(0.0, 0.0, 0.0)) {
+		if (vel.y > 0.0)
+			vel = dvec3(0.0, 0.0, 0.0);
+		else
+			vel = gradP + gravity*dT;
+	}
 
 	water->at(i)->setVelocity(vel);
 }

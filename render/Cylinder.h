@@ -8,14 +8,13 @@ File name: 	Cylinder.h
 #include "GLFW/glfw3.h"
 
 class Cylinder {
-	private:
-		int radius;
-		GLuint vbo_c[2];
+private:
+	int radius;
+	GLuint vbo_c[2];
 
-	public:
-		Cylinder();
-		~Cylinder();
+public:
+	Cylinder();
+	~Cylinder();
 
-		void draw(GLuint vao, float radius);
-		
+	void draw(GLuint vao, float radius, float boundary);
 };

@@ -7,72 +7,67 @@ a cylinder.
 *************************************************************************/
 
 #include "Cylinder.h"
+#include <math.h>
+#include <iostream>
+using namespace std;
 
 Cylinder::Cylinder(){}
 
-Cylinder::~Cylinder() {}
 
-void Cylinder::draw(GLuint vao, float radius) {
-	GLfloat vertices[72] = {-radius, radius, radius, 	// 1
-							-radius, radius, -radius, // 2
+Cylinder::~Cylinder(){}
 
-							-radius, radius, -radius, // 2
-							radius, radius, -radius, 	// 3
+void Cylinder::draw(GLuint vao, float radius, float boundary) {
 
-							radius, radius, -radius, 	// 3
-							radius, radius, radius, 		// 4
 
-							radius, radius, radius, 		// 4
-							-radius, radius, radius, 	// 1
+	// o=========o
 
-							-radius, radius, radius, 	// 1
-							-radius, -radius, radius, 	// 5
+	// how many segments? - 36
+	float segments = 200;
+	int l = 6;
+	const int num = l * segments;
+	float angle;
+	float x, y;
+	
+	GLfloat vertices[num];
+	float sqrtRadius = sqrt(radius);
+	for (int i = 0; i < segments; ++i) {
+		angle = i * 2/segments * M_PI;	
+		x = sqrtRadius * cos(angle);
+		y = sqrtRadius * sin(angle);
 
-							-radius, -radius, radius, 	// 5
-							-radius, -radius, -radius, 	// 6
+		// Lines on sides
+		vertices[l*i+0] = x;
+		vertices[l*i+1] = y;
+		vertices[l*i+2] = -boundary - 0.5;
 
-							-radius, -radius, -radius, 	// 6
-							radius, -radius, -radius, 	// 7
+		vertices[l*i+3] = x;
+		vertices[l*i+4] = y;
+		vertices[l*i+5] = boundary + 0.5;
 
-							radius, -radius, -radius, 	// 7
-							radius, -radius, radius, 	// 8
+		/*
+		// Back
+		vertices[l*i+6] = x;
+		vertices[l*i+7] = y;
+		vertices[l*i+8] = -boundary;
 
-							radius, -radius, radius, 	// 8
-							-radius, -radius, radius, 	// 5
+		vertices[l*i+9] = 0.0;
+		vertices[l*i+10] = 0.0;
+		vertices[l*i+11] = -boundary;
 
-							-radius, radius, -radius, // 2
-							-radius, -radius, -radius, 	// 6
+		// Front
+		vertices[l*i+12] = x;
+		vertices[l*i+13] = y;
+		vertices[l*i+14] = boundary;
 
-							radius, radius, -radius, 	// 3
-							radius, -radius, -radius, 	// 7
+		vertices[l*i+15] = 0.0;
+		vertices[l*i+16] = 0.0;
+		vertices[l*i+17] = boundary;
+		*/
+	}
 
-							radius, radius, radius, 		// 4
-							radius, -radius, radius}; 	// 8
-
-	GLfloat color[72] = {1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0,
-						1.0, 1.0, 1.0};
+	GLfloat color[num]; // num
+	for (int i = 0; i < num; ++i)
+		color[i] = 1000;
 
 	//vertices = (float)radius * vertices;
 
@@ -84,7 +79,7 @@ void Cylinder::draw(GLuint vao, float radius) {
 
 	// Copy the vertex data from diamond to our buffer 
     // 8 * sizeof(GLfloat) is the size of the diamond array, since it contains 8 GLfloat values 
-    glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, num * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
     // Specify that our coordinate data is going into attribute index 0, and contains three floats per vertex 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -95,7 +90,7 @@ void Cylinder::draw(GLuint vao, float radius) {
     // Bind the second VBO as being the active buffer and storing vertex attributes (colors)
     glBindBuffer(GL_ARRAY_BUFFER, vbo_c[1]);
 
-    glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(GLfloat), color, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, num * sizeof(GLfloat), color, GL_STATIC_DRAW);
 
     // Specify that our color data is going into attribute index 1, and contains three floats per vertex 
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -105,6 +100,13 @@ void Cylinder::draw(GLuint vao, float radius) {
 
 	glBindVertexArray(vao);
 
-	glDrawArrays(GL_LINES, 0, 72);
-
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(20.0f);
+	glDrawArrays(GL_LINES, 0, num);
+	glDisable(GL_LINE_SMOOTH);
 }
+
+
+
+
+

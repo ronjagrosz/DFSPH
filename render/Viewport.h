@@ -36,13 +36,6 @@ class SPH;
 
 using namespace std;
 
-struct rect {
-	float width;
-	float height;
-	float x;
-	float y;
-};
-
 class Viewport {	
 	public:	
 		Viewport();
@@ -76,8 +69,7 @@ class Viewport {
 
 		SPH 		*hydro;
 		BoundingBox	boundingBox;
-		Cylinder	cylinder;
-		boost::timer		*timeSinceStart;
+		Cylinder cylinder;
 
 		void init(void);					//Initializes a lot of openGL features, mostly just glEnable calls
 		void setupPerspective(GLFWwindow *window, GLfloat *P);			//OpenGL window reshape callback
