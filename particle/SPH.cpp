@@ -204,7 +204,7 @@ void SPH::boundaryCondition(int i) {
 }
 
 // Check if (x,y,z) is inside an implicit geometry, if so return the gradient in that p
-dvec3 SPH::alongBoundary(dvec4 p) {
+dvec3 SPH::alongBoundary(dvec4 p) { 
 	dmat4 Q = dmat4(0.0);
 	dvec4 gradP = dvec4(0.0, 0.0, 0.0, 0.0);
 
@@ -212,9 +212,10 @@ dvec3 SPH::alongBoundary(dvec4 p) {
 	if (sceneName == "cylinder") {
 		Q[0][0] = 1.0;
 		Q[1][1] = 1.0;
-		Q[3][3] = -geometry.w;
+		Q[3][3] = -pow((sqrt(geometry.w) + 2*particleRadius),2);
 	}
-
+	// g.w = r^2
+	// new g.w = r+particleRadius
 	// Ellipsoid
 	else if (sceneName == "ellipsoid") {
 		Q[0][0] = 1.0/pow(geometry.x,2);

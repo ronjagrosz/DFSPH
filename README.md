@@ -1,7 +1,7 @@
 ## DFSPH
 Divergence-free smoothed particle hydrodynamics fluid simulation in the course TN1008 - Advanced simulation and visualization of fluids in computer graphics.
 
-The project is compiled with a Makefile, however as installation directories depends on the OS will it not be uploaded.
+The project is compiled with a Makefile, however as installation directories depends on the OS make sure the directories are correct.
 
 ### Results
 
