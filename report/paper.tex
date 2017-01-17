@@ -98,12 +98,12 @@
     During the first half step density fluctuations are eliminated by altering the intermediate particle position.
     During the second half step errors in velocity divergence are resolved by altering the intermediate particle velocity.
 
-    Ihmsen et al.~\cite{ihmsen2014implicit} proposed an implicit incompressible SPH method with a pressure poisson equation made by the combination of a symmetric SPH pressure force and a SPH discretization of the continuity equation.
-    The pressure poisson equation is used to compute the pressure so that the pressure forces correct the intermediate velocities to a divergence-free state.
+    Ihmsen et al.~\cite{ihmsen2014implicit} proposed an implicit incompressible SPH method with a pressure Poisson equation made by the combination of a symmetric SPH pressure force and a SPH discretization of the continuity equation.
+    The pressure Poisson equation is used to compute the pressure so that the pressure forces correct the intermediate velocities to a divergence-free state.
     
     A predictive corrective incompressible SPH method was proposed by Solenthaler et al.~\cite{solenthaler} based on the Lagrangian SPH model.
     Incompressibility was enforced using a prediction correction scheme to determine the particle pressures.
-    To achieve this the information about the density fluctuation was actively propagated through the fluid and the pressure values where updated until the targeted density was satisfied.
+    To achieve this the information about the density fluctuation was actively propagated through the fluid and the pressure values were updated until the targeted density was satisfied.
 
     A ghost fluid approach for free surface and solid boundary conditions for a SPH fluid simulation was proposed by Schechter et al.~\cite{ghost}.
     The ghost particles are placed on free surfaces and at solid boundary conditions.
@@ -176,7 +176,7 @@ In this case the divergence error $\frac{D\rho_i}{Dt}$ is corrected to be equal 
     From this it follows that the density, in theory, must stay constant over time which is the implication of an incompressible fluid.
     In practice the divergence-free condition is not sufficient to guarantee incompressibility in simulations.
     The numerical time integrations will contain numerical errors which will cause density deviations due to the volume compressions.
-    To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fullfilled~\cite{bender}.
+    To avoid this a second condition $\rho - \rho_0 = 0$ called \textit{constant density condition} must be fulfilled~\cite{bender}.
     Section~\ref{densitySolver} and~\ref{divergenceSolver} give a deeper description of the solvers used in the project.
 
 
@@ -407,7 +407,7 @@ This means that the simulation loop can iterate multiple times within each frame
 
     The stiffness parameters need to be determined iteratively since neighboring particles depend on each other.
     After the symmetric pressure force has been applied to the new velocity should the density change in Equation~\ref{eq:dpdt} be equal or close to zero.
-    If the error is too large the process will be iterated until desired result have been achieved.
+    If the error is too large the process will be iterated until the desired result have been achieved.
 
 
 \subsection{Boundary conditions}
@@ -426,7 +426,7 @@ Given an isovalue $C = f(\vect{x})$, point $\vect{x}$ can be classified as follo
   \end{array}
 \end{eqnarray}
 
-All possible implicit geomitries can be descibed by a quadratic function, which is found in Equation~\ref{eqn:quadratic}, and in matrix form in Equation~\ref{eqn:quadricmatrixform}.
+All possible implicit geometries can be described by a quadratic function, which is found in Equation~\ref{eqn:quadratic}, and in matrix form in Equation~\ref{eqn:quadricmatrixform}.
 
 \begin{eqnarray}
 \label{eqn:quadratic}
@@ -484,10 +484,10 @@ z \\
     % Makefiles
     The divergence-free SPH simulation was developed using OpenGL and C++ together with the OpenGL mathematics library GLM for vector calculations.
     FreeImage was used to save frames of the simulation and FFmpeg to assembled the frames into a video.
-    PicoJSON was used to load in variables from a file making it easier to change variables quick and efficient and a makefile was used to compile the project.
+    PicoJSON was used to load variables from a file making it easier to change variables quickly and efficiently and a makefile was used to compile the project.
 
     The simulation was developed on macOS and Linux.
-    The Linux computer is running on Debian and has four Intel(R) Core(TM) i5-2450M CPU @ 2.50GHz, one NVIDIA GeForce 610M graphics card and 6.0 GiB RAM.
+    The Linux computer is running on Debian and has a 50 GHz Intel Core i5-2450M processor and a NVIDIA GeForce 610M graphics card.
     One of the Mac OS computer is running on macOS Sierra and has a 1.8 GHz Intel Core i5 processor with an Intel HD Graphics 400 1536 MB graphics card.
 
 
@@ -505,7 +505,7 @@ z \\
 
 	\begin{figure}[h!]
 		\includegraphics[width=\linewidth]{img/frame0001.png}
-		\caption{Inital state of the water when the application starts.}
+		\caption{Initial state of the water when the application starts.}
 		\label{fig:res1}
 	\end{figure}
 
